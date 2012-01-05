@@ -8,8 +8,10 @@
 
 package org.dspace.rest.entities;
 
+import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.*;
 import org.dspace.content.Collection;
+import org.dspace.core.Constants;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 import org.sakaiproject.entitybus.exception.EntityException;
@@ -58,52 +60,115 @@ public class ItemEntity extends ItemEntityId {
     private DisseminationCrosswalk xHTMLHeadCrosswalk;
 
     // TODO inspect and add additional fields
-    public ItemEntity(String uid, Context context, int level, UserRequestParams uparams) throws SQLException {
-        Item res = Item.find(context, Integer.parseInt(uid));
-        this.id = res.getID();
-        this.canEdit = res.canEdit();
-        this.handle = res.getHandle();
-        this.name = res.getName();
-        this.type = res.getType();
-        this.lastModified = res.getLastModified();
-        this.isArchived = res.isArchived();
-        this.isArchived = res.isWithdrawn();
-        this.submitter = new UserEntity(res.getSubmitter());
+//    public ItemEntity(String uid, Context context, int level, UserRequestParams uparams) throws SQLException {
+//        Item res = Item.find(context, Integer.parseInt(uid));
+//        this.id = res.getID();
+//        this.canEdit = res.canEdit();
+//        this.handle = res.getHandle();
+//        this.name = res.getName();
+//        this.type = res.getType();
+//        this.lastModified = res.getLastModified();
+//        this.isArchived = res.isArchived();
+//        this.isArchived = res.isWithdrawn();
+//        this.submitter = new UserEntity(res.getSubmitter());
+//
+//        Bundle[] bun = res.getBundles();
+//        Bitstream[] bst = res.getNonInternalBitstreams();
+//        Collection[] col = res.getCollections();
+//        Community[] com = res.getCommunities();
+//        boolean includeFull = false;
+//        level++;
+//        if (level <= uparams.getDetail()) {
+//            includeFull = true;
+//        }
+//
+//        Collection ownCol = res.getOwningCollection();
+//        if (ownCol != null) {
+//            this.owningCollection = includeFull ? new CollectionEntity(ownCol, level, uparams) : new CollectionEntityId(ownCol);
+//        }
+//        for (Bundle b : bun) {
+//            this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
+//        }
+//        for (Bitstream b : bst) {
+//            this.bitstreams.add(includeFull ? new BitstreamEntity(b, level, uparams) : new BitstreamEntityId(b));
+//        }
+//        for (Collection c : col) {
+//            this.collections.add(includeFull ? new CollectionEntity(c, level, uparams) : new CollectionEntityId(c));
+//        }
+//        for (Community c : com) {
+//            this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
+//        }
+//
+//        DCValue[] dcValues = res.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+//        for (DCValue dcValue : dcValues)
+//        {
+//            this.metadata.add(includeFull ? new MetadataEntity(dcValue, level, uparams) : new MetadataEntityId(dcValue));
+//        }
+//
+//        context.complete();
+//    }
 
-        Bundle[] bun = res.getBundles();
-        Bitstream[] bst = res.getNonInternalBitstreams();
-        Collection[] col = res.getCollections();
-        Community[] com = res.getCommunities();
-        boolean includeFull = false;
-        level++;
-        if (level <= uparams.getDetail()) {
-            includeFull = true;
-        }
+    public  ItemEntity(String uid, Context context, int level, UserRequestParams uparams) {
+        if (uid!=null&&!"".equals(uid)) {
+            try {
+                Item res = Item.find(context, Integer.parseInt(uid));
 
-        Collection ownCol = res.getOwningCollection();
-        if (ownCol != null) {
-            this.owningCollection = includeFull ? new CollectionEntity(ownCol, level, uparams) : new CollectionEntityId(ownCol);
-        }
-        for (Bundle b : bun) {
-            this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
-        }
-        for (Bitstream b : bst) {
-            this.bitstreams.add(includeFull ? new BitstreamEntity(b, level, uparams) : new BitstreamEntityId(b));
-        }
-        for (Collection c : col) {
-            this.collections.add(includeFull ? new CollectionEntity(c, level, uparams) : new CollectionEntityId(c));
-        }
-        for (Community c : com) {
-            this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
-        }
+                // Check authorisation
+                AuthorizeManager.authorizeAction(context, res, Constants.READ);
 
-        DCValue[] dcValues = res.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-        for (DCValue dcValue : dcValues)
-        {
-            this.metadata.add(includeFull ? new MetadataEntity(dcValue, level, uparams) : new MetadataEntityId(dcValue));
-        }
+                this.id = res.getID();
+                this.canEdit = res.canEdit();
+                this.handle = res.getHandle();
+                this.name = res.getName();
+                this.type = res.getType();
+                this.lastModified = res.getLastModified();
+                this.isArchived = res.isArchived();
+                this.isArchived = res.isWithdrawn();
+                this.submitter = new UserEntity(res.getSubmitter());
 
-        context.complete();
+                Bundle[] bun = res.getBundles();
+                Bitstream[] bst = res.getNonInternalBitstreams();
+                Collection[] col = res.getCollections();
+                Community[] com = res.getCommunities();
+                boolean includeFull = false;
+                level++;
+                if (level <= uparams.getDetail()) {
+                    includeFull = true;
+                }
+
+                Collection ownCol = res.getOwningCollection();
+                if (ownCol != null) {
+                    this.owningCollection = includeFull ? new CollectionEntity(ownCol, level, uparams) : new CollectionEntityId(ownCol);
+                }
+                for (Bundle b : bun) {
+                    this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
+                }
+                for (Bitstream b : bst) {
+                    this.bitstreams.add(includeFull ? new BitstreamEntity(b, level, uparams) : new BitstreamEntityId(b));
+                }
+                for (Collection c : col) {
+                    this.collections.add(includeFull ? new CollectionEntity(c, level, uparams) : new CollectionEntityId(c));
+                }
+                for (Community c : com) {
+                    this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
+                }
+
+                DCValue[] dcValues = res.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+                for (DCValue dcValue : dcValues)
+                {
+                    this.metadata.add(includeFull ? new MetadataEntity(dcValue, level, uparams) : new MetadataEntityId(dcValue));
+                }
+
+                context.complete();
+
+            } catch (SQLException ex) {
+                throw new EntityException("Internal server error", "SQL error", 500);
+            } catch (AuthorizeException ex) {
+                throw new EntityException("Forbidden", "Forbidden", 403);
+            }
+        } else {
+            throw new EntityException("Bad request", "Value not included", 400);
+        }
     }
 
     public ItemEntity(Item item, int level, UserRequestParams uparams) throws SQLException {
