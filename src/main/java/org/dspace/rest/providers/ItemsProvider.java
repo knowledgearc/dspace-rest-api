@@ -143,16 +143,11 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
         }
 
         if (entityExists(reference.getId())) {
-            try {
-
-                // return basic or full info, according to requirements
-                if (idOnly) {
-                    return new ItemEntityId(reference.getId(), context);
-                } else {
-                    return new ItemEntity(reference.getId(), context, 1, uparams);
-                }
-            } catch (SQLException ex) {
-                throw new IllegalArgumentException("Invalid id:" + reference.getId());
+            // return basic or full info, according to requirements
+            if (idOnly) {
+                return new ItemEntityId(reference.getId(), context);
+            } else {
+                return new ItemEntity(reference.getId(), context, 1, uparams);
             }
         }
 
