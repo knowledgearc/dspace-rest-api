@@ -8,9 +8,14 @@
 
 package org.dspace.rest.entities;
 
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
+import org.dspace.core.Constants;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 import org.dspace.content.Bitstream;
 import org.dspace.core.Context;
+import org.sakaiproject.entitybus.exception.EntityException;
+
 import java.sql.SQLException;
 
 
@@ -30,10 +35,25 @@ public class BitstreamEntityId {
 
    }
 
-   public BitstreamEntityId (String uid, Context context) throws SQLException {
-       Bitstream res = Bitstream.find(context, Integer.parseInt(uid));
-       this.id = res.getID();
-       //context.complete();
+   public BitstreamEntityId (String uid, Context context) {
+       if (uid!=null&&!"".equals(uid)) {
+           try {
+
+               Bitstream res = Bitstream.find(context, Integer.parseInt(uid));
+               // Check authorisation
+               AuthorizeManager.authorizeAction(context, res, Constants.READ);
+
+               this.id = res.getID();
+               //context.complete();
+           } catch (SQLException ex) {
+               throw new EntityException("Internal server error", "SQL error", 500);
+           } catch (AuthorizeException ex) {
+               throw new EntityException("Forbidden", "Forbidden", 403);
+           }
+       } else {
+           throw new EntityException("Bad request", "Value not included", 400);
+       }
+
    }
 
     public BitstreamEntityId(Bitstream bitstream) throws SQLException {

@@ -201,14 +201,10 @@ public class BitstreamProvider extends AbstractBaseProvider implements CoreEntit
             return new BitstreamEntity();
         }
         if (entityExists(reference.getId())) {
-            try {
-                if (idOnly) {
-                    return new BitstreamEntityId(reference.getId(), context);
-                } else {
-                    return new BitstreamEntity(reference.getId(), context,1, uparams);
-                }
-            } catch (SQLException ex) {
-                throw new IllegalArgumentException("sql!Invalid id:" + reference.getId());
+            if (idOnly) {
+                return new BitstreamEntityId(reference.getId(), context);
+            } else {
+                return new BitstreamEntity(reference.getId(), context,1, uparams);
             }
         }
 

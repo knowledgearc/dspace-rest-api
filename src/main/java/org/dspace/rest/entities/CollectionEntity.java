@@ -7,6 +7,8 @@
  */
 package org.dspace.rest.entities;
 
+import org.dspace.authorize.AuthorizeManager;
+import org.dspace.core.Constants;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 import org.dspace.content.Collection;
@@ -52,41 +54,55 @@ public class CollectionEntity {
     private String provenance;
     private Object logo;
 
-    public CollectionEntity(String uid, Context context, int level, UserRequestParams uparams) throws SQLException {
+    public CollectionEntity(String uid, Context context, int level, UserRequestParams uparams) {
         System.out.println("creating collection main");
-        Collection res = Collection.find(context, Integer.parseInt(uid));
-        this.id = res.getID();
-        this.canEdit = res.canEditBoolean();
-        this.handle = res.getHandle();
-        this.name = res.getName();
-        this.type = res.getType();
-        this.licence = res.getLicense();
-        this.short_description = res.getMetadata("short_description");
-        this.intro_text = res.getMetadata("introductory_text");
-        this.copyright_text = res.getMetadata("copyright_text");
-        this.sidebar_text = res.getMetadata("side_bar_text");
-        this.provenance = res.getMetadata("provenance_description");
+        if (uid!=null&&!"".equals(uid)) {
+            try {
+                Collection res = Collection.find(context, Integer.parseInt(uid));
+                // Check authorisation
+                AuthorizeManager.authorizeAction(context, res, Constants.READ);
 
-        //ItemIterator i = Item.findAll(context);
-        ItemIterator i = res.getAllItems();
-        boolean includeFull = false;
-        level++;
-        if (level <= uparams.getDetail()) {
-            includeFull = true;
+                this.id = res.getID();
+                this.canEdit = res.canEditBoolean();
+                this.handle = res.getHandle();
+                this.name = res.getName();
+                this.type = res.getType();
+                this.licence = res.getLicense();
+                this.short_description = res.getMetadata("short_description");
+                this.intro_text = res.getMetadata("introductory_text");
+                this.copyright_text = res.getMetadata("copyright_text");
+                this.sidebar_text = res.getMetadata("side_bar_text");
+                this.provenance = res.getMetadata("provenance_description");
+
+                //ItemIterator i = Item.findAll(context);
+                ItemIterator i = res.getAllItems();
+                boolean includeFull = false;
+                level++;
+                if (level <= uparams.getDetail()) {
+                    includeFull = true;
+                }
+
+                if (res.getLogo() != null) {
+                    this.logo = new BitstreamEntityId(Integer.toString(res.getLogo().getID()), context);
+                }
+
+                while (i.hasNext()) {
+                    items.add(includeFull ? new ItemEntity(i.next(), level, uparams) : new ItemEntityId(i.next()));
+                }
+
+                for (Community c : res.getCommunities()) {
+                    this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
+                }
+                //context.complete();
+            } catch (SQLException ex) {
+                throw new EntityException("Internal server error", "SQL error", 500);
+            } catch (AuthorizeException ex) {
+                throw new EntityException("Forbidden", "Forbidden", 403);
+            }
+        } else {
+            throw new EntityException("Bad request", "Value not included", 400);
         }
 
-        if (res.getLogo() != null) {
-            this.logo = new BitstreamEntityId(Integer.toString(res.getLogo().getID()), context);
-        }
-
-        while (i.hasNext()) {
-            items.add(includeFull ? new ItemEntity(i.next(), level, uparams) : new ItemEntityId(i.next()));
-        }
-
-        for (Community c : res.getCommunities()) {
-            this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
-        }
-        //context.complete();
     }
 
     public CollectionEntity(Collection collection, int level, UserRequestParams uparams) throws SQLException {

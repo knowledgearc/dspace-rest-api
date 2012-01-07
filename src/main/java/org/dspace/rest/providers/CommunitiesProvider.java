@@ -181,17 +181,11 @@ public class CommunitiesProvider extends AbstractBaseProvider implements CoreEnt
             UserRequestParams uparams;
             uparams = refreshParams(context);
             if (entityExists(reference.getId())) {
-                try {
-                    // return just entity containg id or full info
-                    if (idOnly) {
-                        return new CommunityEntityId(reference.getId(), context);
-                    } else {
-                        return new CommunityEntity(reference.getId(), context, 1, uparams);
-                    }
-                } catch (SQLException ex) {
-                    throw new IllegalArgumentException("Invalid id:" + reference.getId());
-                } catch (NullPointerException ne) {
-                    ne.printStackTrace();
+                // return just entity containg id or full info
+                if (idOnly) {
+                    return new CommunityEntityId(reference.getId(), context);
+                } else {
+                    return new CommunityEntity(reference.getId(), context, 1, uparams);
                 }
             }
 

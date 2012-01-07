@@ -8,9 +8,14 @@
 
 package org.dspace.rest.entities;
 
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
+import org.dspace.core.Constants;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 import org.dspace.eperson.EPerson;
 import org.dspace.core.Context;
+import org.sakaiproject.entitybus.exception.EntityException;
+
 import java.sql.SQLException;
 
 /**
@@ -28,10 +33,26 @@ public class UserEntityId implements Comparable {
     protected UserEntityId() {
     }
 
-    public UserEntityId(String uid, Context context) throws SQLException {
-        res = EPerson.find(context, Integer.parseInt(uid));
-        this.id = res.getID();
-        //context.complete();
+    public UserEntityId(String uid, Context context) {
+        if (uid!=null&&!"".equals(uid)) {
+            try {
+
+                res = EPerson.find(context, Integer.parseInt(uid));
+
+                // Check authorisation
+                AuthorizeManager.authorizeAction(context, res, Constants.READ);
+
+                this.id = res.getID();
+                //context.complete();
+            } catch (SQLException ex) {
+                throw new EntityException("Internal server error", "SQL error", 500);
+            } catch (AuthorizeException ex) {
+                throw new EntityException("Forbidden", "Forbidden", 403);
+            }
+        } else {
+            throw new EntityException("Bad request", "Value not included", 400);
+        }
+
     }
 
     public UserEntityId(EPerson eperson) throws SQLException {

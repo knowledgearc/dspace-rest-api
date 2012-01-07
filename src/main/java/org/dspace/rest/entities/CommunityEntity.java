@@ -8,6 +8,8 @@
 
 package org.dspace.rest.entities;
 
+import org.dspace.authorize.AuthorizeManager;
+import org.dspace.core.Constants;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityTitle;
@@ -62,76 +64,90 @@ public class CommunityEntity extends CommunityEntityId {
     private String short_description, introductory_text, copyright_text, side_bar_text;
     private Object logo;
 
-    public CommunityEntity(String uid, Context context, int level, UserRequestParams uparams) throws SQLException {
+    public CommunityEntity(String uid, Context context, int level, UserRequestParams uparams) {
         System.out.println("creating community main");
-        this.context = context;
-        try {
-            Community res = Community.find(context, Integer.parseInt(uid));
-            this.id = res.getID();
-            this.canEdit = res.canEditBoolean();
-            this.handle = res.getHandle();
-            this.name = res.getName();
-            this.type = res.getType();
-            boolean includeFull = false;
-            level++;
-            if (level <= uparams.getDetail()) {
-                includeFull = true;
-            }
-
-            if (res.getLogo() != null)
-            //this.logo = includeFull ? new BitstreamEntity(Integer.toString(res.getLogo().getID()), context, level, uparams) : new BitstreamEntityId(Integer.toString(res.getLogo().getID()), context);
-            this.logo = new BitstreamEntityId(Integer.toString(res.getLogo().getID()), context);
-            this.short_description = res.getMetadata("short_description");
-            this.introductory_text = res.getMetadata("introductory_text");
-            this.copyright_text = res.getMetadata("copyright_text");
-            this.side_bar_text = res.getMetadata("side_bar_text");
-
-                Collection[] cols = res.getCollections();
-            for (Collection c : cols) {
-                this.collections.add(includeFull ? new CollectionEntity(c, level, uparams) : new CollectionEntityId(c));
-            }
-            
-            Community[] coms = res.getSubcommunities();
-            for (Community c : coms) {
-                this.subCommunities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
-            }
+        if (uid!=null&&!"".equals(uid)) {
             try {
-                Community parentCommunity = res.getParentCommunity();
-                if(parentCommunity == null) {
+            this.context = context;
+            try {
+                Community res = Community.find(context, Integer.parseInt(uid));
+                // Check authorisation
+                AuthorizeManager.authorizeAction(context, res, Constants.READ);
+
+                this.id = res.getID();
+                this.canEdit = res.canEditBoolean();
+                this.handle = res.getHandle();
+                this.name = res.getName();
+                this.type = res.getType();
+                boolean includeFull = false;
+                level++;
+                if (level <= uparams.getDetail()) {
+                    includeFull = true;
+                }
+
+                if (res.getLogo() != null)
+                //this.logo = includeFull ? new BitstreamEntity(Integer.toString(res.getLogo().getID()), context, level, uparams) : new BitstreamEntityId(Integer.toString(res.getLogo().getID()), context);
+                this.logo = new BitstreamEntityId(Integer.toString(res.getLogo().getID()), context);
+                this.short_description = res.getMetadata("short_description");
+                this.introductory_text = res.getMetadata("introductory_text");
+                this.copyright_text = res.getMetadata("copyright_text");
+                this.side_bar_text = res.getMetadata("side_bar_text");
+
+                    Collection[] cols = res.getCollections();
+                for (Collection c : cols) {
+                    this.collections.add(includeFull ? new CollectionEntity(c, level, uparams) : new CollectionEntityId(c));
+                }
+
+                Community[] coms = res.getSubcommunities();
+                for (Community c : coms) {
+                    this.subCommunities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
+                }
+                try {
+                    Community parentCommunity = res.getParentCommunity();
+                    if(parentCommunity == null) {
+                        this.parent = null;
+                    } else {
+                        if(includeFull) {
+                            this.parent = new CommunityEntity(parentCommunity, level, uparams);
+                        } else {
+                            this.parent = new CommunityEntityId(parentCommunity);
+                        }
+                    }
+
+                } catch (NullPointerException ex) {
                     this.parent = null;
+                }
+                RecentSubmissionsManager rsm = new RecentSubmissionsManager(context);
+                try {
+                    RecentSubmissions recent = rsm.getRecentSubmissions(res);
+                    for (Item i : recent.getRecentSubmissions()) {
+                        this.recentSubmissions.add(includeFull ? new ItemEntity(i, level, uparams) : new ItemEntityId(i));
+                    }
+                } catch (RecentSubmissionsException ex) {
+                }
+
+                Group administrators = res.getAdministrators();
+                if(administrators == null) {
+                    this.administrators = null;
                 } else {
                     if(includeFull) {
-                        this.parent = new CommunityEntity(parentCommunity, level, uparams);
+                        this.administrators = new GroupEntity(res.getAdministrators(), level, uparams);
                     } else {
-                        this.parent = new CommunityEntityId(parentCommunity);
+                        this.administrators = new GroupEntityId(res.getAdministrators());
                     }
                 }
-
-            } catch (NullPointerException ex) {
-                this.parent = null;
+            } catch (NumberFormatException ex) {
             }
-            RecentSubmissionsManager rsm = new RecentSubmissionsManager(context);
-            try {
-                RecentSubmissions recent = rsm.getRecentSubmissions(res);
-                for (Item i : recent.getRecentSubmissions()) {
-                    this.recentSubmissions.add(includeFull ? new ItemEntity(i, level, uparams) : new ItemEntityId(i));
-                }
-            } catch (RecentSubmissionsException ex) {
+            //context.complete(); //<-important
+            } catch (SQLException ex) {
+                throw new EntityException("Internal server error", "SQL error", 500);
+            } catch (AuthorizeException ex) {
+                throw new EntityException("Forbidden", "Forbidden", 403);
             }
-
-            Group administrators = res.getAdministrators();
-            if(administrators == null) {
-                this.administrators = null;
-            } else {
-                if(includeFull) {
-                    this.administrators = new GroupEntity(res.getAdministrators(), level, uparams);
-                } else {
-                    this.administrators = new GroupEntityId(res.getAdministrators());
-                }
-            }
-        } catch (NumberFormatException ex) {
+        } else {
+            throw new EntityException("Bad request", "Value not included", 400);
         }
-        //context.complete(); //<-important
+
     }
 
     public CommunityEntity(Community community, int level, UserRequestParams uparams) throws SQLException {

@@ -29,15 +29,10 @@ public class ItemEntityId {
 
     @EntityId
     private int id;
+    protected Item res;
 
     protected ItemEntityId() {
     }
-
-//    public ItemEntityId(String uid, Context context) throws SQLException {
-//        Item res = Item.find(context, Integer.parseInt(uid));
-//        this.id = res.getID();
-//        //context.complete();
-//    }
 
     public ItemEntityId(String uid, Context context) {
         if (uid!=null&&!"".equals(uid)) {

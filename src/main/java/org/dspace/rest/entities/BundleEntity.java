@@ -8,6 +8,9 @@
 
 package org.dspace.rest.entities;
 
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
+import org.dspace.core.Constants;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 import org.dspace.content.Bundle;
@@ -19,6 +22,7 @@ import java.util.ArrayList;
 import java.sql.SQLException;
 import org.dspace.rest.util.UtilHelper;
 import org.dspace.rest.util.UserRequestParams;
+import org.sakaiproject.entitybus.exception.EntityException;
 
 /**
  * Entity describing bundle
@@ -37,30 +41,45 @@ public class BundleEntity extends BundleEntityId {
     List<Object> bitstreams = new ArrayList<Object>();
     List<Object> items = new ArrayList<Object>();
 
-    public BundleEntity(String uid, Context context, int level, UserRequestParams uparams) throws SQLException {
-        Bundle res = Bundle.find(context, Integer.parseInt(uid));
-        Bitstream[] bst = res.getBitstreams();
+    public BundleEntity(String uid, Context context, int level, UserRequestParams uparams) {
+        if (uid!=null&&!"".equals(uid)) {
+            try {
 
-        this.pid = res.getPrimaryBitstreamID();
-        this.id = res.getID();
-        this.handle = res.getHandle();
-        this.name = res.getName();
-        this.type = res.getType();
-        Item[] itm = res.getItems();
-        boolean includeFull = false;
-        level++;
-        if (level <= uparams.getDetail()) {
-            includeFull = true;
+                Bundle res = Bundle.find(context, Integer.parseInt(uid));
+                // Check authorisation
+                AuthorizeManager.authorizeAction(context, res, Constants.READ);
+
+                Bitstream[] bst = res.getBitstreams();
+
+                this.pid = res.getPrimaryBitstreamID();
+                this.id = res.getID();
+                this.handle = res.getHandle();
+                this.name = res.getName();
+                this.type = res.getType();
+                Item[] itm = res.getItems();
+                boolean includeFull = false;
+                level++;
+                if (level <= uparams.getDetail()) {
+                    includeFull = true;
+                }
+
+                for (Bitstream b : bst) {
+                    this.bitstreams.add(includeFull ? new BitstreamEntity(b, level, uparams): new BitstreamEntityId(b));
+                }
+
+                for (Item i : itm) {
+                    this.items.add(includeFull ? new ItemEntity(i, level, uparams) : new ItemEntityId(i));
+                }
+                context.complete();
+            } catch (SQLException ex) {
+                throw new EntityException("Internal server error", "SQL error", 500);
+            } catch (AuthorizeException ex) {
+                throw new EntityException("Forbidden", "Forbidden", 403);
+            }
+        } else {
+            throw new EntityException("Bad request", "Value not included", 400);
         }
 
-        for (Bitstream b : bst) {
-            this.bitstreams.add(includeFull ? new BitstreamEntity(b, level, uparams): new BitstreamEntityId(b));
-        }
-
-        for (Item i : itm) {
-            this.items.add(includeFull ? new ItemEntity(i, level, uparams) : new ItemEntityId(i));
-        }
-        context.complete();
     }
 
     public BundleEntity(Bundle bundle, int level, UserRequestParams uparams) throws SQLException {

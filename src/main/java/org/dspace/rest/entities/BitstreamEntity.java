@@ -8,6 +8,9 @@
 
 package org.dspace.rest.entities;
 
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
+import org.dspace.core.Constants;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 import org.dspace.content.Bundle;
@@ -18,6 +21,7 @@ import java.util.ArrayList;
 import java.sql.SQLException;
 import org.dspace.rest.util.UtilHelper;
 import org.dspace.rest.util.UserRequestParams;
+import org.sakaiproject.entitybus.exception.EntityException;
 
 /**
  * Entity describing Bitstreams
@@ -38,33 +42,49 @@ public class BitstreamEntity extends BitstreamEntityId {
     private String checkSumAlgorithm, description, checkSum, formatDescription, source, userFormatDescription, mimeType;
     List<Object> bundles = new ArrayList<Object>();
 
-    public BitstreamEntity(String uid, Context context, int level, UserRequestParams uparams) throws SQLException {
-        Bitstream res = Bitstream.find(context, Integer.parseInt(uid));
-        Bundle[] bnd = res.getBundles();
-        this.id = res.getID();
-        this.handle = res.getHandle();
-        this.name = res.getName();
-        this.type = res.getType();
-        this.checkSum = res.getChecksum();
-        this.checkSumAlgorithm = res.getChecksumAlgorithm();
-        this.description = res.getDescription();
-        this.formatDescription = res.getFormatDescription();
-        this.sequenceId = res.getSequenceID();
-        this.size = res.getSize();
-        this.source = res.getSource();
-        this.storeNumber = res.getStoreNumber();
-        this.userFormatDescription = res.getUserFormatDescription();
-        boolean includeFull = false;
-        level++;
-        if (level <= uparams.getDetail()) {
-            includeFull = true;
+    public BitstreamEntity(String uid, Context context, int level, UserRequestParams uparams) {
+        if (uid!=null&&!"".equals(uid)) {
+            try {
+
+                Bitstream res = Bitstream.find(context, Integer.parseInt(uid));
+                // Check authorisation
+                AuthorizeManager.authorizeAction(context, res, Constants.READ);
+
+                Bundle[] bnd = res.getBundles();
+                this.id = res.getID();
+                this.handle = res.getHandle();
+                this.name = res.getName();
+                this.type = res.getType();
+                this.checkSum = res.getChecksum();
+                this.checkSumAlgorithm = res.getChecksumAlgorithm();
+                this.description = res.getDescription();
+                this.formatDescription = res.getFormatDescription();
+                this.sequenceId = res.getSequenceID();
+                this.size = res.getSize();
+                this.source = res.getSource();
+                this.storeNumber = res.getStoreNumber();
+                this.userFormatDescription = res.getUserFormatDescription();
+                boolean includeFull = false;
+                level++;
+                if (level <= uparams.getDetail()) {
+                    includeFull = true;
+                }
+
+                for (Bundle b : bnd) {
+                   this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
+                }
+                this.mimeType = res.getFormat().getMIMEType();
+                context.complete();
+
+            } catch (SQLException ex) {
+                throw new EntityException("Internal server error", "SQL error", 500);
+            } catch (AuthorizeException ex) {
+                throw new EntityException("Forbidden", "Forbidden", 403);
+            }
+        } else {
+            throw new EntityException("Bad request", "Value not included", 400);
         }
 
-        for (Bundle b : bnd) {
-           this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
-        }
-        this.mimeType = res.getFormat().getMIMEType();
-        context.complete();
     }
 
     public BitstreamEntity(Bitstream bitstream, int level, UserRequestParams uparams) throws SQLException {
