@@ -43,46 +43,42 @@ public class BitstreamEntity extends BitstreamEntityId {
     List<Object> bundles = new ArrayList<Object>();
 
     public BitstreamEntity(String uid, Context context, int level, UserRequestParams uparams) {
-        if (uid!=null&&!"".equals(uid)) {
-            try {
+        try {
 
-                Bitstream res = Bitstream.find(context, Integer.parseInt(uid));
-                // Check authorisation
-                AuthorizeManager.authorizeAction(context, res, Constants.READ);
+            Bitstream res = Bitstream.find(context, Integer.parseInt(uid));
+            // Check authorisation
+            AuthorizeManager.authorizeAction(context, res, Constants.READ);
 
-                Bundle[] bnd = res.getBundles();
-                this.id = res.getID();
-                this.handle = res.getHandle();
-                this.name = res.getName();
-                this.type = res.getType();
-                this.checkSum = res.getChecksum();
-                this.checkSumAlgorithm = res.getChecksumAlgorithm();
-                this.description = res.getDescription();
-                this.formatDescription = res.getFormatDescription();
-                this.sequenceId = res.getSequenceID();
-                this.size = res.getSize();
-                this.source = res.getSource();
-                this.storeNumber = res.getStoreNumber();
-                this.userFormatDescription = res.getUserFormatDescription();
-                boolean includeFull = false;
-                level++;
-                if (level <= uparams.getDetail()) {
-                    includeFull = true;
-                }
-
-                for (Bundle b : bnd) {
-                   this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
-                }
-                this.mimeType = res.getFormat().getMIMEType();
-                context.complete();
-
-            } catch (SQLException ex) {
-                throw new EntityException("Internal server error", "SQL error", 500);
-            } catch (AuthorizeException ex) {
-                throw new EntityException("Forbidden", "Forbidden", 403);
+            Bundle[] bnd = res.getBundles();
+            this.id = res.getID();
+            this.handle = res.getHandle();
+            this.name = res.getName();
+            this.type = res.getType();
+            this.checkSum = res.getChecksum();
+            this.checkSumAlgorithm = res.getChecksumAlgorithm();
+            this.description = res.getDescription();
+            this.formatDescription = res.getFormatDescription();
+            this.sequenceId = res.getSequenceID();
+            this.size = res.getSize();
+            this.source = res.getSource();
+            this.storeNumber = res.getStoreNumber();
+            this.userFormatDescription = res.getUserFormatDescription();
+            boolean includeFull = false;
+            level++;
+            if (level <= uparams.getDetail()) {
+                includeFull = true;
             }
-        } else {
-            throw new EntityException("Bad request", "Value not included", 400);
+
+            for (Bundle b : bnd) {
+               this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
+            }
+            this.mimeType = res.getFormat().getMIMEType();
+            context.complete();
+
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ex) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
         }
 
     }

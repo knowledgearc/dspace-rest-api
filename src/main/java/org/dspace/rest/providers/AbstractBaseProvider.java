@@ -1251,7 +1251,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             CE = entityConstructor.newInstance(ref.getId(), context, 1, uparams);
         } catch (Exception ex) {
             ex.printStackTrace();
-            throw new EntityException("Internal server error", "aCannot create entity", 500);
+            throw new EntityException("Internal server error", "Cannot create entity", 500);
         }
 
         try {

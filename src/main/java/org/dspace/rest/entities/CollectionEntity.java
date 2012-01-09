@@ -56,51 +56,48 @@ public class CollectionEntity {
 
     public CollectionEntity(String uid, Context context, int level, UserRequestParams uparams) {
         System.out.println("creating collection main");
-        if (uid!=null&&!"".equals(uid)) {
-            try {
-                Collection res = Collection.find(context, Integer.parseInt(uid));
-                // Check authorisation
-                AuthorizeManager.authorizeAction(context, res, Constants.READ);
+        try {
+            Collection res = Collection.find(context, Integer.parseInt(uid));
+            // Check authorisation
+            AuthorizeManager.authorizeAction(context, res, Constants.READ);
 
-                this.id = res.getID();
-                this.canEdit = res.canEditBoolean();
-                this.handle = res.getHandle();
-                this.name = res.getName();
-                this.type = res.getType();
-                this.licence = res.getLicense();
-                this.short_description = res.getMetadata("short_description");
-                this.intro_text = res.getMetadata("introductory_text");
-                this.copyright_text = res.getMetadata("copyright_text");
-                this.sidebar_text = res.getMetadata("side_bar_text");
-                this.provenance = res.getMetadata("provenance_description");
+            this.id = res.getID();
+            this.canEdit = res.canEditBoolean();
+            this.handle = res.getHandle();
+            this.name = res.getName();
+            this.type = res.getType();
+            this.licence = res.getLicense();
+            this.short_description = res.getMetadata("short_description");
+            this.intro_text = res.getMetadata("introductory_text");
+            this.copyright_text = res.getMetadata("copyright_text");
+            this.sidebar_text = res.getMetadata("side_bar_text");
+            this.provenance = res.getMetadata("provenance_description");
 
-                //ItemIterator i = Item.findAll(context);
-                ItemIterator i = res.getAllItems();
-                boolean includeFull = false;
-                level++;
-                if (level <= uparams.getDetail()) {
-                    includeFull = true;
-                }
-
-                if (res.getLogo() != null) {
-                    this.logo = new BitstreamEntityId(Integer.toString(res.getLogo().getID()), context);
-                }
-
-                while (i.hasNext()) {
-                    items.add(includeFull ? new ItemEntity(i.next(), level, uparams) : new ItemEntityId(i.next()));
-                }
-
-                for (Community c : res.getCommunities()) {
-                    this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
-                }
-                //context.complete();
-            } catch (SQLException ex) {
-                throw new EntityException("Internal server error", "SQL error", 500);
-            } catch (AuthorizeException ex) {
-                throw new EntityException("Forbidden", "Forbidden", 403);
+            //ItemIterator i = Item.findAll(context);
+            ItemIterator i = res.getAllItems();
+            boolean includeFull = false;
+            level++;
+            if (level <= uparams.getDetail()) {
+                includeFull = true;
             }
-        } else {
-            throw new EntityException("Bad request", "Value not included", 400);
+
+            if (res.getLogo() != null) {
+                this.logo = new BitstreamEntityId(Integer.toString(res.getLogo().getID()), context);
+            }
+
+            while (i.hasNext()) {
+                items.add(includeFull ? new ItemEntity(i.next(), level, uparams) : new ItemEntityId(i.next()));
+            }
+
+            for (Community c : res.getCommunities()) {
+                this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
+            }
+            //context.complete();
+        } catch (NumberFormatException ex) {
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ex) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
         }
 
     }

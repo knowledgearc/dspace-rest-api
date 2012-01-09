@@ -35,22 +35,18 @@ public class ItemEntityId {
     }
 
     public ItemEntityId(String uid, Context context) {
-        if (uid!=null&&!"".equals(uid)) {
-            try {
-                Item res = Item.find(context, Integer.parseInt(uid));
+        try {
+            Item res = Item.find(context, Integer.parseInt(uid));
 
-                // Check authorisation
-                AuthorizeManager.authorizeAction(context, res, Constants.READ);
+            // Check authorisation
+            AuthorizeManager.authorizeAction(context, res, Constants.READ);
 
-                this.id = res.getID();
-                //context.complete();
-                } catch (SQLException ex) {
-                throw new EntityException("Internal server error", "SQL error", 500);
-            } catch (AuthorizeException ex) {
-                throw new EntityException("Forbidden", "Forbidden", 403);
-            }
-        } else {
-            throw new EntityException("Bad request", "Value not included", 400);
+            this.id = res.getID();
+            //context.complete();
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ex) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
         }
     }
 
