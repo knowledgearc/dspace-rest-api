@@ -69,7 +69,7 @@ public class BundleEntity extends BundleEntityId {
             for (Item i : itm) {
                 this.items.add(includeFull ? new ItemEntity(i, level, uparams) : new ItemEntityId(i));
             }
-            context.complete();
+            //context.complete();
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ex) {

@@ -110,7 +110,7 @@ public class ItemEntity extends ItemEntityId {
                 this.metadata.add(includeFull ? new MetadataEntity(dcValue, level, uparams) : new MetadataEntityId(dcValue));
             }
 
-            context.complete();
+            //context.complete();
 
         } catch (NumberFormatException ex) {
         } catch (SQLException ex) {

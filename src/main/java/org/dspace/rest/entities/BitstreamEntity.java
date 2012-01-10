@@ -73,7 +73,7 @@ public class BitstreamEntity extends BitstreamEntityId {
                this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
             }
             this.mimeType = res.getFormat().getMIMEType();
-            context.complete();
+            //context.complete();
 
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
