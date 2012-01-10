@@ -104,7 +104,7 @@ public class SearchProvider extends AbstractBaseProvider implements CoreEntityPr
             } else {
                 qre = DSQuery.doQuery(context, arg);
             }
-            entities.add(new SearchResultsInfoEntity(qre.getHitCount() - 1, qre.getHitTypes(), qre.getHitHandles(), qre.getHitIds()));
+            entities.add(new SearchResultsInfoEntity(qre.getHitCount(), qre.getHitTypes(), qre.getHitHandles(), qre.getHitIds()));
 
             /**
              * check returned objects, recognize them and put in result
@@ -151,6 +151,7 @@ public class SearchProvider extends AbstractBaseProvider implements CoreEntityPr
                 }
             }
 
+            context.complete();
         } catch (SQLException sql) {
             throw new EntityException("Internal Server Error", "SQL Problem", 500);
         } catch (IOException io) {
@@ -168,7 +169,7 @@ public class SearchProvider extends AbstractBaseProvider implements CoreEntityPr
         /**
          * process entities according to _limit, _perpage etc
          */
-        removeTrailing(entities);
+//        removeTrailing(entities);
 
         return entities;
     }
