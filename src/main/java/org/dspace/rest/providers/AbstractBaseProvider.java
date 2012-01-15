@@ -67,6 +67,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     protected String pass = "";
     protected String userc = "";
     protected String passc = "";
+    protected String format = "";
     protected String query, _order, _sort, loggedUser, _sdate, _edate;
     protected int _start, _page, _perpage, _limit, sort;
     protected List<Integer> sortOptions = new ArrayList<Integer>();
@@ -539,25 +540,28 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         try {
             if (req.getContentType().equals("application/json")) {
                 view.setExtension("json");
+                format = "json";
 
 
             } else if (req.getContentType().equals("application/xml")) {
                 view.setExtension("xml");
-
+                format = "xml";
 
             } else {
                 view.setExtension("json");
+                format = "json";
 
 
             }
         } catch (Exception ex) {
             if (view.getFormat().equals("xml")) {
                 view.setExtension("xml");
+                format = "xml";
 
 
             } else {
                 view.setExtension("json");
-
+                format = "json";
 
             }
         }
