@@ -14,15 +14,6 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.log4j.Logger;
 import org.dspace.core.ConfigurationManager;
-import org.dspace.core.Constants;
-import org.dspace.core.Context;
-import org.dspace.rest.entities.*;
-import org.dspace.rest.util.GenComparator;
-import org.dspace.rest.util.UserRequestParams;
-import org.dspace.search.DSQuery;
-import org.dspace.search.QueryArgs;
-import org.dspace.search.QueryResults;
-import org.dspace.sort.SortOption;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
@@ -31,35 +22,31 @@ import org.sakaiproject.entitybus.entityprovider.search.Search;
 import org.sakaiproject.entitybus.exception.EntityException;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * Enables users to discovery through items according to different criteria
+ * Enables users to discover through items according to different criteria
  * @see org.dspace.rest.entities.SearchResultsInfoEntity
  * @author Lewis
  */
-public class DiscoveryProvider extends AbstractBaseProvider implements CoreEntityProvider {
+public class DiscoverProvider extends AbstractBaseProvider implements CoreEntityProvider {
 
-    private static Logger log = Logger.getLogger(DiscoveryProvider.class);
+    private static Logger log = Logger.getLogger(DiscoverProvider.class);
 
     /**
-     * Handles provider for discovery accross items
+     * Handles provider for discover accross items
      * @param entityProviderManager
      * @throws java.sql.SQLException
      */
-    public DiscoveryProvider(EntityProviderManager entityProviderManager) throws SQLException {
+    public DiscoverProvider(EntityProviderManager entityProviderManager) throws SQLException {
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
     }
 
     public String getEntityPrefix() {
-        return "discovery";
+        return "discover";
     }
 
     public boolean entityExists(String id) {
@@ -72,7 +59,7 @@ public class DiscoveryProvider extends AbstractBaseProvider implements CoreEntit
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
-        log.info(userInfo() + "get_entities");
+        log.info("DiscoverProvider - get_entities");
 
 //        Context context;
 //        try {
@@ -89,8 +76,11 @@ public class DiscoveryProvider extends AbstractBaseProvider implements CoreEntit
         try {
             HttpClient client = new HttpClient();
             HttpMethod method=new GetMethod(ConfigurationManager.getProperty("discovery", "search.server")+"/select");
-
+            log.info("DiscoverProvider method - " + ConfigurationManager.getProperty("discovery", "search.server"));
             NameValuePair[] nameValuePairs;
+
+            log.info("DiscoverProvider search.getRestrictions().length - " + search.getRestrictions().length);
+            log.info("DiscoverProvider format - " + format);
             if (search.getRestrictions().length > 0) {
                 if ("json".equals(format)) {
                     nameValuePairs = new NameValuePair[search.getRestrictions().length];
@@ -99,6 +89,8 @@ public class DiscoveryProvider extends AbstractBaseProvider implements CoreEntit
                 }
                 int n=0;
                 for (int i = 0; i < search.getRestrictions().length; i++) {
+                    log.info("DiscoverProvider search.getRestrictions()[i].getProperty() - " + search.getRestrictions()[i].getProperty());
+                    log.info("DiscoverProvider search.getRestrictions()[i].getStringValue() - " + search.getRestrictions()[i].getStringValue());
                     if(!"org.apache.catalina.ASYNC_SUPPORTED".equals(search.getRestrictions()[i].getProperty())){
                         nameValuePairs[n] = new NameValuePair(search.getRestrictions()[i].getProperty(),search.getRestrictions()[i].getStringValue());
                         n++;
@@ -111,8 +103,10 @@ public class DiscoveryProvider extends AbstractBaseProvider implements CoreEntit
             }
 
             client.executeMethod(method);
+            String s = method.getResponseBodyAsString();
+            log.info("DiscoverProvider result string - " + s);
 
-            EntityData ed = new EntityData(method.getResponseBodyAsString());
+            EntityData ed = new EntityData(s);
             entities.add(ed);
 
             method.releaseConnection();
