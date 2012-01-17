@@ -73,8 +73,10 @@ public class CollectionEntity {
             this.sidebar_text = res.getMetadata("side_bar_text");
             this.provenance = res.getMetadata("provenance_description");
 
+            this.countItems = res.countItemsforREST();
+
             //ItemIterator i = Item.findAll(context);
-            ItemIterator i = res.getAllItems();
+            ItemIterator i = res.getAllItems(uparams.getPerPage(),uparams.getPage());
             boolean includeFull = false;
             level++;
             if (level <= uparams.getDetail()) {
