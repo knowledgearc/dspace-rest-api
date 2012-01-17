@@ -77,28 +77,23 @@ public class DiscoverProvider extends AbstractBaseProvider implements CoreEntity
             HttpClient client = new HttpClient();
             HttpMethod method=new GetMethod(ConfigurationManager.getProperty("discovery", "search.server")+"/select");
             log.info("DiscoverProvider method - " + ConfigurationManager.getProperty("discovery", "search.server"));
-            NameValuePair[] nameValuePairs;
 
             log.info("DiscoverProvider search.getRestrictions().length - " + search.getRestrictions().length);
             log.info("DiscoverProvider format - " + format);
             if (search.getRestrictions().length > 0) {
-                if ("json".equals(format)) {
-                    nameValuePairs = new NameValuePair[search.getRestrictions().length];
-                }else{
-                    nameValuePairs = new NameValuePair[search.getRestrictions().length-1];
-                }
-                int n=0;
+                List<NameValuePair> nameValuePairsList = new ArrayList<NameValuePair>();
                 for (int i = 0; i < search.getRestrictions().length; i++) {
                     log.info("DiscoverProvider search.getRestrictions()[i].getProperty() - " + search.getRestrictions()[i].getProperty());
                     log.info("DiscoverProvider search.getRestrictions()[i].getStringValue() - " + search.getRestrictions()[i].getStringValue());
                     if(!"org.apache.catalina.ASYNC_SUPPORTED".equals(search.getRestrictions()[i].getProperty())){
-                        nameValuePairs[n] = new NameValuePair(search.getRestrictions()[i].getProperty(),search.getRestrictions()[i].getStringValue());
-                        n++;
+                        nameValuePairsList.add(new NameValuePair(search.getRestrictions()[i].getProperty(),search.getRestrictions()[i].getStringValue()));
                     }
                 }
                 if ("json".equals(format)) {
-                    nameValuePairs[search.getRestrictions().length-1] = new NameValuePair("wt", "json");
+                    nameValuePairsList.add(new NameValuePair("wt", "json"));
                 }
+                NameValuePair[] nameValuePairs = new NameValuePair[nameValuePairsList.size()];
+                nameValuePairsList.toArray(nameValuePairs);
                 method.setQueryString(nameValuePairs);
             }
 
