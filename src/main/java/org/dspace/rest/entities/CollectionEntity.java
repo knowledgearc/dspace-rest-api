@@ -8,6 +8,7 @@
 package org.dspace.rest.entities;
 
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
@@ -76,7 +77,19 @@ public class CollectionEntity {
             this.countItems = res.countItemsforREST();
 
             //ItemIterator i = Item.findAll(context);
-            ItemIterator i = res.getAllItems(uparams.getPerPage(),uparams.getPage());
+            ItemIterator i;
+            if (uparams.getPerPage() > 0) {
+                String db = ConfigurationManager.getProperty("db.name");
+                if ("postgres".equals(db)){
+                    i = res.getAllItemsPostgres(uparams.getPerPage(),uparams.getPage());
+                }else if ("oracle".equals(db)){
+                    i = res.getAllItemsOracle(uparams.getPerPage(),uparams.getPage());
+                }else {
+                    i = res.getAllItems();
+                }
+            }else{
+                i = res.getAllItems();
+            }
             boolean includeFull = false;
             level++;
             if (level <= uparams.getDetail()) {
