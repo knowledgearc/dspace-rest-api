@@ -99,7 +99,7 @@ public class DiscoverProvider extends AbstractBaseProvider implements CoreEntity
 
             client.executeMethod(method);
             String s = method.getResponseBodyAsString();
-            log.info("DiscoverProvider result string - " + s);
+//            log.info("DiscoverProvider result string - " + s);
 
             EntityData ed = new EntityData(s);
             entities.add(ed);
