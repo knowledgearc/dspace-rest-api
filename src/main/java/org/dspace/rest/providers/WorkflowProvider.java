@@ -162,19 +162,19 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
         WorkflowEntity workflowEntity = new WorkflowEntity();
 
         try {
-            workflowEntity.setCountItems(WorkflowItem.countItemsforREST(context));
+            workflowEntity.setCountItems(WorkflowItem.countItemsforREST(context,context.getCurrentUser()));
 
             if (uparams.getPerPage() > 0) {
                 String db = ConfigurationManager.getProperty("db.name");
                 if ("postgres".equals(db)) {
-                    workflowItems = WorkflowItem.findAllbyPostgres(context, uparams.getPerPage(), uparams.getPage());
+                    workflowItems = WorkflowItem.findAllbyPersonbyPostgres(context, context.getCurrentUser(), uparams.getPerPage(), uparams.getPage());
                 } else if ("oracle".equals(db)) {
-                    workflowItems = WorkflowItem.findAllbyOracle(context, uparams.getPerPage(), uparams.getPage());
+                    workflowItems = WorkflowItem.findAllbyPersonbyOracle(context, context.getCurrentUser(), uparams.getPerPage(), uparams.getPage());
                 } else {
-                    workflowItems = WorkflowItem.findAll(context);
+                    workflowItems = WorkflowItem.findAllbyPerson(context,context.getCurrentUser());
                 }
             } else {
-                workflowItems = WorkflowItem.findAll(context);
+                workflowItems = WorkflowItem.findAllbyPerson(context,context.getCurrentUser());
             }
 
             System.out.println(" number of workflowitems " + workflowItems.length);
