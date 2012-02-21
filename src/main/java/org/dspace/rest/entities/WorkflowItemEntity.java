@@ -28,6 +28,7 @@ public class WorkflowItemEntity {
 
     private int id;
     private ItemEntity itemEntity;
+    private UserEntity reviewer;
 
     public WorkflowItemEntity(String uid, Context context, int level, UserRequestParams uparams) {
         System.out.println("creating collection main");
@@ -36,6 +37,9 @@ public class WorkflowItemEntity {
 
             this.id = res.getID();
             this.itemEntity = new ItemEntity(String.valueOf(res.getItem().getID()),context,level,uparams);
+            if (res.getOwner() != null) {
+                this.reviewer = new UserEntity(res.getOwner());
+            }
 
             context.complete();
         } catch (NumberFormatException ex) {
@@ -50,6 +54,9 @@ public class WorkflowItemEntity {
         try {
             this.id = res.getID();
             this.itemEntity = new ItemEntity(res.getItem(),level,uparams);
+            if (res.getOwner() != null) {
+                this.reviewer = new UserEntity(res.getOwner());
+            }
 
         } catch (NumberFormatException ex) {
         } catch (SQLException ex) {
@@ -74,6 +81,14 @@ public class WorkflowItemEntity {
 
     public void setItemEntity(ItemEntity itemEntity) {
         this.itemEntity = itemEntity;
+    }
+
+    public UserEntity getReviewer() {
+        return reviewer;
+    }
+
+    public void setReviewer(UserEntity reviewer) {
+        this.reviewer = reviewer;
     }
 
     @Override
