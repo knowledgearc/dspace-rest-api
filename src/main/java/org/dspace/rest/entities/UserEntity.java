@@ -8,11 +8,18 @@
 
 package org.dspace.rest.entities;
 
+import org.dspace.authenticate.AuthenticationManager;
+import org.dspace.authenticate.AuthenticationMethod;
+import org.dspace.authorize.AuthorizeException;
+import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 import org.dspace.eperson.EPerson;
 import org.dspace.core.Context;
 import java.sql.SQLException;
+import java.util.Map;
+
 import org.dspace.rest.util.UserRequestParams;
+import org.sakaiproject.entitybus.exception.EntityException;
 
 /**
  * Entity describing users registered on the system
@@ -42,7 +49,10 @@ public class UserEntity extends UserEntityId {
        this.lastName = res.getLastName();
        this.netId = res.getNetid();
 //       context.complete();
-}    
+}
+
+   public UserEntity(Context context, int level, UserRequestParams uparams) throws SQLException {
+   }
 
    public UserEntity(EPerson eperson) throws SQLException {
         super(eperson);
@@ -76,6 +86,26 @@ public class UserEntity extends UserEntityId {
        this.lastName = "Smith";
        this.netId = "1";
    }
+
+    public String login(EntityReference ref, Map<String, Object> inputVar, Context context) {
+        String email = (String) inputVar.get("email");
+        String password = (String) inputVar.get("password");
+        try {
+
+            int status = AuthenticationManager.authenticate(context, email, password, null, null);
+            if (status == AuthenticationMethod.SUCCESS) {
+                return String.valueOf(EPerson.findByEmail(context, email.toLowerCase()).getID());
+            }
+
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ae) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        }
+
+        return "0";
+
+    }
 
    public String getName() {
        return this.name;
@@ -124,6 +154,8 @@ public class UserEntity extends UserEntityId {
    public boolean getSelfRegistered() {
        return this.selfRegistered;
    }
+
+
 
     @Override
     public String toString() {

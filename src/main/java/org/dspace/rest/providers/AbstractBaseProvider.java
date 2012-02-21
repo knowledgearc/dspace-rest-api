@@ -90,6 +90,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     protected Class<?> processedEntity = CommunityEntity.class;
     private Constructor<?> ctr = null;
     protected Constructor<?> entityConstructor = null;
+    protected Constructor<?> entityConstructor2 = null;
     protected Map<String, Object> reqInput = new HashMap<String, Object>();
     protected RequestGetter requestGetter;
 
@@ -1252,7 +1253,11 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         Object CE = new Object();
         System.out.println("id izabran " + ref.getId());
         try {
-            CE = entityConstructor.newInstance(ref.getId(), context, 1, uparams);
+            if (ref.getId() != null) {
+                CE = entityConstructor.newInstance(ref.getId(), context, 1, uparams);
+            } else {
+                CE = entityConstructor2.newInstance(context, 1, uparams);
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new EntityException("Internal server error", "Cannot create entity", 500);

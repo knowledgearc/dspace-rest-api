@@ -10,9 +10,16 @@ package org.dspace.rest.providers;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
+import org.dspace.core.Constants;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
+import org.sakaiproject.entitybus.entityprovider.capabilities.Createable;
+import org.sakaiproject.entitybus.entityprovider.capabilities.Deleteable;
+import org.sakaiproject.entitybus.entityprovider.capabilities.Updateable;
 import org.sakaiproject.entitybus.entityprovider.search.Search;
 import org.dspace.core.Context;
 import org.sakaiproject.entitybus.exception.EntityException;
@@ -30,7 +37,7 @@ import org.dspace.rest.util.GenComparator;
  * @see UserEntityId
  * @author Bojan Suzic, bojan.suzic@gmail.com
  */
-public class UserProvider extends AbstractBaseProvider implements CoreEntityProvider {
+public class UserProvider extends AbstractBaseProvider implements CoreEntityProvider, Createable, Updateable, Deleteable {
 
     private static Logger log = Logger.getLogger(UserProvider.class);
 
@@ -50,7 +57,10 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
         func2actionMapGET.put("getRequireCertificate", "requireCertificate");
         func2actionMapGET.put("getSelfRegistered", "selfRegistered");
         func2actionMapGET.put("getType", "type");
+        func2actionMapPOST.put("login", "login");
+        inputParamsPOST.put("login", new String[]{"email","password"});
         entityConstructor = processedEntity.getDeclaredConstructor(new Class<?>[]{String.class, Context.class, Integer.TYPE, UserRequestParams.class});
+        entityConstructor2 = processedEntity.getDeclaredConstructor(new Class<?>[]{Context.class, Integer.TYPE, UserRequestParams.class});
         initMappings(processedEntity);
     }
 
@@ -170,9 +180,12 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
             epersons = EPerson.findAll(context, EPerson.ID);
             for (int x = 0; x < epersons.length; x++) {
                 entities.add(idOnly ? new UserEntityId(epersons[x]) : new UserEntity(epersons[x]));
+                AuthorizeManager.authorizeAction(context, epersons[x], Constants.READ);
             }
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL erorr", 500);
+        } catch (AuthorizeException ex) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
         }
 
         removeConn(context);
