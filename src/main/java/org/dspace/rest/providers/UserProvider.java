@@ -180,12 +180,12 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
             epersons = EPerson.findAll(context, EPerson.ID);
             for (int x = 0; x < epersons.length; x++) {
                 entities.add(idOnly ? new UserEntityId(epersons[x]) : new UserEntity(epersons[x]));
-                AuthorizeManager.authorizeAction(context, epersons[x], Constants.READ);
+//                AuthorizeManager.authorizeAction(context, epersons[x], Constants.READ);
             }
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL erorr", 500);
-        } catch (AuthorizeException ex) {
-            throw new EntityException("Forbidden", "Forbidden", 403);
+//        } catch (AuthorizeException ex) {
+//            throw new EntityException("Forbidden", "Forbidden", 403);
         }
 
         removeConn(context);
