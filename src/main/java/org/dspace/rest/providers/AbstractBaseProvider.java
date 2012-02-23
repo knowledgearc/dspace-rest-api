@@ -634,7 +634,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
         try {
             EPerson eUser = EPerson.findByEmail(context, user);
-            if ((eUser.canLogIn()) && (eUser.checkPassword(pass))) {
+            if ((eUser.canLogIn()) && (eUser.checkPassword(pass)||eUser.checkMD5Password(pass))) {
                 context.setCurrentUser(eUser);
                 loggedUser = eUser.getName();
             } else {
