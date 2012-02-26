@@ -8,6 +8,8 @@
 package org.dspace.rest.entities;
 
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.content.Collection;
+import org.dspace.content.Item;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.rest.util.UserRequestParams;
@@ -54,6 +56,7 @@ public class WorkflowItemEntity {
         try {
             this.id = res.getID();
             this.itemEntity = new ItemEntity(res.getItem(),level,uparams);
+            this.itemEntity.owningCollection = new CollectionEntity(res.getCollection(), level, uparams);
             if (res.getOwner() != null) {
                 this.reviewer = new UserEntity(res.getOwner());
             }
