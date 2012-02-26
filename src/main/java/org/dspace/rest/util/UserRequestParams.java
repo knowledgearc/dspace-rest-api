@@ -33,6 +33,11 @@ public class UserRequestParams {
     private boolean withdrawn = false;
     private int detail = UtilHelper.DEPTH_STANDARD;
 
+    private String[] fields;
+    private String status;
+    private int submitter;
+    private int reviewer;
+
     public void setUser(String uname) {
         this.user = uname;
     }
@@ -175,5 +180,37 @@ public class UserRequestParams {
 
     public int getDetail() {
         return this.detail;
+    }
+
+    public int getReviewer() {
+        return reviewer;
+    }
+
+    public void setReviewer(int reviewer) {
+        this.reviewer = reviewer;
+    }
+
+    public int getSubmitter() {
+        return submitter;
+    }
+
+    public void setSubmitter(int submitter) {
+        this.submitter = submitter;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String[] getFields() {
+        return fields;
+    }
+
+    public void setFields(String[] fields) {
+        this.fields = fields;
     }
 }

@@ -94,6 +94,10 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     protected Map<String, Object> reqInput = new HashMap<String, Object>();
     protected RequestGetter requestGetter;
 
+    protected String[] fields;
+    protected String status;
+    protected int submitter, reviewer;
+
     /**
      * Handle registration of EntityProvider
      * @param entityProviderManager
@@ -682,6 +686,40 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         } catch (NullPointerException ex) {
             query = "";
         }
+
+        try {
+            Object o = reqStor.getStoredValue("fields");
+            if (o instanceof String) {
+                fields = new String[]{o.toString()};
+            }else if (o instanceof String[]) {
+                fields = (String[]) o;
+            }
+            uparam.setFields(fields);
+        } catch (NullPointerException ex) {
+            fields = null;
+        }
+
+        try {
+            status = reqStor.getStoredValue("status").toString();
+            uparam.setStatus(status);
+        } catch (NullPointerException ex) {
+            status = "";
+        }
+
+        try {
+            submitter = Integer.parseInt(reqStor.getStoredValue("submitter").toString());
+            uparam.setSubmitter(submitter);
+        } catch (NullPointerException ex) {
+            submitter = 0;
+        }
+
+        try {
+            reviewer = Integer.parseInt(reqStor.getStoredValue("reviewer").toString());
+            uparam.setReviewer(reviewer);
+        } catch (NullPointerException ex) {
+            reviewer = 0;
+        }
+
 
         try {
             in_archive = reqStor.getStoredValue("in_archive").toString().equalsIgnoreCase("true");

@@ -27,7 +27,9 @@ import org.sakaiproject.entitybus.exception.EntityException;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides interface for workflow entities
@@ -157,24 +159,34 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
         UserRequestParams uparams = refreshParams(context);
 
         List<Object> results = new ArrayList<Object>();
+
         List<Object> entities = new ArrayList<Object>();
         WorkflowItem[] workflowItems;
         WorkflowEntity workflowEntity = new WorkflowEntity();
 
         try {
-            workflowEntity.setCountItems(WorkflowItem.countItemsforREST(context,context.getCurrentUser()));
+            Map paramMap = new HashMap();
+            paramMap.put("fields", uparams.getFields());
+            paramMap.put("status", uparams.getStatus());
+            paramMap.put("submitter", String.valueOf(uparams.getSubmitter()));
+            paramMap.put("reviewer", String.valueOf(uparams.getReviewer()));
+
+            workflowEntity.setCountItems(WorkflowItem.countItemsforREST(context,paramMap));
 
             if (uparams.getPerPage() > 0) {
+                paramMap.put("perpage", String.valueOf(uparams.getPerPage()));
+                paramMap.put("page", String.valueOf(uparams.getPage()));
+
                 String db = ConfigurationManager.getProperty("db.name");
                 if ("postgres".equals(db)) {
-                    workflowItems = WorkflowItem.findAllbyPersonbyPostgres(context, context.getCurrentUser(), uparams.getPerPage(), uparams.getPage());
+                    workflowItems = WorkflowItem.findAllbyPersonbyPostgres(context, paramMap);
                 } else if ("oracle".equals(db)) {
-                    workflowItems = WorkflowItem.findAllbyPersonbyOracle(context, context.getCurrentUser(), uparams.getPerPage(), uparams.getPage());
+                    workflowItems = WorkflowItem.findAllbyPersonbyOracle(context, paramMap);
                 } else {
-                    workflowItems = WorkflowItem.findAllbyPerson(context,context.getCurrentUser());
+                    workflowItems = WorkflowItem.findAllbyPerson(context,paramMap);
                 }
             } else {
-                workflowItems = WorkflowItem.findAllbyPerson(context,context.getCurrentUser());
+                workflowItems = WorkflowItem.findAllbyPerson(context,paramMap);
             }
 
             System.out.println(" number of workflowitems " + workflowItems.length);
