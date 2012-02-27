@@ -693,6 +693,8 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
                 fields = new String[]{o.toString()};
             }else if (o instanceof String[]) {
                 fields = (String[]) o;
+            }else if(o == null){
+                fields = null;
             }
             uparam.setFields(fields);
         } catch (NullPointerException ex) {
