@@ -64,6 +64,7 @@ public class MetadataEntity extends MetadataEntityId {
         this.qualifier = dcValue.qualifier;
         this.schema = dcValue.schema;
         this.value = dcValue.value;
+        this.id = dcValue.id;
 
     }
 
@@ -78,6 +79,9 @@ public class MetadataEntity extends MetadataEntityId {
 
     }
 
+    public int getId() {
+        return id;
+    }
 
     public String getElement()
     {
