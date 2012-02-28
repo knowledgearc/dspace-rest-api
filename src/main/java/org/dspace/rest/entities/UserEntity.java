@@ -72,6 +72,13 @@ public class UserEntity extends UserEntityId {
         catch (Exception ex) { }
    }
 
+    public UserEntity(int id, String firstName, String lastName, String fullName) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.fullName = fullName;
+    }
+
    public UserEntity() {
        this.id = 111;
        this.handle = "123456789/0";

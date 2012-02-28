@@ -12,6 +12,8 @@ package org.dspace.rest.providers;
 import org.apache.log4j.Logger;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
+import org.dspace.rest.entities.UserEntity;
 import org.dspace.rest.entities.WorkflowEntity;
 import org.dspace.rest.entities.WorkflowItemEntity;
 import org.dspace.rest.util.UserRequestParams;
@@ -65,6 +67,9 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
 
         // sample entity
         if (id.equals(":ID:")) {
+            return true;
+        }
+        if (id.equals("submitters")) {
             return true;
         }
         Context context;
@@ -121,6 +126,15 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
 //            // sample entity
             if (reference.getId().equals(":ID:")) {
                 return new WorkflowItemEntity();
+            }
+
+            if (reference.getId().equals("submitters")) {
+                List<UserEntity> l = new ArrayList<UserEntity>();
+                EPerson[] ePersons = EPerson.searchSubmittersinWorkflow(context, uparams.getQuery());
+                for (EPerson e : ePersons) {
+                    l.add(new UserEntity(e.getID(),e.getFirstName(),e.getLastName(),e.getFullName()));
+                }
+                return l;
             }
 //
             if (reference.getId() == null) {
