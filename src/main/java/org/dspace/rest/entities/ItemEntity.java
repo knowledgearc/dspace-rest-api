@@ -17,6 +17,7 @@ import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 import org.sakaiproject.entitybus.exception.EntityException;
 import org.dspace.authorize.AuthorizeException;
 
+import java.io.IOException;
 import java.util.*;
 
 import org.dspace.content.crosswalk.*;
@@ -337,4 +338,31 @@ public class ItemEntity extends ItemEntityId {
         }
         return result;
     }
+
+    public void removeMetadata(EntityReference ref, Map<String, Object> inputVar, Context context) {
+        try {
+            Integer id = Integer.parseInt((String) inputVar.get("id"));
+            Item item = Item.find(context, id);
+
+            AuthorizeManager.authorizeAction(context, item, Constants.WRITE);
+
+            Integer eid = Integer.parseInt((String) inputVar.get("eid"));
+            MetadataValue metadataValue = MetadataValue.find(context, eid);
+            if (metadataValue != null && metadataValue.getItemId() == id) {
+                metadataValue.delete(context);
+            } else {
+                throw new EntityException("Internal server error", "No such metadata value or not belongs to same item", 500);
+            }
+
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ae) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        } catch (IOException ie) {
+            throw new EntityException("Internal server error", "SQL error, cannot remove metadata value", 500);
+        }
+    }
+
 }
