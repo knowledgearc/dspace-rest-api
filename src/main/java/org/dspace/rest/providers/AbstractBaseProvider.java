@@ -832,6 +832,10 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         for (String option : sort_arr) {
             if (option.startsWith("submitter")) {
                 sortOptions.add(UtilHelper.SORT_SUBMITTER);
+            } else if (option.startsWith("email")) {
+                sortOptions.add(UtilHelper.SORT_EMAIL);
+            } else if (option.startsWith("firstname")) {
+                sortOptions.add(UtilHelper.SORT_FIRSTNAME);
             } else if (option.startsWith("lastname")) {
                 sortOptions.add(UtilHelper.SORT_LASTNAME);
             } else if (option.startsWith("fullname")) {

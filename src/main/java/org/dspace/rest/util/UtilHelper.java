@@ -57,6 +57,8 @@ public class UtilHelper {
     public static final int SORT_LANGUAGE = 215;
     public static final int SORT_LASTNAME = 216;
     public static final int SORT_FULL_NAME = 217;
+    public static final int SORT_FIRSTNAME = 218;
+    public static final int SORT_EMAIL = 219;
     public static final int SORT_ID_REV = 310;
     public static final int SORT_NAME_REV = 311;
     public static final int SORT_LASTMODIFIED_REV = 312;
@@ -65,6 +67,8 @@ public class UtilHelper {
     public static final int SORT_LANGUAGE_REV = 315;
     public static final int SORT_LASTNAME_REV = 316;
     public static final int SORT_FULL_NAME_REV = 317;
+    public static final int SORT_FIRSTNAME_REV = 318;
+    public static final int SORT_EMAIL_REV = 319;
     public static final int DEPTH_LEVEL = 2;
     public static final int DEPTH_MINIMAL = 1;
     public static final int DEPTH_STANDARD = 2;
