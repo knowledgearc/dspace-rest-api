@@ -132,7 +132,7 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
                 List<UserEntity> l = new ArrayList<UserEntity>();
                 EPerson[] ePersons = EPerson.searchSubmittersinWorkflow(context, uparams.getQuery());
                 for (EPerson e : ePersons) {
-                    l.add(new UserEntity(e.getID(),e.getFirstName(),e.getLastName(),e.getFullName()));
+                    l.add(new UserEntity(e.getID(),e.getFirstName(),e.getLastName(),e.getFullName(),e.getEmail()));
                 }
                 return l;
             }

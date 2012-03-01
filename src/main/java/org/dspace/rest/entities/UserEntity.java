@@ -72,11 +72,12 @@ public class UserEntity extends UserEntityId {
         catch (Exception ex) { }
    }
 
-    public UserEntity(int id, String firstName, String lastName, String fullName) {
+    public UserEntity(int id, String firstName, String lastName, String fullName, String email) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.fullName = fullName;
+        this.email = email;
     }
 
    public UserEntity() {
@@ -141,7 +142,7 @@ public class UserEntity extends UserEntityId {
    public int getType() {
       return this.type;
    }
-   
+
    public String getLastName() {
        return this.lastName;
    }
