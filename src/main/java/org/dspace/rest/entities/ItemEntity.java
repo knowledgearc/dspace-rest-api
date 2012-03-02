@@ -11,6 +11,7 @@ package org.dspace.rest.entities;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.*;
 import org.dspace.content.Collection;
+import org.dspace.content.authority.Choices;
 import org.dspace.core.Constants;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
@@ -339,6 +340,92 @@ public class ItemEntity extends ItemEntityId {
         return result;
     }
 
+    public String addMetadata(EntityReference ref, Map<String, Object> inputVar, Context context) {
+
+        try {
+            Integer id = Integer.parseInt((String) inputVar.get("id"));
+            Item item = Item.find(context, id);
+
+            AuthorizeManager.authorizeAction(context, item, Constants.WRITE);
+
+            Integer fieldID = Integer.parseInt((String) inputVar.get("fieldID"));
+            String value = (String) inputVar.get("value");
+            String lang = (String) inputVar.get("lang");
+
+            MetadataField field = MetadataField.find(context,Integer.valueOf(fieldID));
+            MetadataSchema schema = MetadataSchema.find(context,field.getSchemaID());
+
+            item.addMetadata(schema.getName(), field.getElement(), field.getQualifier(), lang, value);
+
+            item.update();
+            context.complete();
+            return String.valueOf(item.getID());
+
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ae) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
+    }
+
+    public String editMetadata(EntityReference ref, Map<String, Object> inputVar, Context context) {
+
+        try {
+            Integer id = Integer.parseInt((String) inputVar.get("id"));
+            Item item = Item.find(context, id);
+
+            AuthorizeManager.authorizeAction(context, item, Constants.WRITE);
+            item.clearMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+            List<Map> fieldList = new ArrayList<Map>();
+            Object o = inputVar.get("metadata");
+            if (o instanceof Map) {
+                Map map = (Map) o;
+                fieldList.add((Map) map.get("field"));
+            }else if (o instanceof Vector) {
+                Vector vector = (Vector) o;
+                for (int i = 0; i < vector.size(); i++) {
+                    fieldList.add((Map) vector.get(i));
+                }
+            }
+
+            for (Map fieldMap : fieldList) {
+                String name = (String) fieldMap.get("name");
+                String value = (String) fieldMap.get("value");
+                String authority = (String) fieldMap.get("authority");
+                String confidence = (String) fieldMap.get("confidence");
+                String lang = (String) fieldMap.get("lang");
+
+                // get the field's name broken up
+                String[] parts = parseName(name);
+                // probe for a confidence value
+                int iconf = Choices.CF_UNSET;
+                if (confidence != null && confidence.length() > 0)
+                {
+                    iconf = Choices.getConfidenceValue(confidence);
+                }
+                // upgrade to a minimum of NOVALUE if there IS an authority key
+                if (authority != null && authority.length() > 0 && iconf == Choices.CF_UNSET)
+                {
+                    iconf = Choices.CF_NOVALUE;
+                }
+                item.addMetadata(parts[0], parts[1], parts[2], lang, value, authority, iconf);
+            }
+
+            item.update();
+            context.complete();
+            return String.valueOf(item.getID());
+
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ae) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
+    }
+
     public void removeMetadata(EntityReference ref, Map<String, Object> inputVar, Context context) {
         try {
             Integer id = Integer.parseInt((String) inputVar.get("id"));
@@ -363,6 +450,25 @@ public class ItemEntity extends ItemEntityId {
         } catch (IOException ie) {
             throw new EntityException("Internal server error", "SQL error, cannot remove metadata value", 500);
         }
+    }
+
+    private static String[] parseName(String name)
+    {
+        String[] parts = new String[3];
+
+        String[] split = name.split("\\.");
+        if (split.length == 2) {
+            parts[0] = split[0];
+            parts[1] = split[1];
+            parts[2] = null;
+        } else if (split.length == 3) {
+            parts[0] = split[0];
+            parts[1] = split[1];
+            parts[2] = split[2];
+        } else {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
+        return parts;
     }
 
 }

@@ -11,6 +11,9 @@ package org.dspace.rest.providers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataSchema;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.EntityView;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
@@ -70,6 +73,10 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
         func2actionMapPUT.put("addBundle", "bundles");
         func2actionMapPOST.put("createBundle", "createBundle");
         inputParamsPOST.put("createBundle", new String[]{"name", "id"});
+        func2actionMapPOST.put("addMetadata", "addMetadata");
+        inputParamsPOST.put("addMetadata", new String[]{"id", "fieldID", "value"});
+        func2actionMapPOST.put("editMetadata", "editMetadata");
+        inputParamsPOST.put("editMetadata", new String[]{"id", "metadata"});
         func2actionMapDELETE.put("removeMetadata", "metadata");
 
         entityConstructor = processedEntity.getDeclaredConstructor(new Class<?>[]{String.class, Context.class, Integer.TYPE, UserRequestParams.class});
@@ -86,6 +93,10 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
 
         // sample entity
         if (id.equals(":ID:")) {
+            return true;
+        }
+
+        if (id.equals("metadataFields")) {
             return true;
         }
 
@@ -143,6 +154,30 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
             return new ItemEntity();
         }
 
+        if (reference.getId().equals("metadataFields")) {
+            List<MetadataFieldEntity> l = new ArrayList<MetadataFieldEntity>();
+            try {
+                MetadataField[] fields = MetadataField.findAll(context);
+                for (MetadataField field : fields)
+                {
+                    int fieldID = field.getFieldID();
+                    MetadataSchema schema = MetadataSchema.find(context, field.getSchemaID());
+                    String name = schema.getName() +"."+field.getElement();
+                    if (field.getQualifier() != null)
+                    {
+                        name += "." + field.getQualifier();
+                    }
+
+                    l.add(new MetadataFieldEntity(fieldID, name));
+                }
+            } catch (SQLException e) {
+                throw new EntityException("Internal server error", "SQL error", 500);
+            }
+
+            removeConn(context);
+            return l;
+        }
+
         if (entityExists(reference.getId())) {
             // return basic or full info, according to requirements
             if (idOnly) {
@@ -196,4 +231,3 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
         return new ItemEntity();
     }
 }
-
