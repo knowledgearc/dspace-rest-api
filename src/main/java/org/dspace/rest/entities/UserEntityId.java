@@ -43,6 +43,7 @@ public class UserEntityId implements Comparable {
 
             this.id = res.getID();
             //context.complete();
+        } catch (NumberFormatException ex) {
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ex) {

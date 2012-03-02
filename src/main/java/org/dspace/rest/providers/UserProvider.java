@@ -60,7 +60,6 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
         func2actionMapPOST.put("login", "login");
         inputParamsPOST.put("login", new String[]{"email","password"});
         entityConstructor = processedEntity.getDeclaredConstructor(new Class<?>[]{String.class, Context.class, Integer.TYPE, UserRequestParams.class});
-        entityConstructor2 = processedEntity.getDeclaredConstructor(new Class<?>[]{Context.class, Integer.TYPE, UserRequestParams.class});
         initMappings(processedEntity);
     }
 
