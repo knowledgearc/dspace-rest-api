@@ -11,11 +11,14 @@ package org.dspace.rest.entities;
 import org.dspace.authenticate.AuthenticationManager;
 import org.dspace.authenticate.AuthenticationMethod;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.eperson.Group;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 import org.dspace.eperson.EPerson;
 import org.dspace.core.Context;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.dspace.rest.util.UserRequestParams;
@@ -34,6 +37,7 @@ public class UserEntity extends UserEntityId {
    private String handle, email, firstName, lastName, fullName,
            language, netId;
    private int type;
+   private List<Object> groups = new ArrayList<Object>();
 
    public UserEntity(String uid, Context context, int level, UserRequestParams uparams) throws SQLException {
        super(uid, context);
@@ -49,6 +53,18 @@ public class UserEntity extends UserEntityId {
 		   this.language = res.getLanguage();
 		   this.lastName = res.getLastName();
 		   this.netId = res.getNetid();
+           Group[] gs = Group.allMemberGroups(context,res);
+
+           // check calling package/class in order to prevent chaining
+           boolean includeFull = false;
+           level++;
+           if (level <= uparams.getDetail()) {
+               includeFull = true;
+           }
+
+           for (Group g : gs) {
+              this.groups.add(includeFull ? new GroupEntity(g, level, uparams) : new GroupEntityId(g));
+           }
 	//       context.complete();
         }
         catch (Exception ex) { }	   
@@ -166,7 +182,9 @@ public class UserEntity extends UserEntityId {
        return this.selfRegistered;
    }
 
-
+   public List<Object> getGroups() {
+       return groups;
+   }
 
     @Override
     public String toString() {

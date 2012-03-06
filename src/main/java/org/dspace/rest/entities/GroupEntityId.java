@@ -21,7 +21,7 @@ import java.sql.SQLException;
 /**
  * Entity describing users registered on the system, basic version
  * @see GroupEntity
- * @see EGroup
+ * @see Group
  * @author Bojan Suzic, bojan.suzic@gmail.com
  */
 public class GroupEntityId implements Comparable {
@@ -50,8 +50,8 @@ public class GroupEntityId implements Comparable {
 
     }
 
-    public GroupEntityId(Group eperson) throws SQLException {
-        this.id = eperson.getID();
+    public GroupEntityId(Group egroup) throws SQLException {
+        this.id = egroup.getID();
     }
 
     public int getId() {
