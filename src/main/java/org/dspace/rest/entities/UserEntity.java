@@ -37,18 +37,21 @@ public class UserEntity extends UserEntityId {
 
    public UserEntity(String uid, Context context, int level, UserRequestParams uparams) throws SQLException {
        super(uid, context);
-       this.handle = res.getHandle();
-       this.name = res.getName();
-       this.type = res.getType();
-       this.email = res.getEmail();
-       this.firstName = res.getFirstName();
-       this.fullName = res.getFullName();
-       this.requireCertificate = res.getRequireCertificate();
-       this.selfRegistered = res.getSelfRegistered();
-       this.language = res.getLanguage();
-       this.lastName = res.getLastName();
-       this.netId = res.getNetid();
-//       context.complete();
+	   try {
+		   this.handle = res.getHandle();
+		   this.name = res.getName();
+		   this.type = res.getType();
+		   this.email = res.getEmail();
+		   this.firstName = res.getFirstName();
+		   this.fullName = res.getFullName();
+		   this.requireCertificate = res.getRequireCertificate();
+		   this.selfRegistered = res.getSelfRegistered();
+		   this.language = res.getLanguage();
+		   this.lastName = res.getLastName();
+		   this.netId = res.getNetid();
+	//       context.complete();
+        }
+        catch (Exception ex) { }	   
 }
 
    public UserEntity(Context context, int level, UserRequestParams uparams) throws SQLException {
