@@ -61,6 +61,7 @@ public class CollectionsProvider extends AbstractBaseProvider implements CoreEnt
         func2actionMapGET.put("getSidebarText", "sidebarText");
         func2actionMapGET.put("getProvenance", "provenance");
         func2actionMapGET.put("getLogo", "logo");
+        func2actionMapGET.put("getPolicies", "policies");
         func2actionMapPUT.put("setShortDescription", "shortDescription");
         func2actionMapPUT.put("setIntroText", "introText");
         func2actionMapPUT.put("setCopyrightText", "copyrightText");

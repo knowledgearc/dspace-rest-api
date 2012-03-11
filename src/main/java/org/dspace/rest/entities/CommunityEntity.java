@@ -9,6 +9,7 @@
 package org.dspace.rest.entities;
 
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.ResourcePolicy;
 import org.dspace.core.Constants;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
@@ -58,6 +59,7 @@ public class CommunityEntity extends CommunityEntityId {
     List<Object> collections = new ArrayList<Object>();
     List<Object> subCommunities = new ArrayList<Object>();
     List<Object> recentSubmissions = new ArrayList<Object>();
+    List<Object> policies = new ArrayList<Object>();
     Object administrators;
     Object parent;
     Context context;
@@ -100,6 +102,11 @@ public class CommunityEntity extends CommunityEntityId {
             for (Community c : coms) {
                 this.subCommunities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
             }
+            List<ResourcePolicy> ps = AuthorizeManager.getPolicies(context,res);
+            for (ResourcePolicy c : ps) {
+                this.policies.add(new PolicyEntity(c, "Policies for Community ("+c.getResourceID()+")", level, uparams));
+            }
+
             try {
                 Community parentCommunity = res.getParentCommunity();
                 if(parentCommunity == null) {
@@ -265,6 +272,10 @@ public class CommunityEntity extends CommunityEntityId {
 
     public String getIntroductoryText() {
         return this.introductory_text;
+    }
+
+    public List<Object> getPolicies() {
+        return policies;
     }
 
     public Object setName(EntityReference ref, Map<String, Object> inputVar, Context context) {

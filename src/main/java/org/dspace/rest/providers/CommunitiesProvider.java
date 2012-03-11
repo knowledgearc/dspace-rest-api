@@ -82,6 +82,7 @@ public class CommunitiesProvider extends AbstractBaseProvider implements CoreEnt
         func2actionMapGET.put("getSidebarText", "sidebarText");
         func2actionMapGET.put("getIntroductoryText", "introductoryText");
         func2actionMapGET.put("getLogo", "logo");
+        func2actionMapGET.put("getPolicies", "policies");
         func2actionMapPUT.put("setName", "name");
         func2actionMapPUT.put("setShortDescription", "shortDescription");
         func2actionMapPUT.put("setCopyrightText", "copyrightText");

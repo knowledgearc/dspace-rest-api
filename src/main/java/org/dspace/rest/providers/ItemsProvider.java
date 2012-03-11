@@ -70,6 +70,7 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
         func2actionMapGET.put("getId", "id");
         func2actionMapGET.put("getType", "type");
         func2actionMapGET.put("getBundles", "bundles");
+        func2actionMapGET.put("getPolicies", "policies");
         func2actionMapPUT.put("addBundle", "bundles");
         func2actionMapPOST.put("createBundle", "createBundle");
         inputParamsPOST.put("createBundle", new String[]{"name", "id"});

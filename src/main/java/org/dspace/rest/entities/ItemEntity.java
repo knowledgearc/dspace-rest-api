@@ -9,6 +9,7 @@
 package org.dspace.rest.entities;
 
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.*;
 import org.dspace.content.Collection;
 import org.dspace.content.authority.Choices;
@@ -33,6 +34,8 @@ import org.jdom.Element;
 import org.dspace.rest.util.UtilHelper;
 import org.dspace.rest.util.UserRequestParams;
 
+import javax.annotation.Resource;
+
 /**
  * Entity describing item
  * @see ItemEntityId
@@ -54,6 +57,7 @@ public class ItemEntity extends ItemEntityId {
     List<Object> collections = new ArrayList<Object>();
     List<Object> communities = new ArrayList<Object>();
     List<Object> metadata = new ArrayList<Object>();
+    List<Object> policies = new ArrayList<Object>();
     //String metadata;
     Date lastModified;
     Object owningCollection;
@@ -83,18 +87,34 @@ public class ItemEntity extends ItemEntityId {
             Bitstream[] bst = res.getNonInternalBitstreams();
             Collection[] col = res.getCollections();
             Community[] com = res.getCommunities();
+            List<ResourcePolicy> ps = AuthorizeManager.getPolicies(context,res);
+
             boolean includeFull = false;
             level++;
             if (level <= uparams.getDetail()) {
                 includeFull = true;
             }
 
+            for (ResourcePolicy c : ps) {
+                this.policies.add(new PolicyEntity(c, "Policies for Item ("+c.getResourceID()+")", level, uparams));
+            }
             Collection ownCol = res.getOwningCollection();
             if (ownCol != null) {
                 this.owningCollection = includeFull ? new CollectionEntity(ownCol, level, uparams) : new CollectionEntityId(ownCol);
             }
             for (Bundle b : bun) {
                 this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
+                List<ResourcePolicy> bs = AuthorizeManager.getPolicies(context,b);
+                for (ResourcePolicy c : bs) {
+                    this.policies.add(new PolicyEntity(c, "Policies for Bundle "+b.getName()+" ("+c.getResourceID()+")", level, uparams));
+                }
+                Bitstream[] bes = b.getBitstreams();
+                for (Bitstream bi : bes) {
+                    List<ResourcePolicy> bts = AuthorizeManager.getPolicies(context,bi);
+                    for (ResourcePolicy ci : bts) {
+                        this.policies.add(new PolicyEntity(ci, "Policies for Bitsteam "+bi.getName()+" ("+ci.getResourceID()+")", level, uparams));
+                    }
+                }
             }
             for (Bitstream b : bst) {
                 this.bitstreams.add(includeFull ? new BitstreamEntity(b, level, uparams) : new BitstreamEntityId(b));
@@ -281,6 +301,10 @@ public class ItemEntity extends ItemEntityId {
 
     public List getBundles() {
         return this.bundles;
+    }
+
+    public List<Object> getPolicies() {
+        return policies;
     }
 
     @Override

@@ -8,6 +8,7 @@
 package org.dspace.rest.entities;
 
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.ResourcePolicy;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
@@ -48,6 +49,7 @@ public class CollectionEntity {
     private int countItems;
     List<Object> items = new ArrayList<Object>();
     List<Object> communities = new ArrayList<Object>();
+    List<Object> policies = new ArrayList<Object>();
     private String short_description;
     private String intro_text;
     private String copyright_text;
@@ -73,6 +75,7 @@ public class CollectionEntity {
             this.copyright_text = res.getMetadata("copyright_text");
             this.sidebar_text = res.getMetadata("side_bar_text");
             this.provenance = res.getMetadata("provenance_description");
+            List<ResourcePolicy> ps = AuthorizeManager.getPolicies(context,res);
 
             this.countItems = res.countItemsforREST();
 
@@ -102,6 +105,10 @@ public class CollectionEntity {
 
             while (i.hasNext()) {
                 items.add(includeFull ? new ItemEntity(i.next(), level, uparams) : new ItemEntityId(i.next()));
+            }
+
+            for (ResourcePolicy c : ps) {
+                this.policies.add(new PolicyEntity(c, "Policies for Collection ("+c.getResourceID()+")", level, uparams));
             }
 
             for (Community c : res.getCommunities()) {
@@ -221,6 +228,10 @@ public class CollectionEntity {
 
     public Object getLogo() {
         return this.logo;
+    }
+
+    public List<Object> getPolicies() {
+        return policies;
     }
 
     @Override

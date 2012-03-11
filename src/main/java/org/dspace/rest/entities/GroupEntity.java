@@ -81,6 +81,15 @@ public class GroupEntity extends GroupEntityId {
         }
     }
 
+    public GroupEntity(Group egroup) throws SQLException {
+        super(egroup);
+
+        this.handle = egroup.getHandle();
+        this.name = egroup.getName();
+        this.type = egroup.getType();
+        this.isEmpty = egroup.isEmpty();
+    }
+
     public GroupEntity() {
         this.id = 111;
         this.handle = "123456789/0";
