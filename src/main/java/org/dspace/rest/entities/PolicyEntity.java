@@ -43,11 +43,6 @@ public class PolicyEntity {
     }
 
     public PolicyEntity(ResourcePolicy c, String name, int level, UserRequestParams uparams) throws SQLException {
-        boolean includeFull = false;
-        level++;
-        if (level <= uparams.getDetail()) {
-            includeFull = true;
-        }
 
         this.id = c.getID();
         this.name = name;
@@ -61,8 +56,6 @@ public class PolicyEntity {
     }
 
     public PolicyEntity() {
-        // check calling package/class in order to prevent chaining
-        boolean includeFull = false;
     }
 
     public int getId() {

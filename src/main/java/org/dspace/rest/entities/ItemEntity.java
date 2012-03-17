@@ -8,33 +8,24 @@
 
 package org.dspace.rest.entities;
 
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.*;
 import org.dspace.content.Collection;
 import org.dspace.content.authority.Choices;
+import org.dspace.content.crosswalk.DisseminationCrosswalk;
 import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.dspace.rest.util.UserRequestParams;
+import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 import org.sakaiproject.entitybus.exception.EntityException;
-import org.dspace.authorize.AuthorizeException;
 
 import java.io.IOException;
-import java.util.*;
-
-import org.dspace.content.crosswalk.*;
-import org.sakaiproject.entitybus.EntityView;
-import org.sakaiproject.entitybus.EntityReference;
-import org.dspace.core.Context;
-
 import java.sql.SQLException;
-import java.io.StringWriter;
-import org.jdom.output.XMLOutputter;
-import org.jdom.Element;
-import org.dspace.rest.util.UtilHelper;
-import org.dspace.rest.util.UserRequestParams;
-
-import javax.annotation.Resource;
+import java.util.*;
 
 /**
  * Entity describing item
@@ -52,12 +43,14 @@ public class ItemEntity extends ItemEntityId {
     private Boolean canEdit;
     private String handle;
     private int type;
+    private int countItems;
     List<Object> bundles = new ArrayList<Object>();
     List<Object> bitstreams = new ArrayList<Object>();
     List<Object> collections = new ArrayList<Object>();
     List<Object> communities = new ArrayList<Object>();
     List<Object> metadata = new ArrayList<Object>();
     List<Object> policies = new ArrayList<Object>();
+    List<Object> comments = new ArrayList<Object>();
     //String metadata;
     Date lastModified;
     Object owningCollection;
@@ -204,6 +197,21 @@ public class ItemEntity extends ItemEntityId {
         this.metadata.add(includeFull ? new MetadataEntity() : new MetadataEntityId());
     }
 
+    public ItemEntity(String uid, Context context) {
+        try {
+            Item res = Item.find(context, Integer.parseInt(uid));
+            // Check authorisation
+            AuthorizeManager.authorizeAction(context, res, Constants.READ);
+
+        this.id = res.getID();
+        } catch (NumberFormatException ex) {
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ex) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        }
+
+    }
     /*
     // taken from jspui handle implementation
     // it should be probably properly formated, as HashMap
@@ -305,6 +313,22 @@ public class ItemEntity extends ItemEntityId {
 
     public List<Object> getPolicies() {
         return policies;
+    }
+
+    public int getCountItems() {
+        return countItems;
+    }
+
+    public void setCountItems(int countItems) {
+        this.countItems = countItems;
+    }
+
+    public List<Object> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<Object> comments) {
+        this.comments = comments;
     }
 
     @Override

@@ -62,6 +62,7 @@ public class DS16DirectServlet extends DirectServlet {
         this.entityProviders.add(new GroupProvider(entityProviderManager));
         this.entityProviders.add(new DiscoverProvider(entityProviderManager));
         this.entityProviders.add(new WorkflowProvider(entityProviderManager));
+        this.entityProviders.add(new CommentsProvider(entityProviderManager));
     }
 
     @Override

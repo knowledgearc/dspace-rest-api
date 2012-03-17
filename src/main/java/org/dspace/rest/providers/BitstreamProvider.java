@@ -8,28 +8,30 @@
 
 package org.dspace.rest.providers;
 
-import java.util.List;
-import java.util.Map;
-
+import org.apache.log4j.Logger;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
+import org.dspace.core.Context;
+import org.dspace.rest.entities.BitstreamEntity;
+import org.dspace.rest.entities.BitstreamEntityId;
+import org.dspace.rest.entities.CommunityEntity;
+import org.dspace.rest.util.RecentSubmissionsException;
+import org.dspace.rest.util.UserRequestParams;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.EntityView;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
-import org.sakaiproject.entitybus.entityprovider.search.Search;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityCustomAction;
-import org.dspace.content.Bitstream;
-import org.dspace.core.Context;
-import org.apache.log4j.Logger;
-import java.sql.SQLException;
-import org.dspace.rest.entities.*;
-import org.dspace.rest.util.RecentSubmissionsException;
-import javax.servlet.http.HttpServletResponse;
-import org.dspace.authorize.AuthorizeException;
-import javax.servlet.ServletOutputStream;
-import java.io.BufferedInputStream;
+import org.sakaiproject.entitybus.entityprovider.search.Search;
 import org.sakaiproject.entitybus.exception.EntityException;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import org.dspace.rest.util.UserRequestParams;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Provides access to bitstream entities
@@ -38,7 +40,7 @@ import org.dspace.rest.util.UserRequestParams;
 public class BitstreamProvider extends AbstractBaseProvider implements CoreEntityProvider {
 
     EntityProviderManager locEPM;
-    private static Logger log = Logger.getLogger(UserProvider.class);
+    private static Logger log = Logger.getLogger(BitstreamProvider.class);
 
     public BitstreamProvider(EntityProviderManager entityProviderManager) throws SQLException, NoSuchMethodException {
         super(entityProviderManager);

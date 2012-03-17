@@ -38,7 +38,7 @@ public class WorkflowItemEntity {
             WorkflowItem res = WorkflowItem.find(context, Integer.parseInt(uid));
 
             this.id = res.getID();
-            this.itemEntity = new ItemEntity(String.valueOf(res.getItem().getID()),context,level,uparams);
+            this.itemEntity = new ItemEntity(res.getItem(),level,uparams);
             if (res.getOwner() != null) {
                 this.reviewer = new UserEntity(res.getOwner());
             }

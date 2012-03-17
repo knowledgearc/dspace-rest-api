@@ -8,33 +8,28 @@
 
 package org.dspace.rest.providers;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataSchema;
-import org.sakaiproject.entitybus.EntityReference;
-import org.sakaiproject.entitybus.EntityView;
-import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
-import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
-import org.sakaiproject.entitybus.entityprovider.search.Search;
-import org.sakaiproject.entitybus.entityprovider.search.Order;
-import org.sakaiproject.entitybus.entityprovider.search.Restriction;
-import org.sakaiproject.entitybus.entityprovider.annotations.EntityCustomAction;
-import org.dspace.core.Context;
-import org.dspace.content.Item;
 import org.apache.log4j.Logger;
-import org.sakaiproject.entitybus.exception.EntityException;
-import org.dspace.content.ItemIterator;
-import java.sql.SQLException;
-import org.dspace.rest.entities.*;
-import org.dspace.rest.util.UtilHelper;
-import org.dspace.rest.util.RecentSubmissionsException;
-import java.util.Collections;
-import org.sakaiproject.entitybus.entityprovider.capabilities.*;
+import org.dspace.content.*;
+import org.dspace.core.Context;
+import org.dspace.rest.entities.CommentEntity;
+import org.dspace.rest.entities.ItemEntity;
+import org.dspace.rest.entities.ItemEntityId;
+import org.dspace.rest.entities.MetadataFieldEntity;
 import org.dspace.rest.util.GenComparator;
 import org.dspace.rest.util.UserRequestParams;
+import org.sakaiproject.entitybus.EntityReference;
+import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
+import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
+import org.sakaiproject.entitybus.entityprovider.capabilities.Createable;
+import org.sakaiproject.entitybus.entityprovider.capabilities.Deleteable;
+import org.sakaiproject.entitybus.entityprovider.capabilities.Updateable;
+import org.sakaiproject.entitybus.entityprovider.search.Search;
+import org.sakaiproject.entitybus.exception.EntityException;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Provides interface for access to item entities
@@ -44,7 +39,7 @@ import org.dspace.rest.util.UserRequestParams;
  */
 public class ItemsProvider extends AbstractBaseProvider implements CoreEntityProvider, Updateable, Createable, Deleteable {
 
-    private static Logger log = Logger.getLogger(UserProvider.class);
+    private static Logger log = Logger.getLogger(ItemsProvider.class);
 
     /**
      * Constructor handles registration of provider
@@ -74,6 +69,7 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
         func2actionMapPUT.put("addBundle", "bundles");
         func2actionMapPOST.put("createBundle", "createBundle");
         inputParamsPOST.put("createBundle", new String[]{"name", "id"});
+
         func2actionMapPOST.put("addMetadata", "addMetadata");
         inputParamsPOST.put("addMetadata", new String[]{"id", "fieldID", "value"});
         func2actionMapPOST.put("editMetadata", "editMetadata");
@@ -134,12 +130,6 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
             segments = reqStor.getStoredValue("pathInfo").toString().split("/", 10);
         }
 
-        // first check if there is sub-field requested
-        // if so then invoke appropriate method inside of entity
-        if (segments.length > 3) {
-            return super.getEntity(reference);
-        }
-
         Context context;
         try {
             context = new Context();
@@ -149,6 +139,34 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
 
         UserRequestParams uparams;
         uparams = refreshParams(context);
+
+        // first check if there is sub-field requested
+        // if so then invoke appropriate method inside of entity
+        if (segments.length > 3) {
+            String act = segments[3];
+            if (act.lastIndexOf(".") > 0) {
+                act = act.substring(0, segments[3].lastIndexOf("."));
+            }
+            if (act.equals("comments")) {
+                List l = new ArrayList();
+                ItemEntity itemEntity = new ItemEntity(reference.getId(),context);
+                itemEntity.setComments(l);
+                try {
+                    itemEntity.setCountItems(Comment.countItems(context, Integer.parseInt(reference.getId())));
+                    Comment[] comments = Comment.findAll(context, Integer.parseInt(reference.getId()),_perpage*_page, _perpage);
+                    for (Comment comment : comments) {
+                        l.add(new CommentEntity(comment));
+                    }
+                } catch (SQLException e) {
+                    throw new EntityException("Internal server error", "SQL error", 500);
+                }
+
+                removeConn(context);
+                return itemEntity;
+            }
+
+            return super.getEntity(reference);
+        }
 
         // sample entity
         if (reference.getId().equals(":ID:")) {
