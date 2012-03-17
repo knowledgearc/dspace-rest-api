@@ -7,46 +7,41 @@
  */
 package org.dspace.rest.providers;
 
-import org.sakaiproject.entitybus.entityprovider.EntityProvider;
-import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
-import org.sakaiproject.entitybus.entityprovider.capabilities.*;
-import org.sakaiproject.entitybus.entityprovider.extension.RequestStorage;
-import org.sakaiproject.entitybus.entityprovider.extension.Formats;
-import org.dspace.core.Context;
+import org.apache.log4j.Logger;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
-import org.dspace.authorize.AuthorizeException;
-import org.sakaiproject.entitybus.exception.EntityException;
-import org.apache.log4j.Logger;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.sakaiproject.entitybus.EntityView;
-import java.util.ArrayList;
-import java.util.List;
-import java.sql.SQLException;
-import java.util.Map;
-import java.util.HashMap;
-import org.dspace.rest.util.UtilHelper;
-import org.dspace.rest.util.UserRequestParams;
-import java.lang.reflect.*;
+import org.dspace.rest.entities.CommunityEntity;
 import org.dspace.rest.util.RecentSubmissionsException;
+import org.dspace.rest.util.UserRequestParams;
+import org.dspace.rest.util.UtilHelper;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.EntityView;
+import org.sakaiproject.entitybus.entityprovider.EntityProvider;
+import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderMethodStore;
-import org.sakaiproject.entitybus.entityprovider.extension.CustomAction;
+import org.sakaiproject.entitybus.entityprovider.capabilities.*;
 import org.sakaiproject.entitybus.entityprovider.extension.*;
-import org.dspace.rest.entities.*;
-import javax.servlet.ServletInputStream;
-import org.sakaiproject.entitybus.util.devhelper.AbstractDeveloperHelperService;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.IOException;
+import org.sakaiproject.entitybus.exception.EntityException;
 import org.sakaiproject.entitybus.rest.EntityEncodingManager;
-import org.sakaiproject.entitybus.entityprovider.extension.Formats;
-import org.sakaiproject.entitybus.entityprovider.extension.RequestGetter;
+
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Base abstract class for Entity Providers. Takes care about general
@@ -95,7 +90,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
     protected String[] fields;
     protected String status;
-    protected int submitter, reviewer;
+    protected String submitter, reviewer;
 
     /**
      * Handle registration of EntityProvider
@@ -695,30 +690,26 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             }else if(o == null){
                 fields = null;
             }
-            uparam.setFields(fields);
         } catch (NullPointerException ex) {
             fields = null;
         }
 
         try {
             status = reqStor.getStoredValue("status").toString();
-            uparam.setStatus(status);
         } catch (NullPointerException ex) {
             status = "";
         }
 
         try {
-            submitter = Integer.parseInt(reqStor.getStoredValue("submitter").toString());
-            uparam.setSubmitter(submitter);
+            submitter = reqStor.getStoredValue("submitter").toString();
         } catch (NullPointerException ex) {
-            submitter = 0;
+            submitter = "";
         }
 
         try {
-            reviewer = Integer.parseInt(reqStor.getStoredValue("reviewer").toString());
-            uparam.setReviewer(reviewer);
+            reviewer = reqStor.getStoredValue("reviewer").toString();
         } catch (NullPointerException ex) {
-            reviewer = 0;
+            reviewer = "";
         }
 
 

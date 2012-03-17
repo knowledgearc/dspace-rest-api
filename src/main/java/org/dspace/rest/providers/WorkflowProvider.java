@@ -10,13 +10,11 @@
 package org.dspace.rest.providers;
 
 import org.apache.log4j.Logger;
-import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.rest.entities.UserEntity;
 import org.dspace.rest.entities.WorkflowEntity;
 import org.dspace.rest.entities.WorkflowItemEntity;
-import org.dspace.rest.util.GenComparator;
 import org.dspace.rest.util.UserRequestParams;
 import org.dspace.workflow.WorkflowItem;
 import org.sakaiproject.entitybus.EntityReference;
@@ -29,10 +27,14 @@ import org.sakaiproject.entitybus.entityprovider.search.Search;
 import org.sakaiproject.entitybus.exception.EntityException;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Provides interface for workflow entities
+ *
  * @author Lewis
  */
 public class WorkflowProvider extends AbstractBaseProvider implements CoreEntityProvider, Createable, Updateable, Deleteable {
@@ -50,7 +52,7 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
         func2actionMapPOST.put("submitApprove", "submitApprove");
         inputParamsPOST.put("submitApprove", new String[]{"id"});
         func2actionMapPOST.put("submitReject", "submitReject");
-        inputParamsPOST.put("submitReject", new String[]{"id","reason"});
+        inputParamsPOST.put("submitReject", new String[]{"id", "reason"});
         entityConstructor = processedEntity.getDeclaredConstructor(new Class<?>[]{String.class, Context.class, Integer.TYPE, UserRequestParams.class});
         initMappings(processedEntity);
 
@@ -96,8 +98,7 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
 
     /**
      * Returns information about particular entity
-     * @param reference
-     * @return
+     *
      */
     @Override
     public Object getEntity(EntityReference reference) {
@@ -118,32 +119,32 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
             try {
                 context = new Context();
 
-            UserRequestParams uparams = refreshParams(context);
+                UserRequestParams uparams = refreshParams(context);
 
 //            // sample entity
-            if (reference.getId().equals(":ID:")) {
-                return new WorkflowItemEntity();
-            }
-
-            if (reference.getId().equals("submitters")) {
-                List<UserEntity> l = new ArrayList<UserEntity>();
-                EPerson[] ePersons = EPerson.searchSubmittersinWorkflow(context, uparams.getQuery(), _perpage*_page, _perpage,  _sort.replaceAll("_"," "));
-                for (EPerson e : ePersons) {
-                    l.add(new UserEntity(e.getID(),e.getFirstName(),e.getLastName(),e.getFullName(),e.getEmail()));
+                if (reference.getId().equals(":ID:")) {
+                    return new WorkflowItemEntity();
                 }
 
-                removeConn(context);
-                return l;
-            }
-//
-            if (reference.getId() == null) {
-                return new WorkflowItemEntity();
-            }
+                if (reference.getId().equals("submitters")) {
+                    List<UserEntity> l = new ArrayList<UserEntity>();
+                    EPerson[] ePersons = EPerson.searchSubmittersinWorkflow(context, uparams.getQuery(), _perpage * _page, _perpage, _sort.replaceAll("_", " "));
+                    for (EPerson e : ePersons) {
+                        l.add(new UserEntity(e.getID(), e.getFirstName(), e.getLastName(), e.getFullName(), e.getEmail()));
+                    }
 
-            if (entityExists(reference.getId())) {
-                // return basic entity or full info
-                return new WorkflowItemEntity(reference.getId(), context, 1, uparams);
-            }
+                    removeConn(context);
+                    return l;
+                }
+//
+                if (reference.getId() == null) {
+                    return new WorkflowItemEntity();
+                }
+
+                if (entityExists(reference.getId())) {
+                    // return basic entity or full info
+                    return new WorkflowItemEntity(reference.getId(), context, 1, uparams);
+                }
             } catch (SQLException ex) {
                 throw new EntityException("Internal server error", "SQL error", 500);
             }
@@ -155,9 +156,7 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
 
     /**
      * List all workflow items in the system, sort and format if requested
-     * @param ref
-     * @param search
-     * @return
+     *
      */
     public List<?> getEntities(EntityReference ref, Search search) {
         log.info(userInfo() + "list_entities");
@@ -179,21 +178,21 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
 
         try {
             Map paramMap = new HashMap();
-            paramMap.put("fields", uparams.getFields());
-            paramMap.put("status", uparams.getStatus());
-            paramMap.put("submitter", String.valueOf(uparams.getSubmitter()));
-            paramMap.put("reviewer", String.valueOf(uparams.getReviewer()));
+            paramMap.put("fields", fields);
+            paramMap.put("status", status);
+            paramMap.put("submitter", submitter);
+            paramMap.put("reviewer", reviewer);
 
             paramMap.put("perpage", String.valueOf(_perpage));
             paramMap.put("page", String.valueOf(_page));
 
-            workflowEntity.setCountItems(WorkflowItem.countItemsforREST(context,paramMap));
+            workflowEntity.setCountItems(WorkflowItem.countItemsforREST(context, paramMap));
 
-            workflowItems = WorkflowItem.findAllbyPerson(context,paramMap);
+            workflowItems = WorkflowItem.findAllbyPerson(context, paramMap);
 
             System.out.println(" number of workflowitems " + workflowItems.length);
             for (WorkflowItem wfi : workflowItems) {
-                entities.add(new WorkflowItemEntity(wfi,1,uparams));
+                entities.add(new WorkflowItemEntity(wfi, 1, uparams));
             }
             workflowEntity.setWorkflowItems(entities);
         } catch (Exception ex) {
@@ -201,11 +200,6 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
         }
         results.add(workflowEntity);
         removeConn(context);
-//        if (!idOnly && sortOptions.size() > 0) {
-//            Collections.sort(entities, new GenComparator(sortOptions));
-//        }
-
-//        removeTrailing(entities);
 
         return results;
     }
