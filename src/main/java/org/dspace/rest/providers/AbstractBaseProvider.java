@@ -14,20 +14,19 @@ import org.dspace.content.Community;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.rest.entities.CommunityEntity;
-import org.dspace.rest.util.RecentSubmissionsException;
 import org.dspace.rest.util.UserRequestParams;
 import org.dspace.rest.util.UtilHelper;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.EntityView;
 import org.sakaiproject.entitybus.entityprovider.EntityProvider;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
-import org.sakaiproject.entitybus.entityprovider.EntityProviderMethodStore;
 import org.sakaiproject.entitybus.entityprovider.capabilities.*;
-import org.sakaiproject.entitybus.entityprovider.extension.*;
+import org.sakaiproject.entitybus.entityprovider.extension.Formats;
+import org.sakaiproject.entitybus.entityprovider.extension.RequestGetter;
+import org.sakaiproject.entitybus.entityprovider.extension.RequestStorage;
 import org.sakaiproject.entitybus.exception.EntityException;
 import org.sakaiproject.entitybus.rest.EntityEncodingManager;
 
-import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
@@ -43,19 +42,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Base abstract class for Entity Providers. Takes care about general
- * operations like extracting url parameters, registration, unregistration <br/>
- * and other stuff. The Entity Provider should extend this class and implement
- * CoreEntityProvider. This class implements capabilities as it is currently
- * planed for REST support in DSpace, meaning, there is no Inputable capability
- * implemented but could be easily extended later if necessary.
- *
- * @author Bojan Suzic(bojan.suzic@gmail.com)
- */
 public abstract class AbstractBaseProvider implements EntityProvider, Resolvable, CollectionResolvable, InputTranslatable, RequestAware, Outputable, Describeable, ActionsExecutable, Redirectable, RequestStorable, RequestInterceptor {
 
-    // query parameters used in subclasses
     protected RequestStorage reqStor;
     protected boolean idOnly, topLevelOnly, in_archive, immediateOnly, withdrawn;
     protected String user = "";
@@ -83,22 +71,19 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     protected Map<String, String> func2actionMapPOST_rev = new HashMap<String, String>();
     protected Map<String, String> func2actionMapDELETE_rev = new HashMap<String, String>();
     protected Class<?> processedEntity = CommunityEntity.class;
-    private Constructor<?> ctr = null;
     protected Constructor<?> entityConstructor = null;
-    protected Map<String, Object> reqInput = new HashMap<String, Object>();
     protected RequestGetter requestGetter;
 
     protected String[] fields;
     protected String status;
     protected String submitter, reviewer;
 
-    /**
-     * Handle registration of EntityProvider
-     * @param entityProviderManager
-     * @throws java.sql.SQLException
-     */
-    public AbstractBaseProvider(
-            EntityProviderManager entityProviderManager) throws SQLException {
+    protected boolean collections = false;
+    protected boolean trim = false;
+    protected boolean parents = false;
+    protected boolean children = false;
+
+    public AbstractBaseProvider(EntityProviderManager entityProviderManager) throws SQLException {
         this.entityProviderManager = entityProviderManager;
         try {
             init();
@@ -107,11 +92,9 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
         } // get request info for later parsing of parameters
         //this.reqStor = entityProviderManager.getRequestStorage();
-
     }
 
     protected void initMappings(Class<?> processedEntity) throws NoSuchMethodException {
-        ctr = processedEntity.getDeclaredConstructor(new Class<?>[]{String.class, Context.class, Integer.TYPE, UserRequestParams.class});
         // scan for methods;
         Method[] entityMethods = processedEntity.getMethods();
         for (Method m : entityMethods) {
@@ -140,214 +123,11 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         }
     }
 
-    // view_edit actions - deprecated
-    protected void createPUTActions(Class<?> processedEntity) throws NoSuchMethodException {
-        ctr = processedEntity.getDeclaredConstructor(new Class<?>[]{String.class, Context.class, UserRequestParams.class});
-        EntityProviderMethodStore epms = entityProviderManager.getEntityProviderMethodStore();
-        // scan for methods;
-        Method[] CommunityMethods = processedEntity.getMethods();
-
-        for (Method m : CommunityMethods) {
-            System.out.println("====PUT Analyzed method " + m.getName());
-        }
-        for (Method m : CommunityMethods) {
-            String field = func2actionMapPUT.get(m.getName());
-            if (field != null) {
-                System.out.println("===PUT Field found " + field);
-                //CustomAction locCA = new CustomAction(field, EntityView.VIEW_EDIT, "putAction");
-
-                // try {
-                //locCA.setMethod(this.getClass().getMethod("putAction", new Class<?>[]{EntityReference.class, EntityView.class}));
-                //epms.addCustomAction(getEntityPrefix(), locCA);
-                addParameters(field, m.getParameterTypes(), funcParamsPUT);
-                addMethod(field, m.getName(), func2actionMapPUT_rev);
-                // } catch (NoSuchMethodException ex) {
-                //     ex.printStackTrace();
-                // }
-            }
-        }
-
-        System.out.println("::::::::::");
-        for (String key : funcParamsPUT.keySet()) {
-            System.out.println("key " + key);
-            Class<?>[] kl = funcParamsPUT.get(key);
-            for (Class<?> k : kl) {
-                System.out.println(k.getName());
-            }
-        }
-
-    }
-
-    // view_show actions - deprecated
-    protected void createActions(Class<?> processedEntity) throws NoSuchMethodException {
-        ctr = processedEntity.getDeclaredConstructor(new Class<?>[]{String.class, Context.class, UserRequestParams.class});
-        EntityProviderMethodStore epms = entityProviderManager.getEntityProviderMethodStore();
-        // scan for methods;
-        Method[] CommunityMethods = processedEntity.getMethods();
-
-        for (Method m : CommunityMethods) {
-            System.out.println("====Analyzed method " + m.getName());
-        }
-        for (Method m : CommunityMethods) {
-            String field = func2actionMapGET.get(m.getName());
-            if (field != null) {
-                System.out.println("===Field found " + field);
-                //  CustomAction locCA = new CustomAction(field, EntityView.VIEW_SHOW, "testAction");
-
-                //try {
-                //  locCA.setMethod(this.getClass().getMethod("testAction", new Class<?>[]{EntityReference.class, EntityView.class}));
-                //  epms.addCustomAction(getEntityPrefix(), locCA);
-                addParameters(field, m.getParameterTypes(), funcParamsGET);
-                addMethod(field, m.getName(), func2actionMapGET_rev);
-                //} catch (NoSuchMethodException ex) {
-                //    ex.printStackTrace();
-                // }
-            }
-        }
-    }
-
-    // next two actions for put
-    public Object putAction() {
-        return new ActionReturn(new EntityData("2", "resField", "hotresult"), (String) null);
-    }
-
-    public Object putAction(EntityReference reference, EntityView view) throws SQLException, RecentSubmissionsException {
-        String input = "";
-        try {
-            input = readIStoString(requestGetter.getRequest().getInputStream());
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
-        Map<String, Object> decodedInput = new HashMap<String, Object>();
-        EntityEncodingManager em = new EntityEncodingManager(null, null);
-        decodedInput = em.decodeData(input, Formats.JSON); //TODO other formats
-
-        for (String key : decodedInput.keySet()) {
-            System.out.println("key - " + decodedInput.get(key));
-        }
-
-        System.out.println("PUT INPUT " + input);
-        //String result = "none";
-        Object result = new String("");
-        String resField = "nofield";
-
-
-        if (view.getPathSegments().length > 1) {
-            String function = getMethod(view.getPathSegment(2), func2actionMapPUT_rev);
-            System.out.println("working on function " + function);
-            if (function != null) {
-                resField = func2actionMapPUT.get(view.getPathSegment(2));
-                System.out.println("resfield " + resField);
-                Context context;
-                try {
-                    context = new Context();
-                } catch (SQLException ex) {
-                    throw new EntityException("Internal server error", "SQL error", 500);
-                }
-                refreshParams(context);
-                System.out.println("refreshing done,reference " + reference.getId());
-                //if (entityExists(reference.getId())) {
-                //  CommunityEntity CE = new CommunityEntity(reference.getId(), context);
-                Object CE = new Object();
-                try {
-                    CE = ctr.newInstance(reference.getId(), context);
-                } catch (Exception ex) {
-                    System.out.println("ne valja");
-                }
-//
-//                try{ System.out.println("parameters found");
-//                Class<?>[] kl = funcParamsPUT.get(view.getPathSegment(2));
-//                for (Class<?> k : kl) {
-//                    System.out.println(k.getName());
-//                }} catch (Exception ex) {ex.printStackTrace(); }
-
-
-                // ova metoda ovaj sistem za uzimanje parametara je ispravan
-                try {
-                    Method method = CE.getClass().getMethod(function, funcParamsPUT.get(view.getPathSegment(2)));
-                    //Method method = CE.getClass().getMethod(function, new Class<?>[]{EntityView.class, Map.class, Context.class});
-                    result = method.invoke(CE, view, decodedInput, context); // TODO more flexible for other param types
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-
-                try {
-                    removeConn(context);
-                } catch (NullPointerException ex) {
-                    // context already closed, ok
-                }
-            }
-        }
-        return new ActionReturn(new EntityData(reference.toString(), "resField", result), (String) null);
-    }
-
-    // the next two actions for view
-    public Object testAction() {
-        return new ActionReturn(new EntityData("2", "resField", "hotresult"), (String) null);
-    }
-
     public void setRequestStorage(RequestStorage rStor) {
         this.reqStor = rStor;
     }
 
-    public Object testAction(EntityReference reference, EntityView view) throws SQLException, RecentSubmissionsException {
-        //String result = "none";
-        Object result = new String("");
-        String resField = "nofield";
-        for (String segment : view.getPathSegments()) {
-            System.out.println(segment);
-        }
-        System.out.println("areferenceee " + reference.getId());
-
-        if (view.getPathSegments().length > 1) {
-            String function = getMethod(view.getPathSegment(2), func2actionMapGET_rev);
-            System.out.println("working on function " + function);
-            if (function != null) {
-                resField = func2actionMapGET.get(view.getPathSegment(2));
-                System.out.println("resfield " + resField);
-                Context context;
-                try {
-                    context = new Context();
-                } catch (SQLException ex) {
-                    throw new EntityException("Internal server error", "SQL error", 500);
-                }
-                refreshParams(context);
-                System.out.println("refreshing done,reference " + reference.getId());
-                //if (entityExists(reference.getId())) {
-                //  CommunityEntity CE = new CommunityEntity(reference.getId(), context);
-                Object CE = new Object();
-                try {
-                    CE = ctr.newInstance(reference.getId(), context);
-                } catch (Exception ex) {
-                    System.out.println("nevalja");
-                }
-                try {
-                    Method method = CE.getClass().getMethod(function);
-                    result = method.invoke(CE);
-                    System.out.println("result " + result);
-                } catch (Exception ex) {
-                    System.out.println("line177");
-                    ex.printStackTrace();
-                }
-
-
-                try {
-                    removeConn(context);
-                } catch (NullPointerException ex) {
-                    // context already close, ok
-                }
-            }
-        }
-        return new ActionReturn(new EntityData(reference.toString(), "resField", result), (String) null);
-    }
     protected EntityProviderManager entityProviderManager;
-
-    public void setEntityProviderManager(EntityProviderManager entityProviderManager) {
-        this.entityProviderManager = entityProviderManager;
-
-
-    }
 
     public void init() throws Exception {
         entityProviderManager.registerEntityProvider(this);
@@ -361,10 +141,6 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
     }
 
-    /**
-     * Extracts and returns information about current session user, for logging
-     * @return
-     */
     public String userInfo() {
         String ipaddr = "";
 
@@ -378,31 +154,6 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         return "user:" + loggedUser + ":ip_addr=" + ipaddr + ":";
 
 
-    }
-
-    public String readIStoString(ServletInputStream is) throws IOException {
-        /*
-         * To convert the InputStream to String we use the BufferedReader.readLine()
-         * method. We iterate until the BufferedReader return null which means
-         * there's no more data to read. Each line will appended to a StringBuilder
-         * and returned as String.
-         */
-        if (is != null) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line).append("\n");
-                }
-            } finally {
-                is.close();
-            }
-            return sb.toString();
-        } else {
-            return "";
-        }
     }
 
     public String readIStoString(InputStream is) throws IOException {
@@ -430,112 +181,8 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         }
     }
 
-    /**
-     * Checks request headers and applying requested format and login data
-     * note that header based request has precedence over query one
-     * This method is called before other methods processing request
-     * so we can change some properties of response
-     * @param view
-     * @param req
-     * @param res
-     */
     public void before(EntityView view, HttpServletRequest req, HttpServletResponse res) {
-
-        //    System.out.println("aaaaContent length = " + req.getContentLength());
-        String input = "";
-//        try {
-//            ServletInputStream SI = req.getInputStream();
-//            int i = SI.read();
-//            while (i != -1) {
-//                System.out.print((char) i);
-//                i = SI.read();
-//            }
-//        } catch (Exception ex) {
-//            ex.printStackTrace();
-//        }
-
-//        try {
-//            input = readIStoString(req.getInputStream());
-//        } catch (IOException ex) {
-//            ex.printStackTrace();
-//        }
-
-
-//        System.out.println("THIS IS INPUT " + input);
-
-//        while (req.getAttributeNames().hasMoreElements()) {
-//            System.out.println("attr: " + req.getAttributeNames().nextElement());
-//        }
-
-
-        //      System.out.println("reference " + view.getEntityReference().getId());
-
-//        while (req.getHeaderNames().hasMoreElements()) {
-//            System.out.println("head: " + req.getHeaderNames().nextElement());
-//        }
-//
-//        while (req.getParameterNames().hasMoreElements()) {
-//            System.out.println("para: " + req.getParameterNames().nextElement());
-//        }
         log.info(userInfo() + "starting to write for collection adding");
-        Map<String, Object> daa = new HashMap<String, Object>();
-//        EntityEncodingManager em = new EntityEncodingManager(null, null);
-//        daa = em.decodeData(input, Formats.JSON);
-//        System.out.println("OLD REQINPUT ");
-//        for (String key : reqInput.keySet()) {
-//            System.out.println(reqInput.get(key));
-//        }
-//        reqInput = em.decodeData(input, Formats.JSON);
-//        System.out.println("NEW REQINPUT ");
-//        for (String key : reqInput.keySet()) {
-//            System.out.println(reqInput.get(key));
-//        }
-//        System.out.println("(_)_) daa" + daa.get("cid"));
-//        String colid = "";
-//        if (daa.get("cid") != null) {
-//            colid = daa.get("cid").toString();
-//        }
-//        if (!colid.equals("")) {
-//            Context context;
-//            try {
-//                context = new Context();
-//            } catch (SQLException ex) {
-//                throw new EntityException("Internal server error", "SQL error", 500);
-//            }
-//            refreshParams(context);
-//
-//            System.out.println(".adding collection to community." + colid + "int" + Integer.parseInt(colid));
-//            try {
-//                Collection col = Collection.find(context, Integer.parseInt(colid));
-//                Community com = Community.find(context, Integer.parseInt(view.getEntityReference().getId()));
-//                if ((com != null) && (col != null)) {
-//                    com.addCollection(col);
-//                } else {
-//                    throw new EntityException("Entity not found", "Not found", 404);
-//                }
-//                //com.createCollection();
-//            } catch (SQLException ex) {
-//                ex.printStackTrace();
-//                throw new EntityException("111111Internal server error", "SQL error", 500);
-//            } catch (AuthorizeException ex) {
-//                ex.printStackTrace();
-//            }
-//
-//
-//            try {
-//                removeConn(context);
-//            } catch (NullPointerException ex) {
-//                // context already close, ok
-//            }
-//        }
-
-
-        //       Map<Object, Object> para = req.getParameterMap();
-        //       for (Object key : para.keySet()) {
-        //           System.out.println("~~~~~ key " + key + " val " + para.get(key));
-        //       }
-
-        // json by default if nothing is requested
         try {
             if (req.getContentType().equals("application/json")) {
                 view.setExtension("json");
@@ -583,22 +230,9 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         }
     }
 
-    /**
-     * Called after processing of request
-     * Not relevant in this case but implementation must be available
-     * @param view
-     * @param req
-     * @param res
-     */
     public void after(EntityView view, HttpServletRequest req, HttpServletResponse res) {
     }
 
-    /**
-     * Extract parameters from query and do basic authentication, analyze
-     * and prepare sorting and other fields
-     * @param context current database context locally (in subclass method)
-     * defined but used here for loging and other purposes
-     */
     public UserRequestParams refreshParams(Context context) {
 
         UserRequestParams uparam = new UserRequestParams();
@@ -632,26 +266,31 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
         try {
             EPerson eUser = EPerson.findByEmail(context, user);
-            if ((eUser.canLogIn()) && (eUser.checkPassword(pass)||eUser.checkMD5Password(pass))) {
+            if ((eUser.canLogIn()) && (eUser.checkPassword(pass) || eUser.checkMD5Password(pass))) {
                 context.setCurrentUser(eUser);
                 loggedUser = eUser.getName();
             } else {
                 throw new EntityException("Bad username or password", user, 403);
             }
         } catch (SQLException sql) {
-            System.out.println(sql.toString());
+//            System.out.println(sql.toString());
             sql.printStackTrace();
         } catch (AuthorizeException auth) {
             throw new EntityException("Unauthorised", user, 401);
-
-// TODO Refactor this, it seems the catching of usernames/passwords does not work
-
-
         } catch (NullPointerException ne) {
             if (!(user.equals("") && pass.equals(""))) {
                 throw new EntityException("Bad username or password", user, 403);
             }
         }
+
+        this.collections = "true".equals(reqStor.getStoredValue("collections"));
+        uparam.setCollections(this.collections);
+        this.trim = "true".equals(reqStor.getStoredValue("trim"));
+        uparam.setTrim(this.trim);
+        this.parents = "true".equals(reqStor.getStoredValue("parents"));
+        uparam.setParents(this.parents);
+        this.children = "true".equals(reqStor.getStoredValue("children"));
+        uparam.setChildren(this.children);
 
         try {
             this.idOnly = reqStor.getStoredValue("idOnly").equals("true");
@@ -685,9 +324,9 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             Object o = reqStor.getStoredValue("fields");
             if (o instanceof String) {
                 fields = new String[]{o.toString()};
-            }else if (o instanceof String[]) {
+            } else if (o instanceof String[]) {
                 fields = (String[]) o;
-            }else if(o == null){
+            } else if (o == null) {
                 fields = null;
             }
         } catch (NullPointerException ex) {
@@ -918,12 +557,12 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        Map<String, Object> decodedInput = new HashMap<String, Object>();
+        Map<String, Object> decodedInput;
         EntityEncodingManager em = new EntityEncodingManager(null, null);
         if (format.equals("xml")) {
-            decodedInput = em.decodeData(IS, Formats.XML); //TODO other formats
+            decodedInput = em.decodeData(IS, Formats.XML);
         } else {
-            decodedInput = em.decodeData(IS, Formats.JSON); //TODO other formats
+            decodedInput = em.decodeData(IS, Formats.JSON);
         }
 
 
@@ -984,10 +623,6 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         mappings_parameters.put(function, parameters);
     }
 
-    public Class<?>[] getParameters(String function, Map<String, Class<?>[]> mappings_parameters) {
-        return mappings_parameters.get(function);
-    }
-
     public void addMethod(String field, String function, Map<String, String> mappings_rev) {
         mappings_rev.put(field, function);
     }
@@ -1021,7 +656,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             UserRequestParams uparams;
             uparams = refreshParams(context);
 
-            Object CE = new Object();
+            Object CE;
             try {
 
                 CE = entityConstructor.newInstance(reference.getId(), context, 1, uparams);
@@ -1030,9 +665,9 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             }
 
             try {
-                Method method = CE.getClass().getMethod(function, new Class<?>[]{});
+                Method method = CE.getClass().getMethod(function);
                 //Method method = CE.getClass().getMethod(function, new Class<?>[]{EntityView.class, Map.class, Context.class});
-                result = method.invoke(CE); // TODO more flexible for other param types
+                result = method.invoke(CE);
             } catch (Exception ex) {
                 throw new EntityException("Internal server error", "Cannot call method " + function, 500);
             }
@@ -1102,7 +737,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             uparams = refreshParams(context);
 
             System.out.print("uparams " + uparams.getUser() + uparams.getPassword());
-            Object CE = new Object();
+            Object CE;
             try {
                 CE = entityConstructor.newInstance(ref.getId(), context, 1, uparams);
             } catch (Exception ex) {
@@ -1111,7 +746,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
             try {
                 Method method = CE.getClass().getMethod(function, funcParamsDELETE.get(action));
-                method.invoke(CE, ref, inputVar, context); // TODO more flexible for other param types
+                method.invoke(CE, ref, inputVar, context);
             } catch (NoSuchMethodException nex) {
                 System.out.println("nex");
             } catch (IllegalAccessException iex) {
@@ -1121,7 +756,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
                 if (itex.getTargetException().getClass().equals(EntityException.class)) {
                     throw eex;
                 } else {
-                    // TODO UNKNOWN ERROR - OTHER CLASS - REPORT
+
                 }
             }
 
@@ -1146,7 +781,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             UserRequestParams uparams;
             uparams = refreshParams(context);
 
-            Object CE = new Object();
+            Object CE;
             try {
                 CE = entityConstructor.newInstance(ref.getId(), context, 1, uparams);
             } catch (Exception ex) {
@@ -1155,7 +790,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
             try {
                 Method method = CE.getClass().getMethod(function, funcParamsDELETE.get(action));
-                method.invoke(CE, ref, inputVar, context); // TODO more flexible for other param types
+                method.invoke(CE, ref, inputVar, context);
             } catch (Exception ex) {
                 throw new EntityException("Internal server error", "Cannot call method " + function, 500);
             }
@@ -1170,9 +805,10 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void updateEntity(EntityReference ref, Object entity, Map<String, Object> params) {
         System.out.println("update called");
-        Map<String, Object> inputVar = (HashMap) entity;
+        Map<String, Object> inputVar = (HashMap<String,Object>) entity;
         String segments[] = {};
         if (params.containsKey("pathInfo")) {
             segments = params.get("pathInfo").toString().split("/", 10);
@@ -1201,7 +837,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
                 UserRequestParams uparams;
                 uparams = refreshParams(context);
-                Object CE = new Object();
+                Object CE;
 
                 try {
                     CE = entityConstructor.newInstance(ref.getId(), context, 1, uparams);
@@ -1211,7 +847,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
                 try {
                     Method method = CE.getClass().getMethod(function, funcParamsPUT.get(segments[3]));
-                    method.invoke(CE, ref, inputVar, context); // TODO more flexible for other param types
+                    method.invoke(CE, ref, inputVar, context);
                     // System.out.println("invoked");
                 } catch (InvocationTargetException ex) {
                     if (ex.getCause() != null) {
@@ -1248,19 +884,19 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         System.out.println("creating");
         String result = "x";
         Map<String, Object> inputVar = (HashMap) entity;
-        String action = "";
+        String action="";
         String function = "";
         String[] mandatory_params = {};
-        try {
-            inputVar.get("action").getClass().getName();
-        } catch (NullPointerException ex) {
-            throw new EntityException("Bad request", "Incomplete request [action]", 400);
-        }
-        try {
-            action = (String) inputVar.get("action");
-        } catch (ClassCastException ex2) {
-            throw new EntityException("Bad request", "Incomplete request [action2]", 400);
-        }
+//        try {
+//            inputVar.get("action").getClass().getName();
+//        } catch (NullPointerException ex) {
+//            throw new EntityException("Bad request", "Incomplete request [action]", 400);
+//        }
+//        try {
+//            action = (String) inputVar.get("action");
+//        } catch (ClassCastException ex2) {
+//            throw new EntityException("Bad request", "Incomplete request [action2]", 400);
+//        }
 
 
         if (func2actionMapPOST_rev.get(action) != null) {
@@ -1284,7 +920,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
         UserRequestParams uparams;
         uparams = refreshParams(context);
-        Object CE = new Object();
+        Object CE;
         System.out.println("id izabran " + ref.getId());
         try {
             CE = entityConstructor.newInstance(ref.getId(), context, 1, uparams);
@@ -1295,7 +931,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
         try {
             Method method = CE.getClass().getMethod(function, funcParamsPOST.get(action));
-            result = (String) method.invoke(CE, ref, inputVar, context); // TODO more flexible for other param types
+            result = (String) method.invoke(CE, ref, inputVar, context);
             // System.out.println("invoked");
         } catch (InvocationTargetException ex) {
             if (ex.getCause() != null) {
@@ -1316,9 +952,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         }
 
 
-
         return result;
-
 
 
     }

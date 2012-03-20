@@ -33,6 +33,11 @@ public class UserRequestParams {
     private boolean withdrawn = false;
     private int detail = UtilHelper.DEPTH_STANDARD;
 
+    private boolean collections = false;
+    private boolean trim = false;
+    protected boolean parents = false;
+    protected boolean children = false;
+
     public void setUser(String uname) {
         this.user = uname;
     }
@@ -175,5 +180,37 @@ public class UserRequestParams {
 
     public int getDetail() {
         return this.detail;
+    }
+
+    public boolean getTrim() {
+        return trim;
+    }
+
+    public void setTrim(boolean trim) {
+        this.trim = trim;
+    }
+
+    public boolean getCollections() {
+        return collections;
+    }
+
+    public void setCollections(boolean collections) {
+        this.collections = collections;
+    }
+
+    public boolean getParents() {
+        return parents;
+    }
+
+    public void setParents(boolean parents) {
+        this.parents = parents;
+    }
+
+    public boolean getChildren() {
+        return children;
+    }
+
+    public void setChildren(boolean children) {
+        this.children = children;
     }
 }

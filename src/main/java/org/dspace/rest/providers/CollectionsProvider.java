@@ -161,11 +161,11 @@ public class CollectionsProvider extends AbstractBaseProvider implements CoreEnt
 
             if (entityExists(reference.getId())) {
                 // return basic entity or full info
-                if (idOnly) {
-                    return new CollectionEntityId(reference.getId(), context);
-                } else {
+//                if (idOnly) {
+//                    return new CollectionEntityId(reference.getId(), context);
+//                } else {
                     return new CollectionEntity(reference.getId(), context, 1, uparams);
-                }
+//                }
             }
 
             removeConn(context);

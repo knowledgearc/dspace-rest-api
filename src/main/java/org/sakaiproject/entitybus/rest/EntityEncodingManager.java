@@ -1,9 +1,21 @@
 /**
- * The contents of this file are subject to the license and copyright
- * detailed in the LICENSE and NOTICE files at the root of the source
- * tree and available online at
+ * $Id: EntityEncodingManager.java 56 2009-03-24 18:16:55Z azeckoski $
+ * $URL: http://entitybus.googlecode.com/svn/tags/entitybus-1.0.8/rest/src/main/java/org/sakaiproject/entitybus/rest/EntityEncodingManager.java $
+ * EntityEncodingManager.java - entity-broker - Jul 23, 2008 3:25:32 PM - azeckoski
+ **************************************************************************
+ * Copyright (c) 2008 Sakai Foundation
  *
- * http://www.dspace.org/license/
+ * Licensed under the Educational Community License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.osedu.org/licenses/ECL-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.sakaiproject.entitybus.rest;
