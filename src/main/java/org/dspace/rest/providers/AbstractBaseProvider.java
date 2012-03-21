@@ -887,16 +887,16 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         String action="";
         String function = "";
         String[] mandatory_params = {};
-//        try {
-//            inputVar.get("action").getClass().getName();
-//        } catch (NullPointerException ex) {
-//            throw new EntityException("Bad request", "Incomplete request [action]", 400);
-//        }
-//        try {
-//            action = (String) inputVar.get("action");
-//        } catch (ClassCastException ex2) {
-//            throw new EntityException("Bad request", "Incomplete request [action2]", 400);
-//        }
+        try {
+            inputVar.get("action").getClass().getName();
+        } catch (NullPointerException ex) {
+            throw new EntityException("Bad request", "Incomplete request [action]", 400);
+        }
+        try {
+            action = (String) inputVar.get("action");
+        } catch (ClassCastException ex2) {
+            throw new EntityException("Bad request", "Incomplete request [action2]", 400);
+        }
 
 
         if (func2actionMapPOST_rev.get(action) != null) {
