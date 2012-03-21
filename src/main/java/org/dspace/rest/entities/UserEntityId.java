@@ -52,7 +52,7 @@ public class UserEntityId implements Comparable {
 
     }
 
-    public UserEntityId(EPerson eperson) throws SQLException {
+    public UserEntityId(EPerson eperson) {
         this.id = eperson.getID();
     }
 

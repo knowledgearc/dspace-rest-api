@@ -8,12 +8,21 @@
 
 package org.dspace.rest.entities;
 
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
+import org.dspace.content.Bitstream;
 import org.dspace.content.Community;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.eperson.Group;
 import org.dspace.rest.util.UserRequestParams;
+import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
+import org.sakaiproject.entitybus.exception.EntityException;
 
+import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Map;
 
 public class CommunityEntity extends CommunityEntityTrim {
 
@@ -27,7 +36,7 @@ public class CommunityEntity extends CommunityEntityTrim {
     }
 
     public CommunityEntity(String uid, Context context, UserRequestParams uparams) throws SQLException {
-        super(uid,context,uparams);
+        super(uid, context, uparams);
         this.short_description = res.getMetadata("short_description");
         this.introductory_text = res.getMetadata("introductory_text");
         this.copyright_text = res.getMetadata("copyright_text");
@@ -44,6 +53,179 @@ public class CommunityEntity extends CommunityEntityTrim {
         this.introductory_text = community.getMetadata("introductory_text");
         this.copyright_text = community.getMetadata("copyright_text");
         this.side_bar_text = community.getMetadata("side_bar_text");
+    }
+
+    public String createCommunity(EntityReference ref, Map<String, Object> inputVar, Context context) {
+        String result;
+
+        int communityId = 0;
+        try {
+            communityId = Integer.parseInt((String) inputVar.get("communityId"));
+        } catch (NumberFormatException e) {
+        }
+        String name = (String) inputVar.get("name");
+        String shortDescription = (String) inputVar.get("shortDescription");
+        String copyrightText = (String) inputVar.get("copyrightText");
+        String sidebarText = (String) inputVar.get("sidebarText");
+        String introductoryText = (String) inputVar.get("introductoryText");
+
+        try {
+            Community community;
+            if (communityId > 0) {
+                Community com = Community.find(context, communityId);
+                community = com.createSubcommunity();
+            } else {
+                community = Community.create(null, context);
+            }
+            if (community != null) {
+                result = String.valueOf(community.getID());
+                community.setMetadata("name", name);
+                community.setMetadata("short_description", shortDescription);
+                community.setMetadata("copyright_text", copyrightText);
+                community.setMetadata("side_bar_text", sidebarText);
+                community.setMetadata("introductory_text", introductoryText);
+                community.update();
+            } else {
+                throw new EntityException("Internal server error", "Could not create community", 500);
+            }
+
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ex) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (IOException ex) {
+            throw new EntityException("Internal server error", "SQL error, cannot create community", 500);
+        }
+        return result;
+    }
+
+    public String editCommunity(EntityReference ref, Map<String, Object> inputVar, Context context) {
+
+        try {
+            Integer id = Integer.parseInt(ref.getId());
+            Community community = Community.find(context, id);
+
+            String name = (String) inputVar.get("name");
+            String shortDescription = (String) inputVar.get("shortDescription");
+            String copyrightText = (String) inputVar.get("copyrightText");
+            String sidebarText = (String) inputVar.get("sidebarText");
+            String introductoryText = (String) inputVar.get("introductoryText");
+
+            if (community != null) {
+                community.setMetadata("name", name);
+                community.setMetadata("short_description", shortDescription);
+                community.setMetadata("copyright_text", copyrightText);
+                community.setMetadata("side_bar_text", sidebarText);
+                community.setMetadata("introductory_text", introductoryText);
+                community.update();
+            } else {
+                throw new EntityException("Internal server error", "Could not update community", 500);
+            }
+            return String.valueOf(community.getID());
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ae) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        } catch (IOException e) {
+            throw new EntityException("Internal server error", "SQL error, cannot update community", 500);
+        }
+    }
+
+    public void removeCommunity(EntityReference ref, Map<String, Object> inputVar, Context context) {
+        try {
+            int id = Integer.parseInt(ref.getId());
+            Community com = Community.find(context, id);
+            if ((com != null)) {
+                com.delete();
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ae) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (IOException ie) {
+            throw new EntityException("Internal server error", "SQL error, cannot remove community", 500);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
+    }
+
+    public String createAdministrators(EntityReference ref, Map<String, Object> inputVar, Context context) {
+
+        try {
+            Community com = Community.find(context, Integer.parseInt(ref.getId()));
+            if (com != null) {
+                com.createAdministrators();
+                com.update();
+                Group group = com.getAdministrators();
+                return String.valueOf(group.getID());
+            } else {
+                throw new EntityException("Not found", "Entity not found", 404);
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ex) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (IOException ie) {
+            throw new EntityException("Internal server error", "SQL error, cannot create adminitrators", 500);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
+    }
+
+    public void removeAdministrators(EntityReference ref, Map<String, Object> inputVar, Context context) {
+        try {
+            int id = Integer.parseInt(ref.getId());
+            Community com = Community.find(context, id);
+            if ((com != null)) {
+                com.removeAdministrators();
+                com.update();
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ae) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (IOException ie) {
+            throw new EntityException("Internal server error", "SQL error, cannot remove adminitrators", 500);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
+    }
+
+    public Object getAdministrators(EntityReference ref, UserRequestParams uparams, Context context) {
+
+        try {
+            Community res = Community.find(context, Integer.parseInt(ref.getId()));
+            AuthorizeManager.authorizeAction(context, res, Constants.READ);
+            Group administrators = res.getAdministrators();
+
+            if (administrators != null) {
+                return new GroupEntity(administrators, true);
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ex) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        }
+        return new GroupEntity();
+    }
+
+    public Object getLogo(EntityReference ref, UserRequestParams uparams, Context context) {
+        try {
+            Community res = Community.find(context, Integer.parseInt(ref.getId()));
+            AuthorizeManager.authorizeAction(context, res, Constants.READ);
+            Bitstream logo = res.getLogo();
+
+            if (logo != null) {
+                return new BitstreamEntityId(logo);
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ex) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        }
+        return new BitstreamEntityId();
     }
 
     public String getShortDescription() {

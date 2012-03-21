@@ -445,7 +445,7 @@ public class EntityEncodingManager {
                 } else if (Formats.JSON.equals(format)) {
                     sb.append("{\""+ENTITY_PREFIX+"\": \""+ref.getPrefix() + "\", \"" + ref.getPrefix() + COLLECTION + "\": [\n");
                 } else if (Formats.XML.equals(format)) {
-                    sb.append("<" + ref.getPrefix() + COLLECTION + " " + ENTITY_PREFIX + "=\"" + ref.getPrefix() + "\">\n");
+                    sb.append("<" + ref.getPrefix() + ">\n");
                 } else { // general case
                     sb.append(ref.getPrefix() + COLLECTION + "\n");
                 }
@@ -477,7 +477,7 @@ public class EntityEncodingManager {
                 } else if (Formats.JSON.equals(format)) {
                     sb.append("\n]}");
                 } else if (Formats.XML.equals(format)) {
-                    sb.append("</" + ref.getPrefix() + COLLECTION + ">");
+                    sb.append("</" + ref.getPrefix() + ">");
                 } else { // general case
                     sb.append("\nSize: " + encodedEntities + "\n");
                 }

@@ -20,6 +20,22 @@
         <url>http://scm.dspace.org/svn/repo/modules/dspace-rest/trunk</url>
     </scm>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.mycila.maven-license-plugin</groupId>
+                <artifactId>maven-license-plugin</artifactId>
+                <configuration>
+                    <!--Exclude license check for XMLUI files which don't need it-->
+                    <excludes>
+                    </excludes>
+                    <quiet>true</quiet>
+                    <failIfMissing>false</failIfMissing>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <repositories>
         <repository>
             <id>sakaiproject repository</id>

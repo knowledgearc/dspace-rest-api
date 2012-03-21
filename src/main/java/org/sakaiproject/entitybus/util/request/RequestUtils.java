@@ -233,7 +233,8 @@ public class RequestUtils {
                         view.setViewKey(EntityView.VIEW_NEW);
                     } else {
                         // this could be an edit
-                        view.setViewKey(EntityView.VIEW_EDIT);
+                        view.setViewKey(EntityView.VIEW_NEW);
+//                        view.setViewKey(EntityView.VIEW_EDIT);
                     }
                 } else {
                     _method = _method.toUpperCase().trim();

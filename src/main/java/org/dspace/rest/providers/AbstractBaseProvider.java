@@ -574,6 +574,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     /**
      * Remove items from list in order to display only requested items
      * (according to _start, _limit etc.)
+     *
      * @param entities
      */
     public void removeTrailing(List<?> entities) {
@@ -600,13 +601,14 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     /**
      * Complete connection in order to lower load of sql server
      * this way it goes faster and prevents droppings with higher load
+     *
      * @param context
      */
     public void removeConn(Context context) {
         // close connection to prevent connection problems
         try {
             context.complete();
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
         }
     }
 
@@ -631,12 +633,11 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         return mappings_rev.get(field);
     }
 
-    public Object getEntity(EntityReference reference) {
+    public Object getEntity(EntityReference ref) {
         String segments[] = {};
 
-        System.out.println("Abstract get entity");
         if (reqStor.getStoredValue("pathInfo") != null) {
-            segments = reqStor.getStoredValue("pathInfo").toString().split("/", 10);
+            segments = reqStor.getStoredValue("pathInfo").toString().split("/");
         }
 
         if (segments[3].lastIndexOf(".") > 0) {
@@ -646,37 +647,34 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         if (func2actionMapGET_rev.containsKey(segments[3])) {
             Object result;
             String function = getMethod(segments[3], func2actionMapGET_rev);
-            Context context;
+
+            Context context = null;
             try {
                 context = new Context();
+                UserRequestParams uparams = refreshParams(context);
+
+                Object CE = entityConstructor.newInstance();
+                Method method = CE.getClass().getMethod(function, funcParamsGET.get(segments[3]));
+
+
+                result = method.invoke(CE, ref, uparams, context);
+
+            } catch (NoSuchMethodException ex) {
+                throw new EntityException("Not found", "Method not supported ", 404);
             } catch (SQLException ex) {
                 throw new EntityException("Internal server error", "SQL error", 500);
-            }
-
-            UserRequestParams uparams;
-            uparams = refreshParams(context);
-
-            Object CE;
-            try {
-
-                CE = entityConstructor.newInstance(reference.getId(), context, 1, uparams);
+            } catch (InvocationTargetException ex) {
+                if (ex.getCause() != null) {
+                    throw (RuntimeException) ex.getCause();
+                } else {
+                    throw new EntityException("Internal server error", "Unknown error", 500);
+                }
             } catch (Exception ex) {
-                throw new EntityException("Internal server error", "Cannot create entity", 500);
-            }
-
-            try {
-                Method method = CE.getClass().getMethod(function);
-                //Method method = CE.getClass().getMethod(function, new Class<?>[]{EntityView.class, Map.class, Context.class});
-                result = method.invoke(CE);
-            } catch (Exception ex) {
-                throw new EntityException("Internal server error", "Cannot call method " + function, 500);
-            }
-
-            try {
+                throw new EntityException("Internal server error", "Unknown error", 500);
+            } finally {
                 removeConn(context);
-            } catch (NullPointerException ex) {
-                // context already closed, ok
             }
+
             return result;
         } else {
             throw new EntityException("Bad request", "Method not supported " + segments[3], 400);
@@ -687,10 +685,9 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         String segments[] = {};
         String action = "";
         Map<String, Object> inputVar = new HashMap<String, Object>();
-        System.out.println("Delete called");
 
         if (reqStor.getStoredValue("pathInfo") != null) {
-            segments = reqStor.getStoredValue("pathInfo").toString().split("/", 32);
+            segments = reqStor.getStoredValue("pathInfo").toString().split("/");
         }
 
 
@@ -721,84 +718,33 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         }
 
         if (func2actionMapDELETE_rev.containsKey(action)) {
-            System.out.println("contains key called");
             String function = getMethod(action, func2actionMapDELETE_rev);
             if (function == null) {
                 throw new EntityException("Bad request", "Method not supported - not defined", 400);
             }
-            Context context;
+            Context context = null;
             try {
                 context = new Context();
-            } catch (SQLException ex) {
-                throw new EntityException("Internal server error", "SQL error", 500);
-            }
 
-            UserRequestParams uparams;
-            uparams = refreshParams(context);
+                refreshParams(context);
 
-            System.out.print("uparams " + uparams.getUser() + uparams.getPassword());
-            Object CE;
-            try {
-                CE = entityConstructor.newInstance(ref.getId(), context, 1, uparams);
-            } catch (Exception ex) {
-                throw new EntityException("Internal server error", "Cannot create entity", 500);
-            }
-
-            try {
+                Object CE = entityConstructor.newInstance();
                 Method method = CE.getClass().getMethod(function, funcParamsDELETE.get(action));
                 method.invoke(CE, ref, inputVar, context);
-            } catch (NoSuchMethodException nex) {
-                System.out.println("nex");
-            } catch (IllegalAccessException iex) {
-                System.out.println("iex");
-            } catch (InvocationTargetException itex) {
-                EntityException eex = (EntityException) itex.getTargetException();
-                if (itex.getTargetException().getClass().equals(EntityException.class)) {
-                    throw eex;
+            } catch (NoSuchMethodException ex) {
+                throw new EntityException("Not found", "Meethod not supported " + segments[3], 404);
+            } catch (SQLException ex) {
+                throw new EntityException("Internal server error", "SQL error", 500);
+            } catch (InvocationTargetException ex) {
+                if (ex.getCause() != null) {
+                    throw (RuntimeException) ex.getCause();
                 } else {
-
+                    throw new EntityException("Internal server error", "Unknown error", 500);
                 }
-            }
-
-            try {
-                removeConn(context);
-            } catch (NullPointerException ex) {
-                // context already closed, ok
-            }
-        } else if (action.equals("")) {
-            System.out.println("action equal");
-            String function = getMethod(action, func2actionMapDELETE_rev);
-            if (function == null) {
-                throw new EntityException("Bad request", "Method not supported - not defined", 400);
-            }
-            Context context;
-            try {
-                context = new Context();
-            } catch (SQLException ex) {
-                throw new EntityException("Internal server error", "SQL error", 500);
-            }
-
-            UserRequestParams uparams;
-            uparams = refreshParams(context);
-
-            Object CE;
-            try {
-                CE = entityConstructor.newInstance(ref.getId(), context, 1, uparams);
             } catch (Exception ex) {
-                throw new EntityException("Internal server error", "Cannot create entity", 500);
-            }
-
-            try {
-                Method method = CE.getClass().getMethod(function, funcParamsDELETE.get(action));
-                method.invoke(CE, ref, inputVar, context);
-            } catch (Exception ex) {
-                throw new EntityException("Internal server error", "Cannot call method " + function, 500);
-            }
-
-            try {
+                throw new EntityException("Internal server error", "Unknown error", 500);
+            } finally {
                 removeConn(context);
-            } catch (NullPointerException ex) {
-                // context already closed, ok
             }
         } else {
             throw new EntityException("Bad request", "Method not supported " + action, 400);
@@ -807,153 +753,117 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
     @SuppressWarnings("unchecked")
     public void updateEntity(EntityReference ref, Object entity, Map<String, Object> params) {
-        System.out.println("update called");
-        Map<String, Object> inputVar = (HashMap<String,Object>) entity;
+        Map<String, Object> inputVar = (HashMap<String, Object>) entity;
         String segments[] = {};
         if (params.containsKey("pathInfo")) {
-            segments = params.get("pathInfo").toString().split("/", 10);
+            segments = params.get("pathInfo").toString().split("/");
         }
-        //System.out.println("calling update");
 
+        String action;
         if (segments.length > 3) {
-
-
-            if (segments[3].lastIndexOf(".") > 0) {
-                segments[3] = segments[3].substring(0, segments[3].lastIndexOf("."));
+            action = segments[3];
+            if (action.lastIndexOf(".") > 0) {
+                action = segments[3].substring(0, segments[3].lastIndexOf("."));
             }
+        } else {
+            action = "";
+        }
 
-            System.out.println("length > 3" + segments[2] + ".." + segments[3]);
+        if (func2actionMapPUT_rev.containsKey(action)) {
+            String function = getMethod(action, func2actionMapPUT_rev);
+            Context context = null;
+            try {
+                context = new Context();
 
-            if (func2actionMapPUT_rev.containsKey(segments[3])) {
-                //System.out.println("got in");
+                refreshParams(context);
 
-                String function = getMethod(segments[3], func2actionMapPUT_rev);
-                Context context;
-                try {
-                    context = new Context();
-                } catch (SQLException ex) {
-                    throw new EntityException("Internal server error", "SQL error", 500);
+                Object CE = entityConstructor.newInstance();
+                Method method = CE.getClass().getMethod(function, funcParamsPUT.get(action));
+                method.invoke(CE, ref, inputVar, context);
+            } catch (NoSuchMethodException ex) {
+                throw new EntityException("Not found", "Meethod not supported " + segments[3], 404);
+            } catch (SQLException ex) {
+                throw new EntityException("Internal server error", "SQL error", 500);
+            } catch (InvocationTargetException ex) {
+                if (ex.getCause() != null) {
+                    throw (RuntimeException) ex.getCause();
+                } else {
+                    throw new EntityException("Internal server error", "Unknown error", 500);
                 }
-
-                UserRequestParams uparams;
-                uparams = refreshParams(context);
-                Object CE;
-
-                try {
-                    CE = entityConstructor.newInstance(ref.getId(), context, 1, uparams);
-                } catch (Exception ex) {
-                    throw new EntityException("Internal server error", "Cannot create entity", 500);
-                }
-
-                try {
-                    Method method = CE.getClass().getMethod(function, funcParamsPUT.get(segments[3]));
-                    method.invoke(CE, ref, inputVar, context);
-                    // System.out.println("invoked");
-                } catch (InvocationTargetException ex) {
-                    if (ex.getCause() != null) {
-                        throw (RuntimeException) ex.getCause();
-                    } else {
-                        throw new EntityException("Internal server error", "Unknown error", 500);
-                    }
-                } catch (NoSuchMethodException ex) {
-                    throw new EntityException("Not found", "Meethod not supported " + segments[3], 404);
-                } catch (IllegalAccessException ex) {
-                    throw new EntityException("Internal server error", "Cannot call method " + function, 500);
-                }
-                try {
-                    removeConn(context);
-
-                } catch (NullPointerException ex) {
-                    // context already closed, ok
-                }
-            } else {
-                //  System.out.println(segments[0] + ":" + segments[1] + ":" + segments[2] + ":" + segments[3]);
-                for (String key : func2actionMapPUT_rev.keySet()) {
-                    System.out.println(key + " " + func2actionMapPUT_rev.get(key));
-                }
-//
-                for (String key : func2actionMapPUT.keySet()) {
-                    System.out.println(key + " " + func2actionMapPUT.get(key));
-                }
-                throw new EntityException("Bad request", "Maethod not supported " + segments[3], 400);
+            } catch (Exception ex) {
+                throw new EntityException("Internal server error", "Unknown error", 500);
+            } finally {
+                removeConn(context);
             }
+        } else {
+            throw new EntityException("Bad request", "Maethod not supported " + action, 400);
         }
     }
 
+    @SuppressWarnings("unchecked")
     public String createEntity(EntityReference ref, Object entity, Map<String, Object> params) {
-        System.out.println("creating");
-        String result = "x";
-        Map<String, Object> inputVar = (HashMap) entity;
-        String action="";
-        String function = "";
-        String[] mandatory_params = {};
-        try {
-            inputVar.get("action").getClass().getName();
-        } catch (NullPointerException ex) {
-            throw new EntityException("Bad request", "Incomplete request [action]", 400);
-        }
-        try {
-            action = (String) inputVar.get("action");
-        } catch (ClassCastException ex2) {
-            throw new EntityException("Bad request", "Incomplete request [action2]", 400);
+        String result;
+        Map<String, Object> inputVar = (HashMap<String, Object>) entity;
+
+        String function;
+        String[] mandatory_params;
+
+        String action = (String) inputVar.get("action");
+        if (action == null) {
+            String segments[] = {};
+            if (params.containsKey("pathInfo")) {
+                segments = params.get("pathInfo").toString().split("/");
+            }
+            if (segments.length > 3) {
+                action = segments[3];
+                if (action.lastIndexOf(".") > 0) {
+                    action = segments[3].substring(0, segments[3].lastIndexOf("."));
+                }
+            } else {
+                action = "";
+            }
         }
 
-
-        if (func2actionMapPOST_rev.get(action) != null) {
-            System.out.println("found " + func2actionMapPOST_rev.get("create"));
+        if (func2actionMapPOST_rev.containsKey(action)) {
             function = func2actionMapPOST_rev.get(action);
             mandatory_params = inputParamsPOST.get(function);
-        }
 
-        for (String param : mandatory_params) {
-            if (inputVar.get(param) == null) {
-                throw new EntityException("Bad request", "Incomplete request [mandatory param]", 400);
+            for (String param : mandatory_params) {
+                if (inputVar.get(param) == null) {
+                    throw new EntityException("Bad request", "Incomplete request [mandatory param]", 400);
+                }
             }
-        }
 
-        Context context;
-        try {
-            context = new Context();
-        } catch (SQLException ex) {
-            throw new EntityException("Internal server error", "SQL error", 500);
-        }
+            Context context = null;
+            try {
+                context = new Context();
+                refreshParams(context);
 
-        UserRequestParams uparams;
-        uparams = refreshParams(context);
-        Object CE;
-        System.out.println("id izabran " + ref.getId());
-        try {
-            CE = entityConstructor.newInstance(ref.getId(), context, 1, uparams);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new EntityException("Internal server error", "Cannot create entity", 500);
-        }
+                Object CE = entityConstructor.newInstance();
+                Method method = CE.getClass().getMethod(function, funcParamsPOST.get(action));
+                result = (String) method.invoke(CE, ref, inputVar, context);
 
-        try {
-            Method method = CE.getClass().getMethod(function, funcParamsPOST.get(action));
-            result = (String) method.invoke(CE, ref, inputVar, context);
-            // System.out.println("invoked");
-        } catch (InvocationTargetException ex) {
-            if (ex.getCause() != null) {
-                throw (RuntimeException) ex.getCause();
-            } else {
+            } catch (NoSuchMethodException ex) {
+                throw new EntityException("Not found", "Method not supported ", 404);
+            } catch (SQLException ex) {
+                throw new EntityException("Internal server error", "SQL error", 500);
+            } catch (InvocationTargetException ex) {
+                if (ex.getCause() != null) {
+                    throw (RuntimeException) ex.getCause();
+                } else {
+                    throw new EntityException("Internal server error", "Unknown error", 500);
+                }
+            } catch (Exception ex) {
                 throw new EntityException("Internal server error", "Unknown error", 500);
+            } finally {
+                removeConn(context);
             }
-        } catch (NoSuchMethodException ex) {
-            throw new EntityException("Not found", "Method not supported ", 404);
-        } catch (IllegalAccessException ex) {
-            throw new EntityException("Internal server error", "Cannot call method " + function, 500);
+
+            return result;
+
+        } else {
+            throw new EntityException("Bad request", "Method not supported " + action, 400);
         }
-        try {
-            removeConn(context);
-
-        } catch (NullPointerException ex) {
-            // context already closed, ok
-        }
-
-
-        return result;
-
 
     }
 }

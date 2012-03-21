@@ -200,20 +200,20 @@ public class XMLTranscoder implements Transcoder {
                         d = ((Calendar) object).getTime();
                     }
                     value = d.getTime()+"";
-                    sb.append(" type='date' date='");
-                    sb.append( DateUtils.makeDateISO8601(d) );
-                    sb.append(APOS);
+//                    sb.append(" type='date' date='");
+//                    sb.append( DateUtils.makeDateISO8601(d) );
+//                    sb.append(APOS);
                 } else if (Number.class.isAssignableFrom(type)) {
                     // number
-                    sb.append(" type='number'");
-                    if (includeClass) {
-                        makeClassName(sb, type);
-                    }
+//                    sb.append(" type='number'");
+//                    if (includeClass) {
+//                        makeClassName(sb, type);
+//                    }
                     value = object.toString();
                 } else if (Boolean.class.isAssignableFrom(type)) {
                     // boolean
                     value = object.toString();
-                    sb.append(" type='boolean'");
+//                    sb.append(" type='boolean'");
                 } else {
                     value = escapeForXML( object.toString() );
                 }
@@ -232,14 +232,14 @@ public class XMLTranscoder implements Transcoder {
                 makeLevelSpaces(sb, level, humanOutput);
                 sb.append(LT);
                 sb.append(tagName);
-                sb.append(" type='array'");
+//                sb.append(" type='array'");
 //                sb.append(length);
 //                sb.append(APOS);
-                if (includeClass) {
-                    sb.append(" component='");
-                    sb.append( ConstructorUtils.getTypeFromInnerCollection(elementType).getName() );
-                    sb.append(APOS);
-                }
+//                if (includeClass) {
+//                    sb.append(" component='");
+//                    sb.append( ConstructorUtils.getTypeFromInnerCollection(elementType).getName() );
+//                    sb.append(APOS);
+//                }
                 sb.append(GT);
                 makeEOL(sb, humanOutput);
                 for (int i = 0; i < length; ++i) {
@@ -258,12 +258,12 @@ public class XMLTranscoder implements Transcoder {
                 makeLevelSpaces(sb, level, humanOutput);
                 sb.append(LT);
                 sb.append(tagName);
-                sb.append(" type='collection'");
+//                sb.append(" type='collection'");
 //                sb.append(collection.size());
 //                sb.append(APOS);
-                if (includeClass) {
-                    makeClassName(sb, ConstructorUtils.getTypeFromInnerCollection(type));
-                }
+//                if (includeClass) {
+//                    makeClassName(sb, ConstructorUtils.getTypeFromInnerCollection(type));
+//                }
                 sb.append(GT);
                 makeEOL(sb, humanOutput);
                 for (Object element : collection) {
@@ -281,7 +281,10 @@ public class XMLTranscoder implements Transcoder {
                 makeEOL(sb, humanOutput);
             } else {
                 // must be a bean or map, make sure it is a map
-                tagName = validate(tagName == null ? makeElementName(type) : tagName);
+                tagName = validate(makeElementName(type) == null ? tagName : makeElementName(type));
+                if (tagName.indexOf("entity") > 0) {
+                    tagName = tagName.substring(0, tagName.indexOf("entity"));
+                }
                 // special handling for certain object types
                 String special = TranscoderUtils.checkObjectSpecial(object);
                 if (special != null) {
@@ -333,9 +336,9 @@ public class XMLTranscoder implements Transcoder {
                         makeLevelSpaces(sb, level, humanOutput);
                         sb.append(LT);
                         sb.append(tagName);
-                        sb.append(" type='");
-                        sb.append(xmlType);
-                        sb.append(APOS);
+//                        sb.append(" type='");
+//                        sb.append(xmlType);
+//                        sb.append(APOS);
 //                        sb.append(" size='");
 //                        sb.append(map.size());
 //                        sb.append(APOS);

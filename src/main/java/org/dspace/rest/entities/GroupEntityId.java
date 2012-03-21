@@ -50,7 +50,7 @@ public class GroupEntityId implements Comparable {
 
     }
 
-    public GroupEntityId(Group egroup) throws SQLException {
+    public GroupEntityId(Group egroup) {
         this.id = egroup.getID();
     }
 

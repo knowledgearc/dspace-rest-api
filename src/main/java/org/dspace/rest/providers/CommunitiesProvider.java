@@ -35,44 +35,17 @@ public class CommunitiesProvider extends AbstractBaseProvider implements CoreEnt
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = CommunityEntity.class;
-//        func2actionMapGET.put("getId", "id");
-//        func2actionMapGET.put("getName", "name");
-//        func2actionMapGET.put("getCountItems", "countItems");
-//        func2actionMapGET.put("getHandle", "handle");
-//        func2actionMapGET.put("getType", "type");
-//        func2actionMapGET.put("getCollections", "collections");
-//        func2actionMapGET.put("getCanEdit", "canedit");
-//        func2actionMapGET.put("getParentCommunity", "anchestor");
-//        func2actionMapGET.put("getSubCommunities", "children");
-//        func2actionMapGET.put("getAdministrators", "administrators");
-//        func2actionMapGET.put("getRecentSubmissions", "recent");
-//        func2actionMapGET.put("getShortDescription", "shortDescription");
-//        func2actionMapGET.put("getCopyrightText", "copyrightText");
-//        func2actionMapGET.put("getSidebarText", "sidebarText");
-//        func2actionMapGET.put("getIntroductoryText", "introductoryText");
-//        func2actionMapGET.put("getLogo", "logo");
-//        func2actionMapGET.put("getPolicies", "policies");
-//        func2actionMapPUT.put("setName", "name");
-//        func2actionMapPUT.put("setShortDescription", "shortDescription");
-//        func2actionMapPUT.put("setCopyrightText", "copyrightText");
-//        func2actionMapPUT.put("setSidebarText", "sidebarText");
-//        func2actionMapPUT.put("setIntroductoryText", "introductoryText");
-//        func2actionMapPUT.put("addCollection", "collections");
-//        func2actionMapPUT.put("addSubcommunity", "children");
-//        func2actionMapPOST.put("createAdministrators", "createAdministrators");
-//        inputParamsPOST.put("createAdministrators", new String[]{"id"});
-//        func2actionMapPOST.put("createCollection", "createCollection");
-//        inputParamsPOST.put("createCollection", new String[]{"name", "id"});
-//        func2actionMapPOST.put("createSubcommunity", "createSubcommunity");
-//        inputParamsPOST.put("createSubcommunity", new String[]{"name", "id"});
-//        func2actionMapDELETE.put("removeChildren", "children");
-//        func2actionMapDELETE.put("removeSubcollections", "collections");
-//        func2actionMapDELETE.put("removeAdministrators", "administrators");
-//        func2actionMapDELETE.put("delete", "");
-        entityConstructor = processedEntity.getDeclaredConstructor(String.class, Context.class, Integer.TYPE, UserRequestParams.class);
+        func2actionMapGET.put("getAdministrators", "administrators");
+        func2actionMapGET.put("getLogo", "logo");
+        func2actionMapPUT.put("editCommunity", "");
+        func2actionMapPOST.put("createAdministrators", "administrators");
+        inputParamsPOST.put("createAdministrators", new String[]{});
+        func2actionMapPOST.put("createCommunity", "");
+        inputParamsPOST.put("createCommunity", new String[]{"name"});
+        func2actionMapDELETE.put("removeAdministrators", "administrators");
+        func2actionMapDELETE.put("removeCommunity", "");
+        entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
-        //createActions(processedEntity);
-        //createPUTActions(processedEntity);
     }
 
     public String getEntityPrefix() {
@@ -80,34 +53,21 @@ public class CommunitiesProvider extends AbstractBaseProvider implements CoreEnt
     }
 
     public boolean entityExists(String id) {
-        log.info(userInfo() + "entity_exists:" + id);
+        log.info(userInfo() + "community_exists:" + id);
 
-        // sample entity
-        if (id.equals(":ID:")) {
-            return true;
-        }
-
-        Context context;
+        Context context = null;
         try {
             context = new Context();
+
+            refreshParams(context);
+
+            Community comm = Community.find(context, Integer.parseInt(id));
+            return comm != null ? true : false;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
+        } finally {
+            removeConn(context);
         }
-
-        // extract query parameters
-        refreshParams(context);
-        boolean result = false;
-        try {
-            Community comm = Community.find(context, Integer.parseInt(id));
-            if (comm != null) {
-                result = true;
-            }
-        } catch (SQLException ex) {
-            result = false;
-        }
-
-        removeConn(context);
-        return result;
     }
 
     public Object getEntity(EntityReference reference) {
@@ -115,43 +75,26 @@ public class CommunitiesProvider extends AbstractBaseProvider implements CoreEnt
         String segments[] = {};
 
         if (reqStor.getStoredValue("pathInfo") != null) {
-            segments = reqStor.getStoredValue("pathInfo").toString().split("/", 10);
+            segments = reqStor.getStoredValue("pathInfo").toString().split("/");
         }
 
         if (segments.length > 3) {
             return super.getEntity(reference);
         } else {
 
-            if (reference.getId().equals(":ID:")) {
-                return new CommunityEntity();
-            }
-
-            if (reference.getId() == null) {
-                return new CommunityEntity();
-            }
-
-            Context context;
+            Context context = null;
             try {
                 context = new Context();
+
+                UserRequestParams uparams = refreshParams(context);
+                if (entityExists(reference.getId())) {
+                    return new CommunityEntity(reference.getId(), context, uparams);
+                }
             } catch (SQLException ex) {
                 throw new EntityException("Internal server error", "SQL error", 500);
+            } finally {
+                removeConn(context);
             }
-
-            UserRequestParams uparams = refreshParams(context);
-            if (entityExists(reference.getId())) {
-                // return just entity containg id or full info
-//                if (idOnly) {
-//                    return new CommunityEntityId(reference.getId(), context);
-//                } else {
-                try {
-                    return new CommunityEntity(reference.getId(), context, uparams);
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-//                }
-            }
-
-            removeConn(context);
             throw new IllegalArgumentException("Invalid id:" + reference.getId());
         }
     }
@@ -159,8 +102,9 @@ public class CommunitiesProvider extends AbstractBaseProvider implements CoreEnt
     public List<?> getEntities(EntityReference ref, Search search) {
         log.info(userInfo() + "list_communities");
 
+        Context context = null;
         try {
-            Context context = new Context();
+            context = new Context();
 
             UserRequestParams uparams = refreshParams(context);
             List<Object> entities = new ArrayList<Object>();
@@ -170,10 +114,11 @@ public class CommunitiesProvider extends AbstractBaseProvider implements CoreEnt
                 entities.add(trim ? new CommunityEntityTrim(c, uparams, true, true) : new CommunityEntity(c, uparams, true, true));
             }
 
-            context.complete();
             return entities;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
+        } finally {
+            removeConn(context);
         }
     }
 

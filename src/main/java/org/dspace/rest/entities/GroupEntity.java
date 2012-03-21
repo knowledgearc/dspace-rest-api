@@ -8,41 +8,30 @@
 
 package org.dspace.rest.entities;
 
-import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
-import org.dspace.eperson.Group;
 import org.dspace.core.Context;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.ArrayList;
-import org.dspace.rest.util.UtilHelper;
 import org.dspace.eperson.EPerson;
-import java.util.Map;
-import org.sakaiproject.entitybus.EntityReference;
-import org.sakaiproject.entitybus.exception.EntityException;
-import org.dspace.authorize.AuthorizeException;
+import org.dspace.eperson.Group;
 import org.dspace.rest.util.UserRequestParams;
+import org.sakaiproject.entitybus.EntityReference;
+import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
+import org.sakaiproject.entitybus.exception.EntityException;
 
-/**
- * Entity describing users registered on the system
- * @see GroupEntityId
- * @see EGroup
- * @author Bojan Suzic, bojan.suzic@gmail.com
- */
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 public class GroupEntity extends GroupEntityId {
 
     @EntityFieldRequired
     private String name;
-    private String handle;
-    private int type;
-    private boolean isEmpty;
+    private boolean isEmpty=true;
     private List<Object> memberGroups = new ArrayList<Object>();
     private List<Object> members = new ArrayList<Object>();
 
     public GroupEntity(String uid, Context context, int level, UserRequestParams uparams) throws SQLException {
         super(uid, context);
-        this.handle = res.getHandle();
         this.name = res.getName();
-        this.type = res.getType();
         this.isEmpty = res.isEmpty();
 
         // check calling package/class in order to prevent chaining
@@ -69,9 +58,7 @@ public class GroupEntity extends GroupEntityId {
             includeFull = true;
         }
 
-        this.handle = egroup.getHandle();
         this.name = egroup.getName();
-        this.type = egroup.getType();
         this.isEmpty = egroup.isEmpty();
         for (EPerson member : egroup.getMembers()) {
             members.add(includeFull ? new UserEntity(member) : new UserEntityId(member));
@@ -81,38 +68,36 @@ public class GroupEntity extends GroupEntityId {
         }
     }
 
-    public GroupEntity(Group egroup) throws SQLException {
+    public GroupEntity(Group egroup) {
+        this(egroup, false);
+    }
+
+    public GroupEntity(Group egroup, boolean hasChildren) {
         super(egroup);
 
-        this.handle = egroup.getHandle();
         this.name = egroup.getName();
-        this.type = egroup.getType();
         this.isEmpty = egroup.isEmpty();
+
+        if (hasChildren) {
+            for (EPerson member : egroup.getMembers()) {
+                members.add(new UserEntity(member));
+            }
+            for (Group group : egroup.getMemberGroups()) {
+                memberGroups.add(new GroupEntity(group,hasChildren));
+            }
+        }
     }
 
     public GroupEntity() {
-        this.id = 111;
-        this.handle = "123456789/0";
-        this.name = "John";
-        this.type = 7;
-        this.isEmpty = true;
     }
 
     public String getName() {
         return this.name;
     }
 
-    public String getHandle() {
-        return this.handle;
-    }
-
     @Override
     public int getId() {
         return this.id;
-    }
-
-    public int getType() {
-        return this.type;
     }
 
     public boolean getIsEmpty() {
