@@ -186,7 +186,11 @@ public class XMLTranscoder implements Transcoder {
             Class<?> type = ConstructorUtils.getWrapper(object.getClass());
             if ( ConstructorUtils.isClassSimple(type) ) {
                 // Simple (String, Number, etc.)
-                tagName = validate(tagName == null ? makeElementName(type) : tagName);
+                if (level == 0) {
+                    tagName = "count";
+                }else {
+                    tagName = validate(tagName == null ? makeElementName(type) : tagName);
+                }
                 String value = "";
                 makeLevelSpaces(sb, level, humanOutput);
                 sb.append(LT);
@@ -199,7 +203,7 @@ public class XMLTranscoder implements Transcoder {
                     } else {
                         d = ((Calendar) object).getTime();
                     }
-                    value = d.getTime()+"";
+                    value = d.getTime() + "";
 //                    sb.append(" type='date' date='");
 //                    sb.append( DateUtils.makeDateISO8601(d) );
 //                    sb.append(APOS);
@@ -215,7 +219,7 @@ public class XMLTranscoder implements Transcoder {
                     value = object.toString();
 //                    sb.append(" type='boolean'");
                 } else {
-                    value = escapeForXML( object.toString() );
+                    value = escapeForXML(object.toString());
                 }
                 sb.append(GT);
                 sb.append(value);
@@ -281,7 +285,12 @@ public class XMLTranscoder implements Transcoder {
                 makeEOL(sb, humanOutput);
             } else {
                 // must be a bean or map, make sure it is a map
-                tagName = validate(makeElementName(type) == null ? tagName : makeElementName(type));
+                if (level == 0) {
+                    String eleName = makeElementName(type);
+                    tagName = validate(eleName == null ? tagName : eleName);
+                } else {
+                    tagName = validate(tagName == null ? makeElementName(type) : tagName);
+                }
                 if (tagName.indexOf("entity") > 0) {
                     tagName = tagName.substring(0, tagName.indexOf("entity"));
                 }
@@ -296,7 +305,7 @@ public class XMLTranscoder implements Transcoder {
                         sb.append(LT);
                         sb.append(tagName);
                         sb.append(GT);
-                        sb.append( escapeForXML(special) );
+                        sb.append(escapeForXML(special));
                         sb.append(LT);
                         sb.append(SLASH);
                         sb.append(tagName);
@@ -310,10 +319,10 @@ public class XMLTranscoder implements Transcoder {
                         sb.append(LT);
                         sb.append(tagName);
                         sb.append(GT);
-                        sb.append( "MAX level reached (" );
-                        sb.append( level );
-                        sb.append( "):" );
-                        sb.append( escapeForXML(object.toString()) );
+                        sb.append("MAX level reached (");
+                        sb.append(level);
+                        sb.append("):");
+                        sb.append(escapeForXML(object.toString()));
                         sb.append(LT);
                         sb.append(SLASH);
                         sb.append(tagName);
@@ -330,7 +339,7 @@ public class XMLTranscoder implements Transcoder {
                             map = ReflectUtils.getInstance().getObjectValues(object, FieldsFilter.SERIALIZABLE, false);
                         }
                         // add in the optional properties if it makes sense to do so
-                        if (level == 0 && properties != null && ! properties.isEmpty()) {
+                        if (level == 0 && properties != null && !properties.isEmpty()) {
                             map.putAll(properties);
                         }
                         makeLevelSpaces(sb, level, humanOutput);
@@ -349,7 +358,7 @@ public class XMLTranscoder implements Transcoder {
                         makeEOL(sb, humanOutput);
                         for (Entry<String, Object> entry : map.entrySet()) {
                             if (entry.getKey() != null) {
-                                sb.append( toXML(entry.getValue(), entry.getKey().toString(), level+1, maxLevel, humanOutput, includeNulls, includeClass, includeClassField, properties) );
+                                sb.append(toXML(entry.getValue(), entry.getKey().toString(), level + 1, maxLevel, humanOutput, includeNulls, includeClass, includeClassField, properties));
                             }
                         }
                         makeLevelSpaces(sb, level, humanOutput);
