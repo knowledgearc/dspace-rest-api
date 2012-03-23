@@ -116,7 +116,7 @@ public class ItemEntity extends ItemEntityId {
                 this.collections.add(includeFull ? new CollectionEntity(c, level, uparams) : new CollectionEntityId(c));
             }
             for (Community c : com) {
-                this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
+//                this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
             }
 
             DCValue[] dcValues = res.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
@@ -171,7 +171,7 @@ public class ItemEntity extends ItemEntityId {
             this.collections.add(includeFull ? new CollectionEntity(c, level, uparams) : new CollectionEntityId(c));
         }
         for (Community c : com) {
-            this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
+//            this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
         }
 
         DCValue[] dcValues = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);

@@ -82,6 +82,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     protected boolean trim = false;
     protected boolean parents = false;
     protected boolean children = false;
+    protected boolean groups = false;
 
     public AbstractBaseProvider(EntityProviderManager entityProviderManager) throws SQLException {
         this.entityProviderManager = entityProviderManager;
@@ -291,6 +292,8 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         uparam.setParents(this.parents);
         this.children = "true".equals(reqStor.getStoredValue("children"));
         uparam.setChildren(this.children);
+        this.groups = "true".equals(reqStor.getStoredValue("groups"));
+        uparam.setGroups(this.groups);
 
         try {
             this.idOnly = reqStor.getStoredValue("idOnly").equals("true");
@@ -382,7 +385,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         }
 
         try {
-            _start = Integer.parseInt(reqStor.getStoredValue("_start").toString());
+            _start = Integer.parseInt(reqStor.getStoredValue("start").toString());
             uparam.setStart(_start);
         } catch (NullPointerException ex) {
             _start = 0;
@@ -403,7 +406,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         }
 
         try {
-            _limit = Integer.parseInt(reqStor.getStoredValue("_limit").toString());
+            _limit = Integer.parseInt(reqStor.getStoredValue("limit").toString());
             uparam.setLimit(_limit);
         } catch (NullPointerException ex) {
             _limit = 0;
@@ -574,7 +577,6 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     /**
      * Remove items from list in order to display only requested items
      * (according to _start, _limit etc.)
-     *
      * @param entities
      */
     public void removeTrailing(List<?> entities) {
@@ -609,6 +611,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         try {
             context.complete();
         } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -814,10 +817,10 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             if (params.containsKey("pathInfo")) {
                 segments = params.get("pathInfo").toString().split("/");
             }
-            if (segments.length > 3) {
-                action = segments[3];
+            if (segments.length > 2) {
+                action = segments[segments.length-1];
                 if (action.lastIndexOf(".") > 0) {
-                    action = segments[3].substring(0, segments[3].lastIndexOf("."));
+                    action = action.substring(0, action.lastIndexOf("."));
                 }
             } else {
                 action = "";

@@ -25,7 +25,6 @@ import org.dspace.core.Context;
 import org.sakaiproject.entitybus.exception.EntityException;
 import java.sql.SQLException;
 import org.dspace.rest.entities.*;
-import org.dspace.rest.util.UtilHelper;
 import org.dspace.rest.util.UserRequestParams;
 import org.dspace.rest.util.RecentSubmissionsException;
 import org.dspace.rest.util.GenComparator;

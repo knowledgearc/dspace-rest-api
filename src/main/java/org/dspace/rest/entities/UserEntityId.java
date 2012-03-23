@@ -11,20 +11,14 @@ package org.dspace.rest.entities;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.core.Constants;
-import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
-import org.dspace.eperson.EPerson;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
+import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 import org.sakaiproject.entitybus.exception.EntityException;
 
 import java.sql.SQLException;
 
-/**
- * Entity describing users registered on the system, basic version
- * @see UserEntity
- * @see EPerson
- * @author Bojan Suzic, bojan.suzic@gmail.com
- */
-public class UserEntityId implements Comparable {
+public class UserEntityId {
 
     @EntityId
     protected int id;
@@ -38,18 +32,16 @@ public class UserEntityId implements Comparable {
 
             res = EPerson.find(context, Integer.parseInt(uid));
 
-            // Check authorisation
             AuthorizeManager.authorizeAction(context, res, Constants.READ);
 
             this.id = res.getID();
-            //context.complete();
-        } catch (NumberFormatException ex) {
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ex) {
             throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
         }
-
     }
 
     public UserEntityId(EPerson eperson) {
@@ -61,38 +53,7 @@ public class UserEntityId implements Comparable {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (null == obj) {
-            return false;
-        }
-        if (!(obj instanceof UserEntityId)) {
-            return false;
-        } else {
-            UserEntityId castObj = (UserEntityId) obj;
-            return (this.id == castObj.id);
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + id;
-        return result;
-    }
-
-    @Override
     public String toString() {
         return "id:" + this.id;
-    }
-
-    public int compareTo(Object o1) {
-        if (((UserEntityId) (o1)).getId() > this.getId()) {
-            return -1;
-        } else if (((UserEntityId) (o1)).getId() < this.getId()) {
-            return 1;
-        } else {
-            return 0;
-        }
     }
 }

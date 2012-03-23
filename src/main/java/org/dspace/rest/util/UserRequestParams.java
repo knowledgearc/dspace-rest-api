@@ -8,10 +8,6 @@
 
 package org.dspace.rest.util;
 
-/**
- *
- * @author Bojan Suzic
- */
 public class UserRequestParams {
 
     private String user = "";
@@ -37,6 +33,7 @@ public class UserRequestParams {
     private boolean trim = false;
     protected boolean parents = false;
     protected boolean children = false;
+    protected boolean groups = false;
 
     public void setUser(String uname) {
         this.user = uname;
@@ -212,5 +209,13 @@ public class UserRequestParams {
 
     public void setChildren(boolean children) {
         this.children = children;
+    }
+
+    public boolean getGroups() {
+        return groups;
+    }
+
+    public void setGroups(boolean groups) {
+        this.groups = groups;
     }
 }

@@ -492,7 +492,17 @@ public class EntityEncodingManager {
                         + "), entity object to encode could not be found (null object in list)", ref.toString());
             } else {
                 try {
-                    encoded = encodeEntity(ref.getPrefix(), format, toEncode, view);
+                    String prefix = ref.getPrefix();
+
+                    String segments[] = {};
+                    if (params.get("pathInfo") != null) {
+                        segments = params.get("pathInfo").toString().split("/");
+                    }
+                    if (segments.length > 3) {
+                        prefix = segments[3].substring(0,segments[3].lastIndexOf("."));
+                    }
+
+                    encoded = encodeEntity(prefix, format, toEncode, view);
                 } catch (RuntimeException e) {
                     throw new EntityEncodingException("Failure during internal output encoding of entity: " + ref, ref.toString(), e);
                 }

@@ -44,10 +44,9 @@ public class CommunityEntityId {
         } catch (NumberFormatException ex) {
             throw new EntityException("Bad request", "Could not parse input", 400);
         }
-
     }
 
-    public CommunityEntityId(Community community) throws SQLException {
+    public CommunityEntityId(Community community) {
         this.id = community.getID();
     }
 

@@ -21,7 +21,7 @@ import java.util.List;
 public class CommunityEntityTrim extends CommunityEntityId {
 
     @EntityFieldRequired
-    public String name;
+    private String name;
     private String handle;
     List<Object> collections = new ArrayList<Object>();
     List<Object> subCommunities = new ArrayList<Object>();
@@ -57,9 +57,13 @@ public class CommunityEntityTrim extends CommunityEntityId {
         if (children) {
             Community[] coms = res.getSubcommunities();
             for (Community c : coms) {
-                this.subCommunities.add(trim ? new CommunityEntityTrim(c, uparams, true, true) : new CommunityEntity(c, uparams, true, true));
+                this.subCommunities.add(trim ? new CommunityEntityTrim(c, uparams) : new CommunityEntity(c, uparams));
             }
         }
+    }
+
+    public CommunityEntityTrim(Community community, UserRequestParams uparams) throws SQLException {
+        this(community, uparams, true, true);
     }
 
     public CommunityEntityTrim(Community community, UserRequestParams uparams, boolean hasCollections, boolean hasSubCommunities) throws SQLException {

@@ -80,23 +80,22 @@ public class CommunitiesProvider extends AbstractBaseProvider implements CoreEnt
 
         if (segments.length > 3) {
             return super.getEntity(reference);
-        } else {
-
-            Context context = null;
-            try {
-                context = new Context();
-
-                UserRequestParams uparams = refreshParams(context);
-                if (entityExists(reference.getId())) {
-                    return new CommunityEntity(reference.getId(), context, uparams);
-                }
-            } catch (SQLException ex) {
-                throw new EntityException("Internal server error", "SQL error", 500);
-            } finally {
-                removeConn(context);
-            }
-            throw new IllegalArgumentException("Invalid id:" + reference.getId());
         }
+
+        Context context = null;
+        try {
+            context = new Context();
+
+            UserRequestParams uparams = refreshParams(context);
+            if (entityExists(reference.getId())) {
+                return new CommunityEntity(reference.getId(), context, uparams);
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } finally {
+            removeConn(context);
+        }
+        throw new IllegalArgumentException("Invalid id:" + reference.getId());
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {

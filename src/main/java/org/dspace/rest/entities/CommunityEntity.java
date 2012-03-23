@@ -32,9 +32,6 @@ public class CommunityEntity extends CommunityEntityTrim {
     public CommunityEntity() {
     }
 
-    public CommunityEntity(String uid, Context context, int level, UserRequestParams uparams) {
-    }
-
     public CommunityEntity(String uid, Context context, UserRequestParams uparams) throws SQLException {
         super(uid, context, uparams);
         this.short_description = res.getMetadata("short_description");
@@ -43,7 +40,8 @@ public class CommunityEntity extends CommunityEntityTrim {
         this.side_bar_text = res.getMetadata("side_bar_text");
     }
 
-    public CommunityEntity(Community community, int level, UserRequestParams uparams) throws SQLException {
+    public CommunityEntity(Community community, UserRequestParams uparams) throws SQLException {
+        this(community, uparams, true, true);
     }
 
     public CommunityEntity(Community community, UserRequestParams uparams, boolean hasCollections, boolean hasSubCommunities) throws SQLException {
@@ -201,7 +199,7 @@ public class CommunityEntity extends CommunityEntityTrim {
             Group administrators = res.getAdministrators();
 
             if (administrators != null) {
-                return new GroupEntity(administrators, true);
+                return new GroupEntityTrim(administrators);
             }
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
