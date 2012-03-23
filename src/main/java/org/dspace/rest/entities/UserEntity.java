@@ -24,10 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class UserEntity extends UserEntityId {
+public class UserEntity extends UserEntityTrim {
 
-    private boolean canLogIn, requireCertificate, selfRegistered;
-    private String email, firstName, lastName, fullName, phone, netId, language;
     private List<Object> groups = new ArrayList<Object>();
 
     public UserEntity(String uid, Context context, int level, UserRequestParams uparams) throws SQLException {
@@ -35,16 +33,6 @@ public class UserEntity extends UserEntityId {
 
     public UserEntity(String uid, Context context, UserRequestParams uparams) throws SQLException {
         super(uid, context);
-        this.email = res.getEmail();
-        this.firstName = res.getFirstName();
-        this.lastName = res.getLastName();
-        this.fullName = res.getFullName();
-        this.canLogIn = res.canLogIn();
-        this.requireCertificate = res.getRequireCertificate();
-        this.selfRegistered = res.getSelfRegistered();
-        this.phone = res.getMetadata("phone");
-        this.netId = res.getNetid();
-        this.language = res.getLanguage();
 
         Group[] gs = Group.allMemberGroups(context, res);
         for (Group g : gs) {
@@ -55,32 +43,8 @@ public class UserEntity extends UserEntityId {
     public UserEntity() {
     }
 
-    public UserEntity(EPerson eperson) {
-        super(eperson);
-        this.email = eperson.getEmail();
-        this.firstName = eperson.getFirstName();
-        this.lastName = eperson.getLastName();
-        this.fullName = eperson.getFullName();
-        this.canLogIn = eperson.canLogIn();
-        this.requireCertificate = eperson.getRequireCertificate();
-        this.selfRegistered = eperson.getSelfRegistered();
-        this.phone = eperson.getMetadata("phone");
-        this.netId = eperson.getNetid();
-        this.language = eperson.getLanguage();
-    }
-
     public UserEntity(EPerson eperson, Context context, UserRequestParams uparams) throws SQLException {
         super(eperson);
-        this.email = eperson.getEmail();
-        this.firstName = eperson.getFirstName();
-        this.lastName = eperson.getLastName();
-        this.fullName = eperson.getFullName();
-        this.canLogIn = eperson.canLogIn();
-        this.requireCertificate = eperson.getRequireCertificate();
-        this.selfRegistered = eperson.getSelfRegistered();
-        this.phone = eperson.getMetadata("phone");
-        this.netId = eperson.getNetid();
-        this.language = eperson.getLanguage();
 
         boolean groups = uparams.getGroups();
 
@@ -91,11 +55,7 @@ public class UserEntity extends UserEntityId {
     }
 
     public UserEntity(int id, String firstName, String lastName, String fullName, String email) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.fullName = fullName;
-        this.email = email;
+        super(id, firstName, lastName, fullName, email);
     }
 
     public List<Object> groups(EntityReference ref, UserRequestParams uparams, Context context) throws SQLException {
@@ -250,46 +210,6 @@ public class UserEntity extends UserEntityId {
             return inputVar.get(key) == null ? "" : (String) inputVar.get(key);
         }
         return null;
-    }
-
-    public String getEmail() {
-        return this.email;
-    }
-
-    public String getFirstName() {
-        return this.firstName;
-    }
-
-    public String getFullName() {
-        return this.fullName;
-    }
-
-    public String getLastName() {
-        return this.lastName;
-    }
-
-    public String getLanguage() {
-        return this.language;
-    }
-
-    public boolean getCanLogIn() {
-        return canLogIn;
-    }
-
-    public boolean getRequireCertificate() {
-        return this.requireCertificate;
-    }
-
-    public boolean getSelfRegistered() {
-        return this.selfRegistered;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public String getNetId() {
-        return netId;
     }
 
     public List<Object> getGroups() {

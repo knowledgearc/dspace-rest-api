@@ -199,14 +199,14 @@ public class CommunityEntity extends CommunityEntityTrim {
             Group administrators = res.getAdministrators();
 
             if (administrators != null) {
-                return new GroupEntityTrim(administrators);
+                return new GroupEntity(administrators);
             }
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ex) {
             throw new EntityException("Forbidden", "Forbidden", 403);
         }
-        return new GroupEntity();
+        return new GroupEntityTrim();
     }
 
     public Object getLogo(EntityReference ref, UserRequestParams uparams, Context context) {

@@ -35,10 +35,14 @@ public class GroupEntity extends GroupEntityTrim {
         super(egroup);
 
         for (EPerson member : egroup.getMembers()) {
-            users.add(new UserEntity(member));
+            users.add(new UserEntityTrim(member));
         }
         for (Group group : egroup.getMemberGroups()) {
-            groups.add(new GroupEntity(group));
+            if (group.getMemberGroups().length > 0) {
+                groups.add(new GroupEntity(group));
+            } else {
+                groups.add(new GroupEntityTrim(group));
+            }
         }
     }
 
