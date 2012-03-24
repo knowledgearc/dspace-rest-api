@@ -56,7 +56,7 @@ public class WorkflowItemEntity {
         try {
             this.id = res.getID();
             this.itemEntity = new ItemEntity(res.getItem(),level,uparams);
-            this.itemEntity.owningCollection = new CollectionEntity(res.getCollection(), level, uparams);
+//            this.itemEntity.owningCollection = new CollectionEntity(res.getCollection(), level, uparams);
             if (res.getOwner() != null) {
                 this.reviewer = new UserEntity(res.getOwner());
             }
