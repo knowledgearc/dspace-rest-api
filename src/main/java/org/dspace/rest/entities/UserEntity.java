@@ -43,6 +43,10 @@ public class UserEntity extends UserEntityTrim {
     public UserEntity() {
     }
 
+    public UserEntity(EPerson eperson) {
+        super(eperson);
+    }
+
     public UserEntity(EPerson eperson, Context context, UserRequestParams uparams) throws SQLException {
         super(eperson);
 
