@@ -43,7 +43,7 @@ public class CommunityEntityTrim extends CommunityEntityId {
 
         Collection[] cols = res.getCollections();
         for (Collection c : cols) {
-            this.collections.add(collections ? trim ? new CollectionEntityTrim(c, uparams) : new CollectionEntity(c, uparams) : new CollectionEntityId(c));
+            this.collections.add(collections ? trim ? new CollectionEntityTrimC(c) : new CollectionEntityC(c) : new CollectionEntityId(c));
         }
 
         if (parents) {
@@ -78,7 +78,7 @@ public class CommunityEntityTrim extends CommunityEntityId {
         if (hasCollections) {
             Collection[] cols = community.getCollections();
             for (Collection c : cols) {
-                this.collections.add(collections ? trim ? new CollectionEntityTrim(c, uparams) : new CollectionEntity(c, uparams) : new CollectionEntityId(c));
+                this.collections.add(collections ? trim ? new CollectionEntityTrimC(c) : new CollectionEntityC(c) : new CollectionEntityId(c));
             }
         }
         if (hasSubCommunities) {

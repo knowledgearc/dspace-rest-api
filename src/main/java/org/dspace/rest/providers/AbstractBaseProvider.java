@@ -84,6 +84,8 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     protected boolean children = false;
     protected boolean groups = false;
 
+    protected String type;
+
     public AbstractBaseProvider(EntityProviderManager entityProviderManager) throws SQLException {
         this.entityProviderManager = entityProviderManager;
         try {
@@ -294,6 +296,13 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         uparam.setChildren(this.children);
         this.groups = "true".equals(reqStor.getStoredValue("groups"));
         uparam.setGroups(this.groups);
+
+        try {
+            type = reqStor.getStoredValue("type").toString();
+            uparam.setType(type);
+        } catch (NullPointerException ex) {
+            type = "";
+        }
 
         try {
             this.idOnly = reqStor.getStoredValue("idOnly").equals("true");

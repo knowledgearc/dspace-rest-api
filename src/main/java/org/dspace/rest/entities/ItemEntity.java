@@ -14,73 +14,59 @@ import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.*;
 import org.dspace.content.Collection;
 import org.dspace.content.authority.Choices;
-import org.dspace.content.crosswalk.DisseminationCrosswalk;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.rest.util.UserRequestParams;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
-import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 import org.sakaiproject.entitybus.exception.EntityException;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 
-/**
- * Entity describing item
- * @see ItemEntityId
- * @see Item
- * @author Bojan Suzic, bojan.suzic@gmail.com
- */
 public class ItemEntity extends ItemEntityId {
 
-    @EntityId
-    private int id;
     @EntityFieldRequired
     private String name;
-    @EntityFieldRequired
-    private Boolean canEdit;
     private String handle;
-    private int type;
     private int countItems;
-    List<Object> bundles = new ArrayList<Object>();
-    List<Object> bitstreams = new ArrayList<Object>();
-    List<Object> collections = new ArrayList<Object>();
-    List<Object> communities = new ArrayList<Object>();
+    //    List<Object> bundles = new ArrayList<Object>();
+//    List<Object> bitstreams = new ArrayList<Object>();
+//    List<Object> collections = new ArrayList<Object>();
+//    List<Object> communities = new ArrayList<Object>();
     List<Object> metadata = new ArrayList<Object>();
-    List<Object> policies = new ArrayList<Object>();
+    //    List<Object> policies = new ArrayList<Object>();
     List<Object> comments = new ArrayList<Object>();
     //String metadata;
     Date lastModified;
-    Object owningCollection;
+    //    Object owningCollection;
     boolean isArchived, isWithdrawn;
-    UserEntity submitter;
-    private DisseminationCrosswalk xHTMLHeadCrosswalk;
+//    UserEntity submitter;
+//    private DisseminationCrosswalk xHTMLHeadCrosswalk;
 
-    // TODO inspect and add additional fields
-    public  ItemEntity(String uid, Context context, int level, UserRequestParams uparams) {
+    public ItemEntity(String uid, Context context, int level, UserRequestParams uparams) {
         try {
             Item res = Item.find(context, Integer.parseInt(uid));
 
             // Check authorisation
             AuthorizeManager.authorizeAction(context, res, Constants.READ);
 
-            this.id = res.getID();
-            this.canEdit = res.canEdit();
+//            this.id = res.getID();
+//            this.canEdit = res.canEdit();
             this.handle = res.getHandle();
             this.name = res.getName();
-            this.type = res.getType();
+//            this.type = res.getType();
             this.lastModified = res.getLastModified();
             this.isArchived = res.isArchived();
             this.isArchived = res.isWithdrawn();
-            this.submitter = new UserEntity(res.getSubmitter());
+//            this.submitter = new UserEntity(res.getSubmitter());
 
             Bundle[] bun = res.getBundles();
             Bitstream[] bst = res.getNonInternalBitstreams();
             Collection[] col = res.getCollections();
             Community[] com = res.getCommunities();
-            List<ResourcePolicy> ps = AuthorizeManager.getPolicies(context,res);
+            List<ResourcePolicy> ps = AuthorizeManager.getPolicies(context, res);
 
             boolean includeFull = false;
             level++;
@@ -89,40 +75,39 @@ public class ItemEntity extends ItemEntityId {
             }
 
             for (ResourcePolicy c : ps) {
-                this.policies.add(new PolicyEntity(c, "Policies for Item ("+c.getResourceID()+")", level, uparams));
+//                this.policies.add(new PolicyEntity(c, "Policies for Item ("+c.getResourceID()+")", level, uparams));
             }
             Collection ownCol = res.getOwningCollection();
             if (ownCol != null) {
-                this.owningCollection = includeFull ? new CollectionEntity(ownCol, level, uparams) : new CollectionEntityId(ownCol);
+//                this.owningCollection = includeFull ? new CollectionEntity(ownCol, level, uparams) : new CollectionEntityId(ownCol);
             }
             for (Bundle b : bun) {
-                this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
-                List<ResourcePolicy> bs = AuthorizeManager.getPolicies(context,b);
+//                this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
+                List<ResourcePolicy> bs = AuthorizeManager.getPolicies(context, b);
                 for (ResourcePolicy c : bs) {
-                    this.policies.add(new PolicyEntity(c, "Policies for Bundle "+b.getName()+" ("+c.getResourceID()+")", level, uparams));
+//                    this.policies.add(new PolicyEntity(c, "Policies for Bundle "+b.getName()+" ("+c.getResourceID()+")", level, uparams));
                 }
                 Bitstream[] bes = b.getBitstreams();
                 for (Bitstream bi : bes) {
-                    List<ResourcePolicy> bts = AuthorizeManager.getPolicies(context,bi);
+                    List<ResourcePolicy> bts = AuthorizeManager.getPolicies(context, bi);
                     for (ResourcePolicy ci : bts) {
-                        this.policies.add(new PolicyEntity(ci, "Policies for Bitsteam "+bi.getName()+" ("+ci.getResourceID()+")", level, uparams));
+//                        this.policies.add(new PolicyEntity(ci, "Policies for Bitsteam "+bi.getName()+" ("+ci.getResourceID()+")", level, uparams));
                     }
                 }
             }
             for (Bitstream b : bst) {
-                this.bitstreams.add(includeFull ? new BitstreamEntity(b, level, uparams) : new BitstreamEntityId(b));
+//                this.bitstreams.add(includeFull ? new BitstreamEntity(b, level, uparams) : new BitstreamEntityId(b));
             }
             for (Collection c : col) {
-                this.collections.add(includeFull ? new CollectionEntity(c, level, uparams) : new CollectionEntityId(c));
+//                this.collections.add(includeFull ? new CollectionEntity(c, level, uparams) : new CollectionEntityId(c));
             }
             for (Community c : com) {
 //                this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
             }
 
             DCValue[] dcValues = res.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-            for (DCValue dcValue : dcValues)
-            {
-                this.metadata.add(includeFull ? new MetadataEntity(dcValue, level, uparams) : new MetadataEntityId(dcValue));
+            for (DCValue dcValue : dcValues) {
+//                this.metadata.add(includeFull ? new MetadataEntity(dcValue, level, uparams) : new MetadataEntityId(dcValue));
             }
 
             //context.complete();
@@ -143,58 +128,82 @@ public class ItemEntity extends ItemEntityId {
             includeFull = true;
         }
 
-        this.canEdit = item.canEdit();
+//        this.canEdit = item.canEdit();
         this.handle = item.getHandle();
         this.name = item.getName();
-        this.type = item.getType();
-        this.id = item.getID();
+//        this.type = item.getType();
+//        this.id = item.getID();
         this.lastModified = item.getLastModified();
         Collection ownCol = item.getOwningCollection();
         if (ownCol != null) {
-            this.owningCollection = includeFull ? new CollectionEntity(ownCol, level, uparams) : new CollectionEntityId(ownCol);
+//            this.owningCollection = includeFull ? new CollectionEntity(ownCol, level, uparams) : new CollectionEntityId(ownCol);
         }
         this.isArchived = item.isArchived();
         this.isWithdrawn = item.isWithdrawn();
-        this.submitter = new UserEntity(item.getSubmitter());
+//        this.submitter = new UserEntity(item.getSubmitter());
 
         Bundle[] bun = item.getBundles();
         Bitstream[] bst = item.getNonInternalBitstreams();
         Collection[] col = item.getCollections();
         Community[] com = item.getCommunities();
         for (Bundle b : bun) {
-            this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
+//            this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
         }
         for (Bitstream b : bst) {
-            this.bitstreams.add(includeFull ? new BitstreamEntity(b, level, uparams) : new BitstreamEntityId(b));
+//            this.bitstreams.add(includeFull ? new BitstreamEntity(b, level, uparams) : new BitstreamEntityId(b));
         }
         for (Collection c : col) {
-            this.collections.add(includeFull ? new CollectionEntity(c, level, uparams) : new CollectionEntityId(c));
+//            this.collections.add(includeFull ? new CollectionEntity(c, level, uparams) : new CollectionEntityId(c));
         }
         for (Community c : com) {
 //            this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
         }
 
         DCValue[] dcValues = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-        for (DCValue dcValue : dcValues)
-        {
+        for (DCValue dcValue : dcValues) {
             this.metadata.add(includeFull ? new MetadataEntity(dcValue, level, uparams) : new MetadataEntityId(dcValue));
         }
 
     }
 
+    public ItemEntity(Item item) throws SQLException {
+        super(item);
+        this.handle = item.getHandle();
+        this.name = item.getName();
+        this.lastModified = item.getLastModified();
+        Collection ownCol = item.getOwningCollection();
+        if (ownCol != null) {
+//            this.owningCollection = includeFull ? new CollectionEntity(ownCol, level, uparams) : new CollectionEntityId(ownCol);
+        }
+        this.isArchived = item.isArchived();
+        this.isWithdrawn = item.isWithdrawn();
+//        this.submitter = new UserEntity(item.getSubmitter());
+
+        Bundle[] bun = item.getBundles();
+        Bitstream[] bst = item.getNonInternalBitstreams();
+        Collection[] col = item.getCollections();
+        Community[] com = item.getCommunities();
+        for (Bundle b : bun) {
+//            this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
+        }
+        for (Bitstream b : bst) {
+//            this.bitstreams.add(includeFull ? new BitstreamEntity(b, level, uparams) : new BitstreamEntityId(b));
+        }
+        for (Collection c : col) {
+//            this.collections.add(includeFull ? new CollectionEntity(c, level, uparams) : new CollectionEntityId(c));
+        }
+        for (Community c : com) {
+//            this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
+        }
+
+        DCValue[] dcValues = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        for (DCValue dcValue : dcValues) {
+            this.metadata.add(new MetadataEntity(dcValue));
+        }
+
+    }
+
     public ItemEntity() {
-        // check calling package/class in order to prevent chaining
-        boolean includeFull = false;
-        this.canEdit = false;
-        this.handle = "123456789/0";
-        this.name = "Item";
-        this.type = 3;
-        this.id = 22;
-        this.bundles.add(includeFull ? new BundleEntity() : new BundleEntityId());
-        this.bitstreams.add(includeFull ? new BitstreamEntity() : new BundleEntityId());
-        this.collections.add(includeFull ? new CollectionEntity() : new BundleEntityId());
-        this.communities.add(includeFull ? new CommunityEntity() : new BundleEntityId());
-        this.metadata.add(includeFull ? new MetadataEntity() : new MetadataEntityId());
     }
 
     public ItemEntity(String uid, Context context) {
@@ -203,7 +212,7 @@ public class ItemEntity extends ItemEntityId {
             // Check authorisation
             AuthorizeManager.authorizeAction(context, res, Constants.READ);
 
-        this.id = res.getID();
+//        this.id = res.getID();
         } catch (NumberFormatException ex) {
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
@@ -212,51 +221,9 @@ public class ItemEntity extends ItemEntityId {
         }
 
     }
-    /*
-    // taken from jspui handle implementation
-    // it should be probably properly formated, as HashMap
-    // for example but currently HashMap is not supported
-    public String prepareMetadata(Item res) {
-        String headMetadata = "";
 
-        try {
-            xHTMLHeadCrosswalk = new XHTMLHeadDisseminationCrosswalk();
-            List l = xHTMLHeadCrosswalk.disseminateList(res);
-            StringWriter sw = new StringWriter();
-
-            XMLOutputter xmlo = new XMLOutputter();
-            for (int i = 0; i < l.size(); i++) {
-                Element e = (Element) l.get(i);
-                // FIXME: we unset the Namespace so it's not printed.
-                // This is fairly yucky, but means the same crosswalk should
-                // work for Manakin as well as the JSP-based UI.
-                e.setNamespace(null);
-                xmlo.output(e, sw);
-
-            }
-            headMetadata = sw.toString();
-        } catch (Exception ce) {
-            ce.printStackTrace();
-        }
-
-        return headMetadata;
-    }
-
-
-
-    public String getMetadata() {
+    public List getMetadata() {
         return this.metadata;
-    }
-    */
-
-
-    public List getMetadata()
-    {
-        return this.metadata;
-    }
-
-    public UserEntity getSubmitter() {
-        return this.submitter;
     }
 
     public boolean getIsArchived() {
@@ -267,73 +234,24 @@ public class ItemEntity extends ItemEntityId {
         return this.isWithdrawn;
     }
 
-    public Object getOwningCollection() {
-        return this.owningCollection;
-    }
-
     public Date getLastModified() {
         return this.lastModified;
-    }
-
-    public List getCollections() {
-        return this.collections;
-    }
-
-    public List getCommunities() {
-        return this.communities;
     }
 
     public String getName() {
         return this.name;
     }
 
-    public List getBitstreams() {
-        return this.bitstreams;
-    }
-
     public String getHandle() {
         return this.handle;
-    }
-
-    public boolean getCanEdit() {
-        return this.canEdit;
-    }
-
-    public int getId() {
-        return this.id;
-    }
-
-    public int getType() {
-        return this.type;
-    }
-
-    public List getBundles() {
-        return this.bundles;
-    }
-
-    public List<Object> getPolicies() {
-        return policies;
-    }
-
-    public int getCountItems() {
-        return countItems;
     }
 
     public void setCountItems(int countItems) {
         this.countItems = countItems;
     }
 
-    public List<Object> getComments() {
-        return comments;
-    }
-
     public void setComments(List<Object> comments) {
         this.comments = comments;
-    }
-
-    @Override
-    public String toString() {
-        return "id:" + this.id + ", stuff.....";
     }
 
     public Object addBundle(EntityReference ref, Map<String, Object> inputVar, Context context) {
@@ -400,8 +318,8 @@ public class ItemEntity extends ItemEntityId {
             String value = (String) inputVar.get("value");
             String lang = (String) inputVar.get("lang");
 
-            MetadataField field = MetadataField.find(context,Integer.valueOf(fieldID));
-            MetadataSchema schema = MetadataSchema.find(context,field.getSchemaID());
+            MetadataField field = MetadataField.find(context, Integer.valueOf(fieldID));
+            MetadataSchema schema = MetadataSchema.find(context, field.getSchemaID());
 
             item.addMetadata(schema.getName(), field.getElement(), field.getQualifier(), lang, value);
 
@@ -431,7 +349,7 @@ public class ItemEntity extends ItemEntityId {
             if (o instanceof Map) {
                 Map map = (Map) o;
                 fieldList.add((Map) map.get("field"));
-            }else if (o instanceof Vector) {
+            } else if (o instanceof Vector) {
                 Vector vector = (Vector) o;
                 for (int i = 0; i < vector.size(); i++) {
                     fieldList.add((Map) vector.get(i));
@@ -449,13 +367,11 @@ public class ItemEntity extends ItemEntityId {
                 String[] parts = parseName(name);
                 // probe for a confidence value
                 int iconf = Choices.CF_UNSET;
-                if (confidence != null && confidence.length() > 0)
-                {
+                if (confidence != null && confidence.length() > 0) {
                     iconf = Choices.getConfidenceValue(confidence);
                 }
                 // upgrade to a minimum of NOVALUE if there IS an authority key
-                if (authority != null && authority.length() > 0 && iconf == Choices.CF_UNSET)
-                {
+                if (authority != null && authority.length() > 0 && iconf == Choices.CF_UNSET) {
                     iconf = Choices.CF_NOVALUE;
                 }
                 item.addMetadata(parts[0], parts[1], parts[2], lang, value, authority, iconf);
@@ -500,8 +416,7 @@ public class ItemEntity extends ItemEntityId {
         }
     }
 
-    private static String[] parseName(String name)
-    {
+    private static String[] parseName(String name) {
         String[] parts = new String[3];
 
         String[] split = name.split("\\.");

@@ -35,18 +35,6 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = UserEntity.class;
-//        func2actionMapGET.put("getEmail", "email");
-//        func2actionMapGET.put("getFirstName", "firstName");
-//        func2actionMapGET.put("getFullName", "fullName");
-//        func2actionMapGET.put("getHandle", "handle");
-//        func2actionMapGET.put("getId", "id");
-//        func2actionMapGET.put("getLanguage", "language");
-//        func2actionMapGET.put("getLastName", "lastName");
-//        func2actionMapGET.put("getName", "name");
-//        func2actionMapGET.put("getNetId", "netId");
-//        func2actionMapGET.put("getRequireCertificate", "requireCertificate");
-//        func2actionMapGET.put("getSelfRegistered", "selfRegistered");
-//        func2actionMapGET.put("getType", "type");
         func2actionMapGET.put("groups", "groups");
         func2actionMapPOST.put("create", "");
         inputParamsPOST.put("create", new String[]{"email", "firstName", "lastName"});
@@ -78,6 +66,8 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
             return ePerson != null ? true : false;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
         } finally {
             removeConn(context);
         }

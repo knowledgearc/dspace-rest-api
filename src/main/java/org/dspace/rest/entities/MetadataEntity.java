@@ -68,6 +68,18 @@ public class MetadataEntity extends MetadataEntityId {
 
     }
 
+    public MetadataEntity(DCValue dcValue) throws SQLException
+    {
+        // check calling package/class in order to prevent chaining
+
+        this.element = dcValue.element;
+        this.qualifier = dcValue.qualifier;
+        this.schema = dcValue.schema;
+        this.value = dcValue.value;
+        this.id = dcValue.id;
+
+    }
+
     public MetadataEntity()
     {
         // check calling package/class in order to prevent chaining

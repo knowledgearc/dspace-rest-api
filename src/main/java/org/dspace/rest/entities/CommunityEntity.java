@@ -205,6 +205,8 @@ public class CommunityEntity extends CommunityEntityTrim {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ex) {
             throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
         }
         return new GroupEntityTrim();
     }
@@ -222,6 +224,8 @@ public class CommunityEntity extends CommunityEntityTrim {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ex) {
             throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
         }
         return new BitstreamEntityId();
     }

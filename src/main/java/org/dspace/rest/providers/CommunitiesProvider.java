@@ -65,6 +65,8 @@ public class CommunitiesProvider extends AbstractBaseProvider implements CoreEnt
             return comm != null ? true : false;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
         } finally {
             removeConn(context);
         }
@@ -110,7 +112,7 @@ public class CommunitiesProvider extends AbstractBaseProvider implements CoreEnt
 
             Community[] communities = Community.findAllTop(context);
             for (Community c : communities) {
-                entities.add(trim ? new CommunityEntityTrim(c, uparams, true, true) : new CommunityEntity(c, uparams, true, true));
+                entities.add(trim ? new CommunityEntityTrim(c, uparams) : new CommunityEntity(c, uparams));
             }
 
             return entities;

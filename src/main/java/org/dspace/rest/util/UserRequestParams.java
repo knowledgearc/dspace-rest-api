@@ -35,6 +35,8 @@ public class UserRequestParams {
     protected boolean children = false;
     protected boolean groups = false;
 
+    protected String type = "";
+
     public void setUser(String uname) {
         this.user = uname;
     }
@@ -217,5 +219,13 @@ public class UserRequestParams {
 
     public void setGroups(boolean groups) {
         this.groups = groups;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

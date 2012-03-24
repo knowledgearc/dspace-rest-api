@@ -25,7 +25,8 @@ public class CommunityEntityId {
     private int id;
     protected Community res;
 
-    protected CommunityEntityId() {
+    public CommunityEntityId() {
+
     }
 
     public CommunityEntityId(String uid, Context context) {

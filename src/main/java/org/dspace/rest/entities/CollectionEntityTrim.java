@@ -8,32 +8,47 @@
 package org.dspace.rest.entities;
 
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
 import org.dspace.core.Context;
-import org.dspace.rest.util.UserRequestParams;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CollectionEntityTrim extends CollectionEntityId {
 
     @EntityFieldRequired
     private String name;
     private String handle;
+    private List<Object> communities = new ArrayList<Object>();
 
-    public CollectionEntityTrim(String uid, Context context, int level, UserRequestParams uparams) {
+    public CollectionEntityTrim() {
+
     }
 
-    public CollectionEntityTrim(Collection collection, int level, UserRequestParams uparams) throws SQLException {
+    public CollectionEntityTrim(String uid, Context context) throws SQLException {
+        super(uid,context);
+
+        this.name = res.getName();
+        this.handle = res.getHandle();
+
+        Community[] communities = res.getCommunities();
+        for (Community community : communities) {
+            this.communities.add(new CommunityEntityId(community));
+        }
     }
 
-    public CollectionEntityTrim(Collection collection, UserRequestParams uparams) throws SQLException {
+    public CollectionEntityTrim(Collection collection) throws SQLException {
 
         super(collection);
         this.name = collection.getName();
         this.handle = collection.getHandle();
-    }
 
-    public CollectionEntityTrim() {
+        Community[] communities = collection.getCommunities();
+        for (Community community : communities) {
+            this.communities.add(new CommunityEntityId(community));
+        }
     }
 
     public String getName() {
@@ -42,5 +57,9 @@ public class CollectionEntityTrim extends CollectionEntityId {
 
     public String getHandle() {
         return handle;
+    }
+
+    public List<Object> getCommunities() {
+        return communities;
     }
 }
