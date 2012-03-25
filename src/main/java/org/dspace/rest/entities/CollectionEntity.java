@@ -286,7 +286,8 @@ public class CollectionEntity extends CollectionEntityTrim {
             Collection res = Collection.find(context, Integer.parseInt(ref.getId()));
             AuthorizeManager.authorizeAction(context, res, Constants.READ);
             Group role = null;
-            switch (Utils.getActionRole(uparams.getAction())) {
+            int act = Utils.getActionRole((String) uparams.getAction());
+            switch (act) {
                 case 1: {
                     role = res.getAdministrators();
                     break;
@@ -295,16 +296,10 @@ public class CollectionEntity extends CollectionEntityTrim {
                     role = res.getSubmitters();
                     break;
                 }
-                case 4: {
-                    role = res.getWorkflowGroup(1);
-                    break;
-                }
-                case 5: {
-                    role = res.getWorkflowGroup(2);
-                    break;
-                }
+                case 4:
+                case 5:
                 case 6: {
-                    role = res.getWorkflowGroup(3);
+                    role = res.getWorkflowGroup(act - 3);
                     break;
                 }
             }
