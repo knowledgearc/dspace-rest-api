@@ -16,6 +16,7 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.EPersonDeletionException;
 import org.dspace.eperson.Group;
 import org.dspace.rest.util.UserRequestParams;
+import org.dspace.rest.util.Utils;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.exception.EntityException;
 
@@ -131,16 +132,16 @@ public class UserEntity extends UserEntityTrim {
             Integer id = Integer.parseInt(ref.getId());
             EPerson ePerson = EPerson.find(context, id);
 
-            String email = getMapValue(inputVar, "email");
-            String password = getMapValue(inputVar, "password");
-            String firstName = getMapValue(inputVar, "firstName");
-            String lastName = getMapValue(inputVar, "lastName");
-            String phone = getMapValue(inputVar, "phone");
-            String netId = getMapValue(inputVar, "netId");
-            String language = getMapValue(inputVar, "language");
-            String canLogIn = getMapValue(inputVar, "canLogIn");
-            String requireCertificate = getMapValue(inputVar, "requireCertificate");
-            String selfRegistered = getMapValue(inputVar, "selfRegistered");
+            String email = Utils.getMapValue(inputVar, "email");
+            String password = Utils.getMapValue(inputVar, "password");
+            String firstName = Utils.getMapValue(inputVar, "firstName");
+            String lastName = Utils.getMapValue(inputVar, "lastName");
+            String phone = Utils.getMapValue(inputVar, "phone");
+            String netId = Utils.getMapValue(inputVar, "netId");
+            String language = Utils.getMapValue(inputVar, "language");
+            String canLogIn = Utils.getMapValue(inputVar, "canLogIn");
+            String requireCertificate = Utils.getMapValue(inputVar, "requireCertificate");
+            String selfRegistered = Utils.getMapValue(inputVar, "selfRegistered");
 
             if (ePerson != null) {
                 EPerson ep = EPerson.findByEmail(context, email);
@@ -207,13 +208,6 @@ public class UserEntity extends UserEntityTrim {
 
         return "0";
 
-    }
-
-    private String getMapValue(Map<String, Object> inputVar, String key) {
-        if (inputVar.containsKey(key)) {
-            return inputVar.get(key) == null ? "" : (String) inputVar.get(key);
-        }
-        return null;
     }
 
     public List<Object> getGroups() {

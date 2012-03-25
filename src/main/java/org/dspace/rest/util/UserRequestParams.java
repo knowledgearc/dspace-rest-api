@@ -35,7 +35,7 @@ public class UserRequestParams {
     protected boolean children = false;
     protected boolean groups = false;
 
-    protected String type = "";
+    protected String action = "";
 
     public void setUser(String uname) {
         this.user = uname;
@@ -221,11 +221,11 @@ public class UserRequestParams {
         this.groups = groups;
     }
 
-    public String getType() {
-        return type;
+    public String getAction() {
+        return action;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setAction(String action) {
+        this.action = action;
     }
 }

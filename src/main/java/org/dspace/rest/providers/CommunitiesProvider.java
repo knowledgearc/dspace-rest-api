@@ -37,13 +37,13 @@ public class CommunitiesProvider extends AbstractBaseProvider implements CoreEnt
         processedEntity = CommunityEntity.class;
         func2actionMapGET.put("getAdministrators", "administrators");
         func2actionMapGET.put("getLogo", "logo");
-        func2actionMapPUT.put("editCommunity", "");
-        func2actionMapPOST.put("createAdministrators", "administrators");
-        inputParamsPOST.put("createAdministrators", new String[]{});
         func2actionMapPOST.put("createCommunity", "");
         inputParamsPOST.put("createCommunity", new String[]{"name"});
-        func2actionMapDELETE.put("removeAdministrators", "administrators");
+        func2actionMapPOST.put("createAdministrators", "administrators");
+        inputParamsPOST.put("createAdministrators", new String[]{});
+        func2actionMapPUT.put("editCommunity", "");
         func2actionMapDELETE.put("removeCommunity", "");
+        func2actionMapDELETE.put("removeAdministrators", "administrators");
         entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
     }

@@ -16,6 +16,7 @@ import org.dspace.eperson.EPerson;
 import org.dspace.rest.entities.CommunityEntity;
 import org.dspace.rest.util.UserRequestParams;
 import org.dspace.rest.util.UtilHelper;
+import org.dspace.rest.util.Utils;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.EntityView;
 import org.sakaiproject.entitybus.entityprovider.EntityProvider;
@@ -84,7 +85,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     protected boolean children = false;
     protected boolean groups = false;
 
-    protected String type;
+    protected String action;
 
     public AbstractBaseProvider(EntityProviderManager entityProviderManager) throws SQLException {
         this.entityProviderManager = entityProviderManager;
@@ -298,10 +299,10 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         uparam.setGroups(this.groups);
 
         try {
-            type = reqStor.getStoredValue("type").toString();
-            uparam.setType(type);
+            action = reqStor.getStoredValue("action").toString();
+            uparam.setAction(action);
         } catch (NullPointerException ex) {
-            type = "";
+            action = "";
         }
 
         try {
@@ -821,13 +822,13 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         String[] mandatory_params;
 
         String action = (String) inputVar.get("action");
-        if (action == null) {
+        if (action == null || Utils.getActionRole(action) > 0) {
             String segments[] = {};
             if (params.containsKey("pathInfo")) {
                 segments = params.get("pathInfo").toString().split("/");
             }
             if (segments.length > 2) {
-                action = segments[segments.length-1];
+                action = segments[segments.length - 1];
                 if (action.lastIndexOf(".") > 0) {
                     action = action.substring(0, action.lastIndexOf("."));
                 }
