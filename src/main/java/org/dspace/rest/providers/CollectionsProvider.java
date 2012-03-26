@@ -111,7 +111,7 @@ public class CollectionsProvider extends AbstractBaseProvider implements CoreEnt
             refreshParams(context);
             List<Object> entities = new ArrayList<Object>();
 
-            entities.add(ContentHelper.countItemsCollection(context));
+            entities.add("count:"+ContentHelper.countItemsCollection(context));
             Collection[] collections = ContentHelper.findAllCollection(context, _start, _limit);
             for (Collection c : collections) {
                 entities.add(trim ? new CollectionEntityTrim(c) : new CollectionEntity(c));

@@ -269,7 +269,7 @@ public class CollectionEntity extends CollectionEntityTrim {
         try {
             List<Object> entities = new ArrayList<Object>();
 
-            entities.add(ContentHelper.countItemsItem(context, Integer.parseInt(ref.getId())));
+            entities.add("count:"+ContentHelper.countItemsItem(context, Integer.parseInt(ref.getId())));
             Item[] items = ContentHelper.findAllItem(context, Integer.parseInt(ref.getId()), uparams.getStart(), uparams.getLimit());
             for (Item item : items) {
                 entities.add(new ItemEntity(item));

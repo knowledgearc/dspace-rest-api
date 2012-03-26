@@ -110,7 +110,7 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
 
             UserRequestParams uparams = refreshParams(context);
             List<Object> entities = new ArrayList<Object>();
-            entities.add(ContentHelper.countItemsEPerson(context));
+            entities.add("count:"+ContentHelper.countItemsEPerson(context));
             EPerson[] ePersons = ContentHelper.findAllEPerson(context, _start, _limit);
             for (EPerson c : ePersons) {
                 entities.add(new UserEntity(c, context, uparams));

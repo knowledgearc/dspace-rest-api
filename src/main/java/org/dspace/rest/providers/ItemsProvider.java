@@ -9,9 +9,11 @@
 package org.dspace.rest.providers;
 
 import org.apache.log4j.Logger;
-import org.dspace.content.*;
+import org.dspace.content.Item;
+import org.dspace.content.ItemIterator;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataSchema;
 import org.dspace.core.Context;
-import org.dspace.rest.entities.CommentEntity;
 import org.dspace.rest.entities.ItemEntity;
 import org.dspace.rest.entities.ItemEntityId;
 import org.dspace.rest.entities.MetadataFieldEntity;
@@ -76,7 +78,9 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
         inputParamsPOST.put("editMetadata", new String[]{"id", "metadata"});
         func2actionMapDELETE.put("removeMetadata", "metadata");
 
-        entityConstructor = processedEntity.getDeclaredConstructor(new Class<?>[]{String.class, Context.class, Integer.TYPE, UserRequestParams.class});
+        func2actionMapGET.put("getComments", "comments");
+
+        entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
     }
 
@@ -86,7 +90,7 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
     }
 
     public boolean entityExists(String id) {
-        log.info(userInfo() + "entity_exists:" + id);
+        log.info(userInfo() + "item_exists:" + id);
 
         // sample entity
         if (id.equals(":ID:")) {
@@ -123,7 +127,7 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
     }
 
     public Object getEntity(EntityReference reference) {
-        log.info(userInfo() + "get_entity:" + reference.getId());
+        log.info(userInfo() + "get_item:" + reference.getId());
         String segments[] = {};
 
         if (reqStor.getStoredValue("pathInfo") != null) {
@@ -140,37 +144,8 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
         UserRequestParams uparams;
         uparams = refreshParams(context);
 
-        // first check if there is sub-field requested
-        // if so then invoke appropriate method inside of entity
         if (segments.length > 3) {
-            String act = segments[3];
-            if (act.lastIndexOf(".") > 0) {
-                act = act.substring(0, segments[3].lastIndexOf("."));
-            }
-            if (act.equals("comments")) {
-                List l = new ArrayList();
-                ItemEntity itemEntity = new ItemEntity(reference.getId(),context);
-                itemEntity.setComments(l);
-                try {
-                    itemEntity.setCountItems(Comment.countItems(context, Integer.parseInt(reference.getId())));
-                    Comment[] comments = Comment.findAll(context, Integer.parseInt(reference.getId()),_perpage*_page, _perpage);
-                    for (Comment comment : comments) {
-                        l.add(new CommentEntity(comment));
-                    }
-                } catch (SQLException e) {
-                    throw new EntityException("Internal server error", "SQL error", 500);
-                }
-
-                removeConn(context);
-                return itemEntity;
-            }
-
             return super.getEntity(reference);
-        }
-
-        // sample entity
-        if (reference.getId().equals(":ID:")) {
-            return new ItemEntity();
         }
 
         if (reference.getId().equals("metadataFields")) {
@@ -211,7 +186,7 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
-        log.info(userInfo() + "list_entities");
+        log.info(userInfo() + "list_items");
 
         Context context;
         try {

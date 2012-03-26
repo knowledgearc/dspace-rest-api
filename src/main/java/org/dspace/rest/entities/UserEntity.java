@@ -29,7 +29,7 @@ public class UserEntity extends UserEntityTrim {
 
     private List<Object> groups = new ArrayList<Object>();
 
-    public UserEntity(String uid, Context context, int level, UserRequestParams uparams) throws SQLException {
+    public UserEntity() {
     }
 
     public UserEntity(String uid, Context context, UserRequestParams uparams) throws SQLException {
@@ -41,13 +41,6 @@ public class UserEntity extends UserEntityTrim {
         }
     }
 
-    public UserEntity() {
-    }
-
-    public UserEntity(EPerson eperson) {
-        super(eperson);
-    }
-
     public UserEntity(EPerson eperson, Context context, UserRequestParams uparams) throws SQLException {
         super(eperson);
 
@@ -57,10 +50,6 @@ public class UserEntity extends UserEntityTrim {
         for (Group g : gs) {
             this.groups.add(groups ? new GroupEntityTrim(g) : new GroupEntityId(g));
         }
-    }
-
-    public UserEntity(int id, String firstName, String lastName, String fullName, String email) {
-        super(id, firstName, lastName, fullName, email);
     }
 
     public List<Object> groups(EntityReference ref, UserRequestParams uparams, Context context) throws SQLException {

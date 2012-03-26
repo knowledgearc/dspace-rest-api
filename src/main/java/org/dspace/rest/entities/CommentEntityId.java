@@ -9,25 +9,18 @@
 
 package org.dspace.rest.entities;
 
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.Comment;
-import org.dspace.content.Community;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 import org.sakaiproject.entitybus.exception.EntityException;
 
 import java.sql.SQLException;
 
-/**
- * Entity describing comment, basic version
- * @author Lewis
- */
 public class CommentEntityId {
 
     @EntityId
     private int id;
+    protected Comment res;
 
     protected CommentEntityId() {
     }
@@ -35,7 +28,7 @@ public class CommentEntityId {
     public CommentEntityId(String uid, Context context) {
         try {
 
-            Comment res = Comment.find(context, Integer.parseInt(uid));
+            res = Comment.find(context, Integer.parseInt(uid));
             // Check authorisation
 //            AuthorizeManager.authorizeAction(context, res, Constants.READ);
 
@@ -46,6 +39,7 @@ public class CommentEntityId {
 //        } catch (AuthorizeException ex) {
 //            throw new EntityException("Forbidden", "Forbidden", 403);
         } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
         }
     }
 
@@ -56,28 +50,6 @@ public class CommentEntityId {
     public int getId() {
         return this.id;
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (null == obj) {
-            return false;
-        }
-        if (!(obj instanceof CommentEntityId)) {
-            return false;
-        } else {
-            CommentEntityId castObj = (CommentEntityId) obj;
-            return (this.id == castObj.id);
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + id;
-        return result;
-    }
-
 
     @Override
     public String toString() {

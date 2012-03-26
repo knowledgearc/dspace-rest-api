@@ -10,16 +10,15 @@ package org.dspace.rest.entities;
 
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
-import org.dspace.rest.util.UserRequestParams;
-
-import java.sql.SQLException;
-import java.util.Map;
 
 public class UserEntityTrim extends UserEntityId {
 
     private boolean canLogIn, requireCertificate, selfRegistered;
     private String email, firstName, lastName, fullName;
     private String phone, netId, language;
+
+    public UserEntityTrim() {
+    }
 
     public UserEntityTrim(String uid, Context context) {
         super(uid, context);
@@ -33,9 +32,6 @@ public class UserEntityTrim extends UserEntityId {
         this.phone = res.getMetadata("phone");
         this.netId = res.getNetid();
         this.language = res.getLanguage();
-    }
-
-    public UserEntityTrim() {
     }
 
     public UserEntityTrim(EPerson eperson) {

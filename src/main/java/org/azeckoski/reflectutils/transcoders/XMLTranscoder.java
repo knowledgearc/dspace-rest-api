@@ -118,7 +118,7 @@ public class XMLTranscoder implements Transcoder {
         this.includeClass = includeClass;
     }
 
-    private int maxLevel = 7;
+    private int maxLevel = 20;
     /**
      * @param maxLevel the number of objects to follow when traveling through the object,
      * 0 means only the fields in the initial object, default is 7
@@ -186,15 +186,15 @@ public class XMLTranscoder implements Transcoder {
             Class<?> type = ConstructorUtils.getWrapper(object.getClass());
             if ( ConstructorUtils.isClassSimple(type) ) {
                 // Simple (String, Number, etc.)
-                if (level == 0) {
+                tagName = validate(tagName == null ? makeElementName(type) : tagName);
+                if (String.class.isAssignableFrom(type) && object.toString().startsWith("count:")) {
                     tagName = "count";
-                }else {
-                    tagName = validate(tagName == null ? makeElementName(type) : tagName);
+                    object = ((String)object).substring(6);
                 }
+
                 String value = "";
                 makeLevelSpaces(sb, level, humanOutput);
-                sb.append(LT);
-                sb.append(tagName);
+
                 if (Date.class.isAssignableFrom(type) || Calendar.class.isAssignableFrom(type)) {
                     // date
                     Date d = null;
@@ -221,12 +221,16 @@ public class XMLTranscoder implements Transcoder {
                 } else {
                     value = escapeForXML(object.toString());
                 }
+
+                sb.append(LT);
+                sb.append(tagName);
                 sb.append(GT);
                 sb.append(value);
                 sb.append(LT);
                 sb.append(SLASH);
                 sb.append(tagName);
                 sb.append(GT);
+
                 makeEOL(sb, humanOutput);
             } else if ( ConstructorUtils.isClassArray(type) ) {
                 // ARRAY

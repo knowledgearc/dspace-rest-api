@@ -34,6 +34,7 @@ public class UserRequestParams {
     protected boolean parents = false;
     protected boolean children = false;
     protected boolean groups = false;
+    protected boolean replies = false;
 
     protected String action = "";
 
@@ -227,5 +228,13 @@ public class UserRequestParams {
 
     public void setAction(String action) {
         this.action = action;
+    }
+
+    public boolean getReplies() {
+        return replies;
+    }
+
+    public void setReplies(boolean replies) {
+        this.replies = replies;
     }
 }

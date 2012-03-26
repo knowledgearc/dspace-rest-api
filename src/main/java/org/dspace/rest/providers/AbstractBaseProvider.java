@@ -84,6 +84,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     protected boolean parents = false;
     protected boolean children = false;
     protected boolean groups = false;
+    protected boolean replies = false;
 
     protected String action;
 
@@ -297,6 +298,8 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         uparam.setChildren(this.children);
         this.groups = "true".equals(reqStor.getStoredValue("groups"));
         uparam.setGroups(this.groups);
+        this.replies = "true".equals(reqStor.getStoredValue("replies"));
+        uparam.setReplies(this.replies);
 
         try {
             action = reqStor.getStoredValue("action").toString();
@@ -383,7 +386,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         }
 
         try {
-            _sort = reqStor.getStoredValue("_sort").toString();
+            _sort = reqStor.getStoredValue("sort").toString();
             uparam.setSort(_sort);
         } catch (NullPointerException ex) {
             _sort = "";
@@ -653,13 +656,18 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             segments = reqStor.getStoredValue("pathInfo").toString().split("/");
         }
 
-        if (segments[3].lastIndexOf(".") > 0) {
-            segments[3] = segments[3].substring(0, segments[3].lastIndexOf("."));
+        return getEntity(ref, segments[3]);
+    }
+
+    public Object getEntity(EntityReference ref, String action) {
+
+        if (action.lastIndexOf(".") > 0) {
+            action = action.substring(0, action.lastIndexOf("."));
         }
 
-        if (func2actionMapGET_rev.containsKey(segments[3])) {
+        if (func2actionMapGET_rev.containsKey(action)) {
             Object result;
-            String function = getMethod(segments[3], func2actionMapGET_rev);
+            String function = getMethod(action, func2actionMapGET_rev);
 
             Context context = null;
             try {
@@ -667,8 +675,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
                 UserRequestParams uparams = refreshParams(context);
 
                 Object CE = entityConstructor.newInstance();
-                Method method = CE.getClass().getMethod(function, funcParamsGET.get(segments[3]));
-
+                Method method = CE.getClass().getMethod(function, funcParamsGET.get(action));
 
                 result = method.invoke(CE, ref, uparams, context);
 
@@ -690,7 +697,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
             return result;
         } else {
-            throw new EntityException("Bad request", "Method not supported " + segments[3], 400);
+            throw new EntityException("Bad request", "Method not supported " + action, 400);
         }
     }
 

@@ -6,16 +6,14 @@
  * http://www.dspace.org/license/
  */
 
-
 package org.dspace.rest.providers;
 
 import org.apache.log4j.Logger;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.rest.content.ContentHelper;
-import org.dspace.rest.entities.UserEntity;
+import org.dspace.rest.entities.UserEntityTrim;
 import org.dspace.rest.entities.WorkflowEntity;
-import org.dspace.rest.entities.WorkflowItemEntity;
 import org.dspace.rest.util.UserRequestParams;
 import org.dspace.workflow.WorkflowItem;
 import org.sakaiproject.entitybus.EntityReference;
@@ -29,15 +27,8 @@ import org.sakaiproject.entitybus.exception.EntityException;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-/**
- * Provides interface for workflow entities
- *
- * @author Lewis
- */
 public class WorkflowProvider extends AbstractBaseProvider implements CoreEntityProvider, Createable, Updateable, Deleteable {
 
     private static Logger log = Logger.getLogger(WorkflowProvider.class);
@@ -46,168 +37,97 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = WorkflowEntity.class;
-        func2actionMapPOST.put("submitAccept", "submitAccept");
-        inputParamsPOST.put("submitAccept", new String[]{"id"});
-        func2actionMapPOST.put("submitReturnPool", "submitReturnPool");
-        inputParamsPOST.put("submitReturnPool", new String[]{"id"});
-        func2actionMapPOST.put("submitApprove", "submitApprove");
-        inputParamsPOST.put("submitApprove", new String[]{"id"});
-        func2actionMapPOST.put("submitReject", "submitReject");
-        inputParamsPOST.put("submitReject", new String[]{"id", "reason"});
-        entityConstructor = processedEntity.getDeclaredConstructor(new Class<?>[]{String.class, Context.class, Integer.TYPE, UserRequestParams.class});
+        func2actionMapGET.put("getSubmitters", "submitters");
+        func2actionMapPUT.put("accept", "accept");
+        func2actionMapPUT.put("approve", "approve");
+        func2actionMapPOST.put("reject", "reject");
+        func2actionMapPOST.put("returnToPool", "returnToPool");
+        entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
-
     }
 
     public String getEntityPrefix() {
-        return "workflow";
+        return "workflows";
     }
 
     public boolean entityExists(String id) {
-        log.info(userInfo() + "entity_exists:" + id);
+        log.info(userInfo() + "workflow_exists:" + id);
 
-        // sample entity
-        if (id.equals(":ID:")) {
+        if ("submitters".equals(id)) {
             return true;
         }
-        if (id.equals("submitters")) {
-            return true;
-        }
-        Context context;
+        Context context = null;
         try {
             context = new Context();
+
+            refreshParams(context);
+
+            WorkflowItem comm = WorkflowItem.find(context, Integer.parseInt(id));
+            return comm != null ? true : false;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        } finally {
+            removeConn(context);
         }
-
-        refreshParams(context);
-
-        boolean result = false;
-        try {
-            WorkflowItem col = WorkflowItem.find(context, Integer.parseInt(id));
-            if (col != null) {
-                result = true;
-            }
-        } catch (SQLException ex) {
-            result = false;
-        }
-
-        // close connection to prevent connection problems
-        removeConn(context);
-        return result;
     }
 
-    /**
-     * Returns information about particular entity
-     *
-     */
-    @Override
     public Object getEntity(EntityReference reference) {
-        log.info(userInfo() + "get_entity:" + reference.getId());
+        log.info(userInfo() + "get_workflow:" + reference.getId());
         String segments[] = {};
 
         if (reqStor.getStoredValue("pathInfo") != null) {
-            segments = reqStor.getStoredValue("pathInfo").toString().split("/", 10);
+            segments = reqStor.getStoredValue("pathInfo").toString().split("/");
         }
 
-        // first check if there is sub-field requested
-        // if so then invoke appropriate method inside of entity
         if (segments.length > 3) {
             return super.getEntity(reference);
-        } else {
-
-            Context context;
-            try {
-                context = new Context();
-
-                UserRequestParams uparams = refreshParams(context);
-
-//            // sample entity
-                if (reference.getId().equals(":ID:")) {
-                    return new WorkflowItemEntity();
-                }
-
-                if (reference.getId().equals("submitters")) {
-                    List<UserEntity> l = new ArrayList<UserEntity>();
-                    EPerson[] ePersons = ContentHelper.searchSubmittersinWorkflow(context, uparams.getQuery(), _perpage * _page, _perpage, _sort.replaceAll("_", " "));
-                    for (EPerson e : ePersons) {
-                        l.add(new UserEntity(e.getID(), e.getFirstName(), e.getLastName(), e.getFullName(), e.getEmail()));
-                    }
-
-                    removeConn(context);
-                    return l;
-                }
-//
-                if (reference.getId() == null) {
-                    return new WorkflowItemEntity();
-                }
-
-                if (entityExists(reference.getId())) {
-                    // return basic entity or full info
-                    return new WorkflowItemEntity(reference.getId(), context, 1, uparams);
-                }
-            } catch (SQLException ex) {
-                throw new EntityException("Internal server error", "SQL error", 500);
-            }
-
-            removeConn(context);
-            throw new IllegalArgumentException("Invalid id:" + reference.getId());
+        } else if ("submitters".equals(reference.getId())) {
+            return super.getEntity(reference, "submitters");
         }
-    }
 
-    /**
-     * List all workflow items in the system, sort and format if requested
-     *
-     */
-    public List<?> getEntities(EntityReference ref, Search search) {
-        log.info(userInfo() + "list_entities");
-
-        Context context;
+        Context context = null;
         try {
             context = new Context();
+
+            refreshParams(context);
+            if (entityExists(reference.getId())) {
+                return new WorkflowEntity(reference.getId(), context);
+            }
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
+        } finally {
+            removeConn(context);
         }
-
-        UserRequestParams uparams = refreshParams(context);
-
-        List<Object> results = new ArrayList<Object>();
-
-        List<Object> entities = new ArrayList<Object>();
-        WorkflowItem[] workflowItems;
-        WorkflowEntity workflowEntity = new WorkflowEntity();
-
-        try {
-            Map paramMap = new HashMap();
-            paramMap.put("fields", fields);
-            paramMap.put("status", status);
-            paramMap.put("submitter", submitter);
-            paramMap.put("reviewer", reviewer);
-
-            paramMap.put("perpage", String.valueOf(_perpage));
-            paramMap.put("page", String.valueOf(_page));
-
-            workflowEntity.setCountItems(WorkflowItem.countItemsforREST(context, paramMap));
-
-            workflowItems = WorkflowItem.findAllbyPerson(context, paramMap);
-
-            System.out.println(" number of workflowitems " + workflowItems.length);
-            for (WorkflowItem wfi : workflowItems) {
-                entities.add(new WorkflowItemEntity(wfi, 1, uparams));
-            }
-            workflowEntity.setWorkflowItems(entities);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        results.add(workflowEntity);
-        removeConn(context);
-
-        return results;
+        throw new IllegalArgumentException("Invalid id:" + reference.getId());
     }
 
-    /*
-     * Here is sample collection entity defined
-     */
+    public List<?> getEntities(EntityReference ref, Search search) {
+        log.info(userInfo() + "list_workflows");
+
+        Context context = null;
+        try {
+            context = new Context();
+
+            refreshParams(context);
+
+            List<Object> entities = new ArrayList<Object>();
+
+            entities.add("count:"+ContentHelper.countItemsWorkflow(context, reviewer, submitter, fields, status));
+            WorkflowItem[] workflowItems = ContentHelper.findAllWorkflow(context, reviewer, submitter, fields, status, _start, _limit);
+
+            for (WorkflowItem wfi : workflowItems) {
+                entities.add(new WorkflowEntity(wfi));
+            }
+            return entities;
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } finally {
+            removeConn(context);
+        }
+    }
+
     public Object getSampleEntity() {
         return new WorkflowEntity();
     }

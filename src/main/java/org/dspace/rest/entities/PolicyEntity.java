@@ -49,7 +49,7 @@ public class PolicyEntity {
         this.resourceId = c.getResourceID();
         this.actionId = c.getAction();
         this.action = c.getActionText();
-        this.eperson = c.getEPerson()!=null?new UserEntity(c.getEPerson()):null;
+        this.eperson = c.getEPerson()!=null?new UserEntityTrim(c.getEPerson()):null;
         this.group = c.getGroup()!=null?new GroupEntity(c.getGroup()):null;
 
 

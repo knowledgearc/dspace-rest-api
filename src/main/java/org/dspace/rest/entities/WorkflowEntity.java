@@ -8,21 +8,14 @@
 package org.dspace.rest.entities;
 
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
-import org.dspace.content.Collection;
-import org.dspace.content.Community;
 import org.dspace.content.Item;
-import org.dspace.content.ItemIterator;
-import org.dspace.core.ConfigurationManager;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.eperson.Group;
+import org.dspace.eperson.EPerson;
+import org.dspace.rest.content.ContentHelper;
 import org.dspace.rest.util.UserRequestParams;
 import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowManager;
 import org.sakaiproject.entitybus.EntityReference;
-import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
-import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 import org.sakaiproject.entitybus.exception.EntityException;
 
 import java.io.IOException;
@@ -31,31 +24,77 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Entity describing workflow
- * @author Lewis
- */
 public class WorkflowEntity {
 
-    private int countItems;
-    List<Object> workflowItems = new ArrayList<Object>();
-
-    public WorkflowEntity(String uid, Context context, int level, UserRequestParams uparams) {
-        System.out.println("creating collection main");
-    }
-
-    public WorkflowEntity(WorkflowItem workflowItem, int level, UserRequestParams uparams) throws SQLException {
-    }
+    private int id;
+    private Object item;
+    private Object reviewer;
 
     public WorkflowEntity() {
     }
 
-    public String submitAccept(EntityReference ref, Map<String, Object> inputVar, Context context) {
+    public WorkflowEntity(String uid, Context context) {
         try {
-            Integer elid = Integer.parseInt((String) inputVar.get("id"));
-            WorkflowItem workflowItem = WorkflowItem.find(context, elid);
+            WorkflowItem res = WorkflowItem.find(context, Integer.parseInt(uid));
+//            Item item = res.getItem();
+            // Check authorisation
+//            AuthorizeManager.authorizeAction(context, item, Constants.READ);
+
+            this.id = res.getID();
+            this.item = new ItemEntity(res.getItem());
+            if (res.getOwner() != null) {
+                this.reviewer = new UserEntityTrim(res.getOwner());
+            }
+//            context.complete();
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+//        } catch (AuthorizeException ex) {
+//            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
+    }
+
+    public WorkflowEntity(WorkflowItem res) {
+        try {
+            Item item = res.getItem();
+//            AuthorizeManager.authorizeAction(context, item, Constants.READ);
+
+            this.id = res.getID();
+            this.item = new ItemEntity(res.getItem());
+            if (res.getOwner() != null) {
+                this.reviewer = new UserEntityTrim(res.getOwner());
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+//        } catch (AuthorizeException ex) {
+//            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
+    }
+
+    public Object getSubmitters(EntityReference ref, UserRequestParams uparams, Context context) {
+        try {
+            List<Object> entities = new ArrayList<Object>();
+
+            entities.add("count:" + ContentHelper.countItemsSubmitters(context, uparams.getQuery()));
+            EPerson[] ePersons = ContentHelper.findAllSubmitters(context, uparams.getQuery(), uparams.getStart(),
+                    uparams.getLimit(), uparams.getSort().replaceAll("_", " "));
+            for (EPerson e : ePersons) {
+                entities.add(new UserEntityTrim(e));
+            }
+            return entities;
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        }
+    }
+
+    public String accept(EntityReference ref, Map<String, Object> inputVar, Context context) {
+        try {
+            Integer id = Integer.parseInt(ref.getId());
+            WorkflowItem workflowItem = WorkflowItem.find(context, id);
             WorkflowManager.claim(context, workflowItem, context.getCurrentUser());
-            context.complete();
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ae) {
@@ -68,12 +107,11 @@ public class WorkflowEntity {
         return Boolean.toString(true);
     }
 
-    public String submitReturnPool(EntityReference ref, Map<String, Object> inputVar, Context context) {
+    public String returnToPool(EntityReference ref, Map<String, Object> inputVar, Context context) {
         try {
-            Integer elid = Integer.parseInt((String) inputVar.get("id"));
-            WorkflowItem workflowItem = WorkflowItem.find(context, elid);
+            Integer id = Integer.parseInt(ref.getId());
+            WorkflowItem workflowItem = WorkflowItem.find(context, id);
             WorkflowManager.unclaim(context, workflowItem, context.getCurrentUser());
-            context.complete();
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ae) {
@@ -86,12 +124,11 @@ public class WorkflowEntity {
         return Boolean.toString(true);
     }
 
-    public String submitApprove(EntityReference ref, Map<String, Object> inputVar, Context context) {
+    public String approve(EntityReference ref, Map<String, Object> inputVar, Context context) {
         try {
-            Integer elid = Integer.parseInt((String) inputVar.get("id"));
-            WorkflowItem workflowItem = WorkflowItem.find(context, elid);
+            Integer id = Integer.parseInt(ref.getId());
+            WorkflowItem workflowItem = WorkflowItem.find(context, id);
             WorkflowManager.advance(context, workflowItem, context.getCurrentUser());
-            context.complete();
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ae) {
@@ -104,13 +141,12 @@ public class WorkflowEntity {
         return Boolean.toString(true);
     }
 
-    public String submitReject(EntityReference ref, Map<String, Object> inputVar, Context context) {
+    public String reject(EntityReference ref, Map<String, Object> inputVar, Context context) {
         try {
-            Integer elid = Integer.parseInt((String) inputVar.get("id"));
+            Integer id = Integer.parseInt(ref.getId());
             String reason = (String) inputVar.get("reason");
-            WorkflowItem workflowItem = WorkflowItem.find(context, elid);
-            WorkflowManager.reject(context, workflowItem, context.getCurrentUser(),reason);
-            context.complete();
+            WorkflowItem workflowItem = WorkflowItem.find(context, id);
+            WorkflowManager.reject(context, workflowItem, context.getCurrentUser(), reason);
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ae) {
@@ -123,25 +159,20 @@ public class WorkflowEntity {
         return Boolean.toString(true);
     }
 
-    public int getCountItems() {
-        return countItems;
+    public int getId() {
+        return id;
     }
 
-    public void setCountItems(int countItems) {
-        this.countItems = countItems;
+    public Object getItem() {
+        return item;
     }
 
-    public List<Object> getWorkflowItems() {
-        return workflowItems;
-    }
-
-    public void setWorkflowItems(List<Object> workflowItems) {
-        this.workflowItems = workflowItems;
+    public Object getReviewer() {
+        return reviewer;
     }
 
     @Override
     public String toString() {
-        return "";
-//        return "workflow id:" + this.id + ", stuff.....";
+        return "id:" + this.id;
     }
 }

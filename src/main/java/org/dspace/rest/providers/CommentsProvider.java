@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
 import org.dspace.content.Comment;
 import org.dspace.core.Context;
 import org.dspace.rest.entities.CommentEntity;
-import org.dspace.rest.entities.CommentEntityId;
+import org.dspace.rest.entities.CommentEntityTrim;
 import org.dspace.rest.util.UserRequestParams;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
@@ -27,11 +27,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Provides interface for access to comment entities
- *
- * @author Lewis Lu
- */
 public class CommentsProvider extends AbstractBaseProvider implements CoreEntityProvider, Updateable, Createable, Deleteable {
 
     private static Logger log = Logger.getLogger(CommentsProvider.class);
@@ -40,127 +35,91 @@ public class CommentsProvider extends AbstractBaseProvider implements CoreEntity
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = CommentEntity.class;
-        func2actionMapPOST.put("createComment", "createComment");
-        inputParamsPOST.put("createComment", new String[]{"id", "replyCommentID", "subject", "body"});
 
-        func2actionMapPUT.put("editComment", "comment");
-//        inputParamsPOST.put("editComment", new String[]{"id", "subject", "body","deleted"});
+        func2actionMapPOST.put("create", "");
+        inputParamsPOST.put("create", new String[]{"itemId", "subject", "body"});
+        func2actionMapPUT.put("edit", "");
+        func2actionMapPUT.put("approve", "approve");
+        func2actionMapDELETE.put("remove", "");
 
-        func2actionMapPOST.put("approveComment", "approveComment");
-        inputParamsPOST.put("approveComment", new String[]{"id", "approved"});
-
-        func2actionMapDELETE.put("removeComment", "");
-
-        entityConstructor = processedEntity.getDeclaredConstructor(new Class<?>[]{String.class, Context.class, Integer.TYPE, UserRequestParams.class});
+        entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
     }
 
-    // this is the prefix where provider is registered (URL path)
     public String getEntityPrefix() {
         return "comments";
     }
 
     public boolean entityExists(String id) {
-        log.info(userInfo() + "entity_exists:" + id);
+        log.info(userInfo() + "comment_exists:" + id);
 
-        // sample entity
-        if (id.equals(":ID:")) {
-            return true;
-        }
-
-        Context context;
+        Context context = null;
         try {
             context = new Context();
+
+            refreshParams(context);
+
+            Comment comm = Comment.find(context, Integer.parseInt(id));
+            return comm != null ? true : false;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        } finally {
+            removeConn(context);
         }
-
-        refreshParams(context);
-        boolean result = false;
-
-        // search for existence for particular item
-        try {
-            Comment col = Comment.find(context, Integer.parseInt(id));
-            if (col != null) {
-                result = true;
-            }
-        } catch (SQLException ex) {
-            result = false;
-        }
-
-        // handles manual deregistration by sql server to lower load
-        removeConn(context);
-        return result;
     }
 
     public Object getEntity(EntityReference reference) {
-        log.info(userInfo() + "get_entity:" + reference.getId());
+        log.info(userInfo() + "get_comment:" + reference.getId());
         String segments[] = {};
 
-        System.out.println("Comment get entity");
         if (reqStor.getStoredValue("pathInfo") != null) {
-            segments = reqStor.getStoredValue("pathInfo").toString().split("/", 10);
+            segments = reqStor.getStoredValue("pathInfo").toString().split("/");
         }
 
-        // first check if there is sub-field requested
-        // if so then invoke appropriate method inside of entity
         if (segments.length > 3) {
             return super.getEntity(reference);
-        } else {
-
-            // sample entity
-            if (reference.getId().equals(":ID:")) {
-                return new CommentEntity();
-            }
-
-            if (reference.getId() == null) {
-                return new CommentEntity();
-            }
-
-            Context context;
-            try {
-                context = new Context();
-            } catch (SQLException ex) {
-                throw new EntityException("Internal server error", "SQL error", 500);
-            }
-
-            if (entityExists(reference.getId())) {
-                // return just entity containg id or full info
-                if (idOnly) {
-                    return new CommentEntityId(reference.getId(), context);
-                } else {
-                    return new CommentEntity(reference.getId(), context, 1, null);
-                }
-            }
-
-            removeConn(context);
-            throw new IllegalArgumentException("Invalid id:" + reference.getId());
         }
+
+        Context context = null;
+        try {
+            context = new Context();
+
+            UserRequestParams uparams = refreshParams(context);
+            boolean replies = uparams.getReplies();
+            if (entityExists(reference.getId())) {
+                return replies ? new CommentEntity(reference.getId(), context) : new CommentEntityTrim(reference.getId(), context);
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } finally {
+            removeConn(context);
+        }
+        throw new IllegalArgumentException("Invalid id:" + reference.getId());
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
-        log.info(userInfo() + "list_entities");
+        log.info(userInfo() + "list_comments");
 
-        Context context;
+        Context context = null;
         try {
             context = new Context();
-        } catch (SQLException ex) {
-            throw new EntityException("Internal server error", "SQL error", 500);
-        }
 
-        List<Object> entities = new ArrayList<Object>();
+            refreshParams(context);
+            List<Object> entities = new ArrayList<Object>();
 
-        try {
-            Comment[] comments = Comment.findAll(context);
+            Comment[] comments = Comment.findAllTop(context);
             for (Comment comment : comments) {
-                entities.add(idOnly ? new CommentEntityId(comment) : new CommentEntity(comment));
+                entities.add(new CommentEntity(comment));
             }
+
+            return entities;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
+        } finally {
+            removeConn(context);
         }
-
-        removeConn(context);
-        return entities;
     }
 
     public Object getSampleEntity() {

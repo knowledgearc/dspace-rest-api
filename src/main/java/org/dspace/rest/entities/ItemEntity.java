@@ -416,6 +416,21 @@ public class ItemEntity extends ItemEntityId {
         }
     }
 
+    public Object getComments(EntityReference ref, UserRequestParams uparams, Context context) {
+        try {
+            List<Object> entities = new ArrayList<Object>();
+
+            entities.add("count:"+Comment.countItems(context, Integer.parseInt(ref.getId())));
+            Comment[] comments = Comment.findAllTop(context, Integer.parseInt(ref.getId()), uparams.getStart(), uparams.getLimit());
+            for (Comment comment : comments) {
+                entities.add(new CommentEntity(comment));
+            }
+            return entities;
+        } catch (SQLException e) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        }
+    }
+
     private static String[] parseName(String name) {
         String[] parts = new String[3];
 
