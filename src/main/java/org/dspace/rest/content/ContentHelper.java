@@ -23,7 +23,7 @@ public class ContentHelper {
         ResultSet rs = null;
 
         try {
-            String query = "SELECT COUNT(*) FROM eperson ORDER BY eperson_id";
+            String query = "SELECT COUNT(*) FROM eperson";
 
             statement = context.getDBConnection().prepareStatement(query);
 
@@ -208,7 +208,7 @@ public class ContentHelper {
         ResultSet rs = null;
 
         try {
-            String query = "SELECT COUNT(*) FROM collection ORDER BY name";
+            String query = "SELECT COUNT(*) FROM collection";
 
             statement = context.getDBConnection().prepareStatement(query);
 
