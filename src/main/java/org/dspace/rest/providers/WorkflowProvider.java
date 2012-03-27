@@ -118,10 +118,8 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
                 entities.add(new WorkflowEntity(wfi));
             }
 
-            results.add(new PoolEntity(ContentHelper.countItemsWorkflow(context, reviewer, submitter, fields, status), entities));
-
-//            results.add("count:"+ContentHelper.countItemsWorkflow(context, reviewer, submitter, fields, status));
-//            results.add(entities);
+            int count = ContentHelper.countItemsWorkflow(context, reviewer, submitter, fields, status);
+            results.add(new PoolEntity(count, entities));
 
             return results;
         } catch (SQLException ex) {

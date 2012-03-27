@@ -77,14 +77,13 @@ public class WorkflowEntity {
     public Object getSubmitters(EntityReference ref, UserRequestParams uparams, Context context) {
         try {
             List<Object> entities = new ArrayList<Object>();
-
-            entities.add("count:" + ContentHelper.countItemsSubmitters(context, uparams.getQuery()));
             EPerson[] ePersons = ContentHelper.findAllSubmitters(context, uparams.getQuery(), uparams.getStart(),
                     uparams.getLimit(), uparams.getSort().replaceAll("_", " "));
             for (EPerson e : ePersons) {
                 entities.add(new UserEntityTrim(e));
             }
-            return entities;
+            int count = ContentHelper.countItemsSubmitters(context, uparams.getQuery());
+            return new SubmittersEntity(count, entities);
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         }
