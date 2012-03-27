@@ -35,6 +35,7 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = UserEntity.class;
+        func2actionMapGET.put("count", "count");
         func2actionMapGET.put("groups", "groups");
         func2actionMapPOST.put("create", "");
         inputParamsPOST.put("create", new String[]{"email", "firstName", "lastName"});
@@ -53,7 +54,7 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
     public boolean entityExists(String id) {
         log.info(userInfo() + "user_exists:" + id);
 
-        if ("authenticate".equals(id)) {
+        if ("authenticate".equals(id) || "count".equals(id)) {
             return true;
         }
         Context context = null;
@@ -83,6 +84,8 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
 
         if (segments.length > 3) {
             return super.getEntity(reference);
+        } else if ("count".equals(reference.getId())) {
+            return super.getEntity(reference, "count");
         }
 
         Context context = null;
@@ -110,7 +113,7 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
 
             UserRequestParams uparams = refreshParams(context);
             List<Object> entities = new ArrayList<Object>();
-            entities.add("count:"+ContentHelper.countItemsEPerson(context));
+//            entities.add("count:"+ContentHelper.countItemsEPerson(context));
             EPerson[] ePersons = ContentHelper.findAllEPerson(context, _start, _limit);
             for (EPerson c : ePersons) {
                 entities.add(new UserEntity(c, context, uparams));

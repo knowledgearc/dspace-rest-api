@@ -15,6 +15,7 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.EPersonDeletionException;
 import org.dspace.eperson.Group;
+import org.dspace.rest.content.ContentHelper;
 import org.dspace.rest.util.UserRequestParams;
 import org.dspace.rest.util.Utils;
 import org.sakaiproject.entitybus.EntityReference;
@@ -49,6 +50,14 @@ public class UserEntity extends UserEntityTrim {
         Group[] gs = Group.allMemberGroups(context, eperson);
         for (Group g : gs) {
             this.groups.add(groups ? new GroupEntityTrim(g) : new GroupEntityId(g));
+        }
+    }
+
+    public Object count(EntityReference ref, UserRequestParams uparams, Context context) {
+        try {
+            return ContentHelper.countItemsEPerson(context);
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
         }
     }
 

@@ -499,11 +499,13 @@ public class EntityEncodingManager {
                         segments = params.get("pathInfo").toString().split("/");
                     }
                     if (segments.length > 3) {
-                        prefix = segments[3].substring(0,segments[3].lastIndexOf("."));
+                        prefix = segments[segments.length - 1].substring(0, segments[segments.length - 1].lastIndexOf("."));
+                    }else if (segments[segments.length - 1].startsWith("count")) {
+                        prefix = "count";
                     }
 
-                    encoded = encodeEntity(prefix, format, toEncode, view);
-                } catch (RuntimeException e) {
+                        encoded = encodeEntity(prefix, format, toEncode, view);
+                    } catch (RuntimeException e) {
                     throw new EntityEncodingException("Failure during internal output encoding of entity: " + ref, ref.toString(), e);
                 }
             }

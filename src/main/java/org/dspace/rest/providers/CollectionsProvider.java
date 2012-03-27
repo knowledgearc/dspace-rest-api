@@ -35,6 +35,8 @@ public class CollectionsProvider extends AbstractBaseProvider implements CoreEnt
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = CollectionEntity.class;
+        func2actionMapGET.put("getCount", "count");
+        func2actionMapGET.put("getItemsCount", "itemscount");
         func2actionMapGET.put("getItems", "items");
         func2actionMapGET.put("getRoles", "roles");
         func2actionMapGET.put("getLogo", "logo");
@@ -55,6 +57,10 @@ public class CollectionsProvider extends AbstractBaseProvider implements CoreEnt
 
     public boolean entityExists(String id) {
         log.info(userInfo() + "collection_exists:" + id);
+
+        if ("count".equals(id)) {
+            return true;
+        }
 
         Context context = null;
         try {
@@ -83,6 +89,8 @@ public class CollectionsProvider extends AbstractBaseProvider implements CoreEnt
 
         if (segments.length > 3) {
             return super.getEntity(reference);
+        } else if ("count".equals(reference.getId())) {
+            return super.getEntity(reference, "count");
         }
 
         Context context = null;
@@ -111,7 +119,6 @@ public class CollectionsProvider extends AbstractBaseProvider implements CoreEnt
             refreshParams(context);
             List<Object> entities = new ArrayList<Object>();
 
-            entities.add("count:"+ContentHelper.countItemsCollection(context));
             Collection[] collections = ContentHelper.findAllCollection(context, _start, _limit);
             for (Collection c : collections) {
                 entities.add(trim ? new CollectionEntityTrim(c) : new CollectionEntity(c));

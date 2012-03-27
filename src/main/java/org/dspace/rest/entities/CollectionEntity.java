@@ -264,12 +264,27 @@ public class CollectionEntity extends CollectionEntityTrim {
         }
     }
 
+    public Object getCount(EntityReference ref, UserRequestParams uparams, Context context) {
+        try {
+            return ContentHelper.countItemsCollection(context);
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        }
+    }
+
+    public Object getItemsCount(EntityReference ref, UserRequestParams uparams, Context context) {
+        try {
+            return ContentHelper.countItemsItem(context, Integer.parseInt(ref.getId()));
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        }
+    }
+
     public Object getItems(EntityReference ref, UserRequestParams uparams, Context context) {
 
         try {
             List<Object> entities = new ArrayList<Object>();
 
-            entities.add("count:"+ContentHelper.countItemsItem(context, Integer.parseInt(ref.getId())));
             Item[] items = ContentHelper.findAllItem(context, Integer.parseInt(ref.getId()), uparams.getStart(), uparams.getLimit());
             for (Item item : items) {
                 entities.add(new ItemEntity(item));

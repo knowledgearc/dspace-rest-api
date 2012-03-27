@@ -622,7 +622,9 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     public void removeConn(Context context) {
         // close connection to prevent connection problems
         try {
-            context.complete();
+            if (context != null) {
+                context.complete();
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -654,6 +656,10 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
         if (reqStor.getStoredValue("pathInfo") != null) {
             segments = reqStor.getStoredValue("pathInfo").toString().split("/");
+        }
+
+        if (segments[segments.length - 1].startsWith("count")) {
+            return getEntity(ref, segments[segments.length - 2]+"count");
         }
 
         return getEntity(ref, segments[3]);
