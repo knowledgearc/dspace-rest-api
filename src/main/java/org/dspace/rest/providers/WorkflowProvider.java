@@ -10,11 +10,9 @@ package org.dspace.rest.providers;
 
 import org.apache.log4j.Logger;
 import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
 import org.dspace.rest.content.ContentHelper;
-import org.dspace.rest.entities.UserEntityTrim;
+import org.dspace.rest.entities.PoolEntity;
 import org.dspace.rest.entities.WorkflowEntity;
-import org.dspace.rest.util.UserRequestParams;
 import org.dspace.workflow.WorkflowItem;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
@@ -112,15 +110,20 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
 
             refreshParams(context);
 
+            List<Object> results = new ArrayList<Object>();
+
             List<Object> entities = new ArrayList<Object>();
-
-            entities.add("count:"+ContentHelper.countItemsWorkflow(context, reviewer, submitter, fields, status));
             WorkflowItem[] workflowItems = ContentHelper.findAllWorkflow(context, reviewer, submitter, fields, status, _start, _limit);
-
             for (WorkflowItem wfi : workflowItems) {
                 entities.add(new WorkflowEntity(wfi));
             }
-            return entities;
+
+            results.add(new PoolEntity(ContentHelper.countItemsWorkflow(context, reviewer, submitter, fields, status), entities));
+
+//            results.add("count:"+ContentHelper.countItemsWorkflow(context, reviewer, submitter, fields, status));
+//            results.add(entities);
+
+            return results;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } finally {
