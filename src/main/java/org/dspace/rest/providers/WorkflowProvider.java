@@ -38,8 +38,8 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
         func2actionMapGET.put("getSubmitters", "submitters");
         func2actionMapPUT.put("accept", "accept");
         func2actionMapPUT.put("approve", "approve");
-        func2actionMapPOST.put("reject", "reject");
-        func2actionMapPOST.put("returnToPool", "returnToPool");
+        func2actionMapPUT.put("reject", "reject");
+        func2actionMapPUT.put("returnToPool", "returnToPool");
         entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
     }
