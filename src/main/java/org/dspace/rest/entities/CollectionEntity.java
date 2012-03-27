@@ -287,7 +287,7 @@ public class CollectionEntity extends CollectionEntityTrim {
 
             Item[] items = ContentHelper.findAllItem(context, Integer.parseInt(ref.getId()), uparams.getStart(), uparams.getLimit());
             for (Item item : items) {
-                entities.add(new ItemEntity(item));
+                entities.add(new ItemEntityTrim(item));
             }
             return entities;
         } catch (SQLException ex) {
@@ -301,7 +301,7 @@ public class CollectionEntity extends CollectionEntityTrim {
             Collection res = Collection.find(context, Integer.parseInt(ref.getId()));
             AuthorizeManager.authorizeAction(context, res, Constants.READ);
             Group role = null;
-            int act = Utils.getActionRole((String) uparams.getAction());
+            int act = Utils.getActionRole(uparams.getAction());
             switch (act) {
                 case 1: {
                     role = res.getAdministrators();
@@ -316,6 +316,30 @@ public class CollectionEntity extends CollectionEntityTrim {
                 case 6: {
                     role = res.getWorkflowGroup(act - 3);
                     break;
+                }
+                default: {
+                    List<GroupEntityTrim> groups = new ArrayList<GroupEntityTrim>();
+                    role = res.getAdministrators();
+                    if (role != null) {
+                        groups.add(new GroupEntityTrim(role));
+                    }
+                    role = res.getSubmitters();
+                    if (role != null) {
+                        groups.add(new GroupEntityTrim(role));
+                    }
+                    role = res.getWorkflowGroup(1);
+                    if (role != null) {
+                        groups.add(new GroupEntityTrim(role));
+                    }
+                    role = res.getWorkflowGroup(2);
+                    if (role != null) {
+                        groups.add(new GroupEntityTrim(role));
+                    }
+                    role = res.getWorkflowGroup(3);
+                    if (role != null) {
+                        groups.add(new GroupEntityTrim(role));
+                    }
+                    return groups;
                 }
             }
 
