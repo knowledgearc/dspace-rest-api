@@ -78,6 +78,7 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
         inputParamsPOST.put("editMetadata", new String[]{"id", "metadata"});
         func2actionMapDELETE.put("removeMetadata", "metadata");
 
+        func2actionMapGET.put("getCommentsCount", "commentscount");
         func2actionMapGET.put("getComments", "comments");
 
         entityConstructor = processedEntity.getDeclaredConstructor();
