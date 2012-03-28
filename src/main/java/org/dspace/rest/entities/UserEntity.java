@@ -124,7 +124,7 @@ public class UserEntity extends UserEntityTrim {
         return result;
     }
 
-    public String edit(EntityReference ref, Map<String, Object> inputVar, Context context) {
+    public void edit(EntityReference ref, Map<String, Object> inputVar, Context context) {
 
         try {
             int uid;
@@ -168,7 +168,6 @@ public class UserEntity extends UserEntityTrim {
             } else {
                 throw new EntityException("Internal server error", "Could not update ePerson", 500);
             }
-            return String.valueOf(ePerson.getID());
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ae) {

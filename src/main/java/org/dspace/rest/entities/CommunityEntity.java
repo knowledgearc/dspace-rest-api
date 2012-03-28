@@ -97,7 +97,7 @@ public class CommunityEntity extends CommunityEntityTrim {
         return result;
     }
 
-    public String editCommunity(EntityReference ref, Map<String, Object> inputVar, Context context) {
+    public void editCommunity(EntityReference ref, Map<String, Object> inputVar, Context context) {
 
         try {
             Integer id = Integer.parseInt(ref.getId());
@@ -119,7 +119,6 @@ public class CommunityEntity extends CommunityEntityTrim {
             } else {
                 throw new EntityException("Internal server error", "Could not update community", 500);
             }
-            return String.valueOf(community.getID());
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ae) {

@@ -47,7 +47,7 @@ public class GroupEntity extends GroupEntityTrim {
         }
     }
 
-    public String addUser(EntityReference ref, Map<String, Object> inputVar, Context context) {
+    public String createUser(EntityReference ref, Map<String, Object> inputVar, Context context) {
         String result;
 
         String email = (String) inputVar.get("email");
@@ -99,6 +99,32 @@ public class GroupEntity extends GroupEntityTrim {
             throw new EntityException("Bad request", "Could not parse input", 400);
         }
         return result;
+    }
+
+    public void assignUser(EntityReference ref, Map<String, Object> inputVar, Context context) {
+
+        String id = (String) inputVar.get("id");
+
+        try {
+            Group group = Group.find(context, Integer.parseInt(ref.getId()));
+            if (group != null) {
+                EPerson ePerson = EPerson.find(context, Integer.parseInt(id));
+                if (ePerson != null) {
+                    group.addMember(ePerson);
+                    group.update();
+                } else {
+                    throw new IllegalArgumentException("Invalid id:" + ref.getId());
+                }
+            } else {
+                throw new IllegalArgumentException("Invalid id:" + ref.getId());
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ae) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
     }
 
     public List<?> getUsers() {

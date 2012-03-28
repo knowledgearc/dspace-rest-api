@@ -110,7 +110,7 @@ public class CommentEntity extends CommentEntityTrim {
         }
     }
 
-    public String edit(EntityReference ref, Map<String, Object> inputVar, Context context) {
+    public void edit(EntityReference ref, Map<String, Object> inputVar, Context context) {
         try {
             Integer id = Integer.parseInt(ref.getId());
             Comment comment = Comment.find(context, id);
@@ -122,15 +122,9 @@ public class CommentEntity extends CommentEntityTrim {
             String body = (String) inputVar.get("body");
             comment.setSubject(subject);
             comment.setBody(body);
-//            if(inputVar.get("deleted")!=null&&!"".equals(inputVar.get("deleted"))){
-//                Boolean deleted = Boolean.valueOf((String) inputVar.get("deleted"));
-//                comment.setDeleted(deleted);
-//            }
 
             comment.setLastModified(new Date());
             comment.update();
-
-            return String.valueOf(comment.getID());
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ae) {

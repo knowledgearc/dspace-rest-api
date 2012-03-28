@@ -99,7 +99,7 @@ public class ItemEntity extends ItemEntityTrim {
         }
     }
 
-    public String editMetadata(EntityReference ref, Map<String, Object> inputVar, Context context) {
+    public void editMetadata(EntityReference ref, Map<String, Object> inputVar, Context context) {
 
         try {
             Item item = Item.find(context, Integer.parseInt(ref.getId()));
@@ -139,8 +139,6 @@ public class ItemEntity extends ItemEntityTrim {
                 item.addMetadata(parts[0], parts[1], parts[2], lang, value, authority, iconf);
             }
             item.update();
-
-            return String.valueOf(item.getID());
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ae) {

@@ -103,7 +103,7 @@ public class CollectionEntity extends CollectionEntityTrim {
         }
     }
 
-    public String editCollection(EntityReference ref, Map<String, Object> inputVar, Context context) {
+    public void editCollection(EntityReference ref, Map<String, Object> inputVar, Context context) {
 
         try {
             Integer id = Integer.parseInt(ref.getId());
@@ -129,7 +129,6 @@ public class CollectionEntity extends CollectionEntityTrim {
             } else {
                 throw new EntityException("Internal server error", "Could not update collection", 500);
             }
-            return String.valueOf(collection.getID());
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ae) {

@@ -89,7 +89,7 @@ public class WorkflowEntity {
         }
     }
 
-    public String accept(EntityReference ref, Map<String, Object> inputVar, Context context) {
+    public void accept(EntityReference ref, Map<String, Object> inputVar, Context context) {
         try {
             Integer id = Integer.parseInt(ref.getId());
             WorkflowItem workflowItem = WorkflowItem.find(context, id);
@@ -103,10 +103,9 @@ public class WorkflowEntity {
         } catch (IOException e) {
             throw new EntityException("Internal server error", "IO error", 500);
         }
-        return Boolean.toString(true);
     }
 
-    public String returnToPool(EntityReference ref, Map<String, Object> inputVar, Context context) {
+    public void returnToPool(EntityReference ref, Map<String, Object> inputVar, Context context) {
         try {
             Integer id = Integer.parseInt(ref.getId());
             WorkflowItem workflowItem = WorkflowItem.find(context, id);
@@ -120,10 +119,9 @@ public class WorkflowEntity {
         } catch (IOException e) {
             throw new EntityException("Internal server error", "IO error", 500);
         }
-        return Boolean.toString(true);
     }
 
-    public String approve(EntityReference ref, Map<String, Object> inputVar, Context context) {
+    public void approve(EntityReference ref, Map<String, Object> inputVar, Context context) {
         try {
             Integer id = Integer.parseInt(ref.getId());
             WorkflowItem workflowItem = WorkflowItem.find(context, id);
@@ -137,10 +135,9 @@ public class WorkflowEntity {
         } catch (IOException e) {
             throw new EntityException("Internal server error", "IO error", 500);
         }
-        return Boolean.toString(true);
     }
 
-    public String reject(EntityReference ref, Map<String, Object> inputVar, Context context) {
+    public void reject(EntityReference ref, Map<String, Object> inputVar, Context context) {
         try {
             Integer id = Integer.parseInt(ref.getId());
             String reason = (String) inputVar.get("reason");
@@ -155,7 +152,6 @@ public class WorkflowEntity {
         } catch (IOException e) {
             throw new EntityException("Internal server error", "IO error", 500);
         }
-        return Boolean.toString(true);
     }
 
     public int getId() {
