@@ -26,20 +26,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Enables users to discover through items according to different criteria
- * @see org.dspace.rest.entities.SearchResultsInfoEntity
- * @author Lewis
- */
 public class DiscoverProvider extends AbstractBaseProvider implements CoreEntityProvider {
 
     private static Logger log = Logger.getLogger(DiscoverProvider.class);
 
-    /**
-     * Handles provider for discover accross items
-     * @param entityProviderManager
-     * @throws java.sql.SQLException
-     */
     public DiscoverProvider(EntityProviderManager entityProviderManager) throws SQLException {
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
@@ -61,21 +51,11 @@ public class DiscoverProvider extends AbstractBaseProvider implements CoreEntity
     public List<?> getEntities(EntityReference ref, Search search) {
         log.info("DiscoverProvider - get_entities");
 
-//        Context context;
-//        try {
-//            context = new Context();
-//        } catch (SQLException ex) {
-//            throw new EntityException("Internal server error", "SQL error", 500);
-//        }
-
-        // refresh parameters for this request
-//        UserRequestParams uparams;
-//        uparams = refreshParams(context);
         List<Object> entities = new ArrayList<Object>();
 
         try {
             HttpClient client = new HttpClient();
-            HttpMethod method=new GetMethod(ConfigurationManager.getProperty("discovery", "search.server")+"/select");
+            HttpMethod method = new GetMethod(ConfigurationManager.getProperty("discovery", "search.server") + "/select");
             log.info("DiscoverProvider method - " + ConfigurationManager.getProperty("discovery", "search.server"));
 
             log.info("DiscoverProvider search.getRestrictions().length - " + search.getRestrictions().length);
@@ -85,8 +65,8 @@ public class DiscoverProvider extends AbstractBaseProvider implements CoreEntity
                 for (int i = 0; i < search.getRestrictions().length; i++) {
                     log.info("DiscoverProvider search.getRestrictions()[i].getProperty() - " + search.getRestrictions()[i].getProperty());
                     log.info("DiscoverProvider search.getRestrictions()[i].getStringValue() - " + search.getRestrictions()[i].getStringValue());
-                    if(!"org.apache.catalina.ASYNC_SUPPORTED".equals(search.getRestrictions()[i].getProperty())){
-                        nameValuePairsList.add(new NameValuePair(search.getRestrictions()[i].getProperty(),search.getRestrictions()[i].getStringValue()));
+                    if (!"org.apache.catalina.ASYNC_SUPPORTED".equals(search.getRestrictions()[i].getProperty())) {
+                        nameValuePairsList.add(new NameValuePair(search.getRestrictions()[i].getProperty(), search.getRestrictions()[i].getStringValue()));
                     }
                 }
                 if ("json".equals(format)) {
@@ -101,8 +81,7 @@ public class DiscoverProvider extends AbstractBaseProvider implements CoreEntity
             String s = method.getResponseBodyAsString();
 //            log.info("DiscoverProvider result string - " + s);
 
-            EntityData ed = new EntityData(s);
-            entities.add(ed);
+            entities.add(new EntityData(s));
 
             method.releaseConnection();
 
@@ -110,13 +89,9 @@ public class DiscoverProvider extends AbstractBaseProvider implements CoreEntity
             throw new EntityException("Internal server error", "IO error, cannot call solr server", 500);
         }
 
-
         return entities;
     }
 
-    /**
-     * Returns a Entity object with sample data
-     */
     public Object getSampleEntity() {
         return null;
     }

@@ -8,112 +8,34 @@
 
 package org.dspace.rest.entities;
 
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
-import org.dspace.core.Constants;
-import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
-import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 import org.dspace.content.Bundle;
-import org.dspace.content.Bitstream;
 import org.dspace.core.Context;
-import org.dspace.content.Item;
-import java.util.List;
-import java.util.ArrayList;
-import java.sql.SQLException;
-import org.dspace.rest.util.UserRequestParams;
-import org.sakaiproject.entitybus.exception.EntityException;
+import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 
-/**
- * Entity describing bundle
- * @see BundleEntityId
- * @see Bundle
- * @author Bojan Suzic, bojan.suzic@gmail.com
- */
 public class BundleEntity extends BundleEntityId {
 
-    @EntityId
-    private int id;
     @EntityFieldRequired
     private String name;
     private String handle;
-    private int type, pid;
-    List<Object> bitstreams = new ArrayList<Object>();
-    List<Object> items = new ArrayList<Object>();
-
-    public BundleEntity(String uid, Context context, int level, UserRequestParams uparams) {
-        try {
-
-            Bundle res = Bundle.find(context, Integer.parseInt(uid));
-            // Check authorisation
-            AuthorizeManager.authorizeAction(context, res, Constants.READ);
-
-            Bitstream[] bst = res.getBitstreams();
-
-            this.pid = res.getPrimaryBitstreamID();
-            this.id = res.getID();
-            this.handle = res.getHandle();
-            this.name = res.getName();
-            this.type = res.getType();
-            Item[] itm = res.getItems();
-            boolean includeFull = false;
-            level++;
-            if (level <= uparams.getDetail()) {
-                includeFull = true;
-            }
-
-            for (Bitstream b : bst) {
-                this.bitstreams.add(includeFull ? new BitstreamEntity(b, level, uparams): new BitstreamEntityId(b));
-            }
-
-            for (Item i : itm) {
-                this.items.add(includeFull ? new ItemEntity(i, level, uparams) : new ItemEntityId(i));
-            }
-            //context.complete();
-        } catch (SQLException ex) {
-            throw new EntityException("Internal server error", "SQL error", 500);
-        } catch (AuthorizeException ex) {
-            throw new EntityException("Forbidden", "Forbidden", 403);
-        }
-
-    }
-
-    public BundleEntity(Bundle bundle, int level, UserRequestParams uparams) throws SQLException {
-        // check calling package/class in order to prevent chaining
-        boolean includeFull = false;
-        level++;
-        if (level <= uparams.getDetail()) {
-            includeFull = true;
-        }
-
-        this.handle = bundle.getHandle();
-        this.name = bundle.getName();
-        this.type = bundle.getType();
-        this.id = bundle.getID();
-        this.pid = bundle.getPrimaryBitstreamID();
-        Bitstream[] bst = bundle.getBitstreams();
-        Item[] itm = bundle.getItems();
-        for (Bitstream b : bst) {
-            this.bitstreams.add(includeFull ? new BitstreamEntity(b, level, uparams) : new BitstreamEntityId(b));
-        }
-        for (Item i : itm) {
-            this.items.add(includeFull ? new ItemEntity(i, level, uparams) : new ItemEntityId(i));
-        }
-    }
+    private int pid;
+//    List<Object> bitstreams = new ArrayList<Object>();
+//    List<Object> items = new ArrayList<Object>();
 
     public BundleEntity() {
-        // check calling package/class in order to prevent chaining
-        boolean includeFull = false;
-        this.handle = "123456789/0";
-        this.name = "Sample bundle";
-        this.type = 1;
-        this.pid = 10;
-        this.id = 2;
-        this.bitstreams.add(includeFull ? new BitstreamEntity() : new BitstreamEntityId());
-        this.items.add(includeFull ? new ItemEntity() : new ItemEntityId());
     }
 
-    public List<?> getItems() {
-        return this.items;
+    public BundleEntity(String uid, Context context) {
+        super(uid, context);
+        this.pid = res.getPrimaryBitstreamID();
+        this.handle = res.getHandle();
+        this.name = res.getName();
+    }
+
+    public BundleEntity(Bundle bundle) {
+        super(bundle);
+        this.handle = bundle.getHandle();
+        this.name = bundle.getName();
+        this.pid = bundle.getPrimaryBitstreamID();
     }
 
     public int getPrimaryBitstreamId() {
@@ -126,23 +48,5 @@ public class BundleEntity extends BundleEntityId {
 
     public String getHandle() {
         return this.handle;
-    }
-
-    @Override
-    public int getId() {
-        return this.id;
-    }
-
-    public int getType() {
-        return this.type;
-    }
-
-    public List getBitstreams() {
-        return this.bitstreams;
-    }
-
-    @Override
-    public String toString() {
-        return "id:" + this.id + ", stuff.....";
     }
 }

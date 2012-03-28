@@ -11,13 +11,8 @@ package org.dspace.rest.providers;
 import org.apache.log4j.Logger;
 import org.dspace.content.Item;
 import org.dspace.content.ItemIterator;
-import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataSchema;
 import org.dspace.core.Context;
 import org.dspace.rest.entities.ItemEntity;
-import org.dspace.rest.entities.ItemEntityId;
-import org.dspace.rest.entities.MetadataFieldEntity;
-import org.dspace.rest.util.GenComparator;
 import org.dspace.rest.util.UserRequestParams;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
@@ -30,62 +25,29 @@ import org.sakaiproject.entitybus.exception.EntityException;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-/**
- * Provides interface for access to item entities
- * @see ItemEntityId
- * @see ItemEntity
- * @author Bojan Suzic, bojan.suzic@gmail.com
- */
 public class ItemsProvider extends AbstractBaseProvider implements CoreEntityProvider, Updateable, Createable, Deleteable {
 
     private static Logger log = Logger.getLogger(ItemsProvider.class);
 
-    /**
-     * Constructor handles registration of provider
-     * @param entityProviderManager
-     * @throws java.sql.SQLException
-     */
     public ItemsProvider(EntityProviderManager entityProviderManager) throws SQLException, NoSuchMethodException {
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = ItemEntity.class;
-        func2actionMapGET.put("getMetadata", "metadata");
-        func2actionMapGET.put("getSubmitter", "submitter");
-        func2actionMapGET.put("getIsArchived", "isArchived");
-        func2actionMapGET.put("getIsWithdrawn", "isWithdrawn");
-        func2actionMapGET.put("getOwningCollection", "owningCollection");
-        func2actionMapGET.put("getLastModified", "lastModified");
-        func2actionMapGET.put("getCollections", "collections");
-        func2actionMapGET.put("getCommunities", "communities");
-        func2actionMapGET.put("getName", "name");
         func2actionMapGET.put("getBitstreams", "bitstreams");
-        func2actionMapGET.put("getHandle", "handle");
-        func2actionMapGET.put("getCanEdit", "canedit");
-        func2actionMapGET.put("getId", "id");
-        func2actionMapGET.put("getType", "type");
-        func2actionMapGET.put("getBundles", "bundles");
-        func2actionMapGET.put("getPolicies", "policies");
-        func2actionMapPUT.put("addBundle", "bundles");
-        func2actionMapPOST.put("createBundle", "createBundle");
-        inputParamsPOST.put("createBundle", new String[]{"name", "id"});
-
-        func2actionMapPOST.put("addMetadata", "addMetadata");
-        inputParamsPOST.put("addMetadata", new String[]{"id", "fieldID", "value"});
-        func2actionMapPOST.put("editMetadata", "editMetadata");
-        inputParamsPOST.put("editMetadata", new String[]{"id", "metadata"});
-        func2actionMapDELETE.put("removeMetadata", "metadata");
-
         func2actionMapGET.put("getCommentsCount", "commentscount");
         func2actionMapGET.put("getComments", "comments");
+        func2actionMapGET.put("getMetadataFields", "metadatafields");
+        func2actionMapPOST.put("createMetadata", "metadata");
+        inputParamsPOST.put("createMetadata", new String[]{"id", "value"});
+        func2actionMapPUT.put("editMetadata", "metadata");
+        func2actionMapDELETE.put("removeMetadata", "metadata");
 
         entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
     }
 
-    // this is the prefix where provider is registered (URL path)
     public String getEntityPrefix() {
         return "items";
     }
@@ -93,38 +55,25 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
     public boolean entityExists(String id) {
         log.info(userInfo() + "item_exists:" + id);
 
-        // sample entity
-        if (id.equals(":ID:")) {
+        if ("metadatafields".equals(id)) {
             return true;
         }
 
-        if (id.equals("metadataFields")) {
-            return true;
-        }
-
-        Context context;
+        Context context = null;
         try {
             context = new Context();
+
+            refreshParams(context);
+
+            Item comm = Item.find(context, Integer.parseInt(id));
+            return comm != null ? true : false;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        } finally {
+            removeConn(context);
         }
-
-        refreshParams(context);
-        boolean result = false;
-
-        // search for existence for particular item
-        try {
-            Item col = Item.find(context, Integer.parseInt(id));
-            if (col != null) {
-                result = true;
-            }
-        } catch (SQLException ex) {
-            result = false;
-        }
-
-        // handles manual deregistration by sql server to lower load
-        removeConn(context);
-        return result;
     }
 
     public Object getEntity(EntityReference reference) {
@@ -132,96 +81,54 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
         String segments[] = {};
 
         if (reqStor.getStoredValue("pathInfo") != null) {
-            segments = reqStor.getStoredValue("pathInfo").toString().split("/", 10);
+            segments = reqStor.getStoredValue("pathInfo").toString().split("/");
         }
-
-        Context context;
-        try {
-            context = new Context();
-        } catch (SQLException ex) {
-            throw new EntityException("Internal server error", "SQL error", 500);
-        }
-
-        UserRequestParams uparams;
-        uparams = refreshParams(context);
 
         if (segments.length > 3) {
             return super.getEntity(reference);
+        }else if ("metadatafields".equals(reference.getId())) {
+            return super.getEntity(reference, "metadatafields");
         }
 
-        if (reference.getId().equals("metadataFields")) {
-            List<MetadataFieldEntity> l = new ArrayList<MetadataFieldEntity>();
-            try {
-                MetadataField[] fields = MetadataField.findAll(context);
-                for (MetadataField field : fields)
-                {
-                    int fieldID = field.getFieldID();
-                    MetadataSchema schema = MetadataSchema.find(context, field.getSchemaID());
-                    String name = schema.getName() +"."+field.getElement();
-                    if (field.getQualifier() != null)
-                    {
-                        name += "." + field.getQualifier();
-                    }
+        Context context = null;
+        try {
+            context = new Context();
 
-                    l.add(new MetadataFieldEntity(fieldID, name));
-                }
-            } catch (SQLException e) {
-                throw new EntityException("Internal server error", "SQL error", 500);
+            UserRequestParams uparams = refreshParams(context);
+            if (entityExists(reference.getId())) {
+                return new ItemEntity(reference.getId(), context, uparams);
             }
-
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } finally {
             removeConn(context);
-            return l;
         }
-
-        if (entityExists(reference.getId())) {
-            // return basic or full info, according to requirements
-            if (idOnly) {
-                return new ItemEntityId(reference.getId(), context);
-            } else {
-                return new ItemEntity(reference.getId(), context, 1, uparams);
-            }
-        }
-
-        removeConn(context);
         throw new IllegalArgumentException("Invalid id:" + reference.getId());
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
         log.info(userInfo() + "list_items");
 
-        Context context;
+        Context context = null;
         try {
             context = new Context();
-        } catch (SQLException ex) {
-            throw new EntityException("Internal server error", "SQL error", 500);
-        }
 
-        UserRequestParams uparams;
-        uparams = refreshParams(context);
-        List<Object> entities = new ArrayList<Object>();
+            UserRequestParams uparams = refreshParams(context);
+            List<Object> entities = new ArrayList<Object>();
 
-        try {
             ItemIterator items = Item.findAll(context);
             while (items.hasNext()) {
-                entities.add(idOnly ? new ItemEntityId(items.next()) : new ItemEntity(items.next(), 1, uparams));
+                entities.add(new ItemEntity(items.next(), uparams));
             }
+
+            return entities;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
+        } finally {
+            removeConn(context);
         }
-
-        removeConn(context);
-        if (!idOnly && sortOptions.size() > 0) {
-            Collections.sort(entities, new GenComparator(sortOptions));
-        }
-
-        removeTrailing(entities);
-        return entities;
     }
 
-    /**
-     * Return sample entity
-     * @return
-     */
     public Object getSampleEntity() {
         return new ItemEntity();
     }

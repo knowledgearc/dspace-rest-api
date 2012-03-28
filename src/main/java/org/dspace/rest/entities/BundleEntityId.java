@@ -10,29 +10,24 @@ package org.dspace.rest.entities;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
-import org.dspace.core.Constants;
-import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 import org.dspace.content.Bundle;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 import org.sakaiproject.entitybus.exception.EntityException;
 
 import java.sql.SQLException;
 
-/**
- * Entity describing bundle, basic version
- * @see BundleEntityId
- * @see Bundle
- * @author Bojan Suzic, bojan.suzic@gmail.com
- */
 public class BundleEntityId {
 
     @EntityId
     private int id;
+    protected Bundle res;
 
     protected BundleEntityId() {
     }
 
-    public BundleEntityId(String uid, Context context) throws SQLException {
+    public BundleEntityId(String uid, Context context) {
         try {
 
             Bundle res = Bundle.find(context, Integer.parseInt(uid));
@@ -45,37 +40,17 @@ public class BundleEntityId {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ex) {
             throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
         }
-
     }
 
-    public BundleEntityId(Bundle bundle) throws SQLException {
+    public BundleEntityId(Bundle bundle) {
         this.id = bundle.getID();
     }
 
     public int getId() {
         return this.id;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (null == obj) {
-            return false;
-        }
-        if (!(obj instanceof BundleEntityId)) {
-            return false;
-        } else {
-            BundleEntityId castObj = (BundleEntityId) obj;
-            return (this.id == castObj.id);
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + id;
-        return result;
     }
 
     @Override

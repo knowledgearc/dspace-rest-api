@@ -14,9 +14,10 @@ import java.util.Map;
 /**
  * Here are implemented and coupled helper methods used by several providers
  * especially in the custom actions
+ *
+ * @author Bojan Suzic, bojan.suzic@gmail.com
  * @see GenComparator
  * @see AbstractBaseProvider
- * @author Bojan Suzic, bojan.suzic@gmail.com
  */
 public class UtilHelper {
 
@@ -58,7 +59,7 @@ public class UtilHelper {
     public static final int DEPTH_LEVEL = 2;
     public static final int DEPTH_MINIMAL = 1;
     public static final int DEPTH_STANDARD = 2;
-    public static final int DEPTH_EXTENDED = 3;    
+    public static final int DEPTH_EXTENDED = 3;
     public static final Map<String, String> mappings = new HashMap<String, String>() {
 
         {

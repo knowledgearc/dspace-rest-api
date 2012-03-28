@@ -8,29 +8,34 @@
 
 package org.dspace.rest.providers;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.log4j.Logger;
+import org.dspace.core.Context;
+import org.dspace.rest.entities.HarvestResultsInfoEntity;
+import org.dspace.rest.entities.ItemEntity;
+import org.dspace.rest.entities.ItemEntityId;
+import org.dspace.rest.util.GenComparator;
+import org.dspace.rest.util.UserRequestParams;
+import org.dspace.search.Harvest;
+import org.dspace.search.HarvestedItemInfo;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
 import org.sakaiproject.entitybus.entityprovider.search.Search;
-import org.dspace.core.Context;
-import java.sql.SQLException;
 import org.sakaiproject.entitybus.exception.EntityException;
-import org.dspace.rest.entities.*;
-import org.dspace.search.*;
-import org.apache.log4j.Logger;
+
+import java.sql.SQLException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collections;
-import org.dspace.rest.util.UserRequestParams;
-import org.dspace.rest.util.GenComparator;
+import java.util.List;
 
 /**
  * Provides interface for access to harvesting
  * Enables users to harvest items according to several queries, including
  * data range of publication, status of publication, containing elements etc
- * @see HarvestResultsInfoEntity
+ *
  * @author Bojan Suzic, bojan.suzic@gmail.com
+ * @see HarvestResultsInfoEntity
  */
 public class HarvestProvider extends AbstractBaseProvider implements CoreEntityProvider {
 
@@ -92,7 +97,7 @@ public class HarvestProvider extends AbstractBaseProvider implements CoreEntityP
         try {
             entities.add(new HarvestResultsInfoEntity(res.size()));
             for (int x = 0; x < res.size(); x++) {
-                entities.add(idOnly ? new ItemEntityId(res.get(x).item) : new ItemEntity(res.get(x).item, 1, uparams));
+                entities.add(idOnly ? new ItemEntityId(res.get(x).item) : new ItemEntity(res.get(x).item, uparams));
             }
         } catch (SQLException e) {
             e.printStackTrace();

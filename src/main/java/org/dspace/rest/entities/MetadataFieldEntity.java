@@ -8,48 +8,23 @@
 
 package org.dspace.rest.entities;
 
-import org.apache.log4j.Logger;
-import org.dspace.content.DCValue;
-import org.dspace.core.Context;
-import org.dspace.rest.util.UserRequestParams;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
-import org.sakaiproject.entitybus.exception.EntityException;
 
-import java.sql.SQLException;
-
-/**
- * @author Lewis
- */
 public class MetadataFieldEntity {
 
     @EntityId
-    private int fieldID;
+    private int id;
     @EntityFieldRequired
     private String name;
 
-
-    /** log4j category */
-    private static final Logger log = Logger.getLogger(MetadataFieldEntity.class);
-
-
-    public MetadataFieldEntity(String uid, Context context, int level, UserRequestParams uparams) throws SQLException
-    {
-    }
-
-    public MetadataFieldEntity(int fieldID, String name)
-    {
-        this.fieldID = fieldID;
+    public MetadataFieldEntity(int id, String name) {
+        this.id = id;
         this.name = name;
     }
 
-    public MetadataFieldEntity()
-    {
-
-    }
-
-    public int getFieldID() {
-        return fieldID;
+    public int getId() {
+        return id;
     }
 
     public String getName() {
@@ -58,7 +33,7 @@ public class MetadataFieldEntity {
 
     @Override
     public String toString() {
-        return "fieldID:" + this.fieldID + ", stuff.....";
+        return "id:" + this.id;
     }
 
 }

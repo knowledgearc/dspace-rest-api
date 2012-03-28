@@ -188,7 +188,8 @@ public class CollectionEntity extends CollectionEntityTrim {
                         collection.update();
                         return String.valueOf(group.getID());
                     }
-                    default: return null;
+                    default:
+                        return null;
                 }
             } else {
                 throw new EntityException("Not found", "Entity not found", 404);
@@ -300,7 +301,7 @@ public class CollectionEntity extends CollectionEntityTrim {
         try {
             Collection res = Collection.find(context, Integer.parseInt(ref.getId()));
             AuthorizeManager.authorizeAction(context, res, Constants.READ);
-            Group role = null;
+            Group role;
             int act = Utils.getActionRole(uparams.getAction());
             switch (act) {
                 case 1: {

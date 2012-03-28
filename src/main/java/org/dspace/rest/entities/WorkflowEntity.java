@@ -41,7 +41,7 @@ public class WorkflowEntity {
 //            AuthorizeManager.authorizeAction(context, item, Constants.READ);
 
             this.id = res.getID();
-            this.item = new ItemEntity(res.getItem());
+            this.item = new ItemEntityTrim(res.getItem());
             if (res.getOwner() != null) {
                 this.reviewer = new UserEntityTrim(res.getOwner());
             }
@@ -61,7 +61,7 @@ public class WorkflowEntity {
 //            AuthorizeManager.authorizeAction(context, item, Constants.READ);
 
             this.id = res.getID();
-            this.item = new ItemEntity(res.getItem());
+            this.item = new ItemEntityTrim(res.getItem());
             if (res.getOwner() != null) {
                 this.reviewer = new UserEntityTrim(res.getOwner());
             }

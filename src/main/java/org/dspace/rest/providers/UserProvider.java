@@ -9,6 +9,7 @@
 package org.dspace.rest.providers;
 
 import org.apache.log4j.Logger;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.rest.content.ContentHelper;
@@ -42,7 +43,7 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
         func2actionMapPUT.put("edit", "");
         func2actionMapDELETE.put("remove", "");
         func2actionMapPOST.put("authenticate", "authenticate");
-        inputParamsPOST.put("authenticate", new String[]{"email","password"});
+        inputParamsPOST.put("authenticate", new String[]{"email", "password"});
         entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
     }
@@ -63,12 +64,22 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
 
             refreshParams(context);
 
-            EPerson ePerson = EPerson.find(context, Integer.parseInt(id));
+            int uid;
+            EPerson ePerson;
+
+            try {
+                uid = Integer.parseInt(id);
+                ePerson = EPerson.find(context, uid);
+            } catch (NumberFormatException ex) {
+                ePerson = EPerson.findByEmail(context, id);
+            }
+
+
             return ePerson != null ? true : false;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
-        } catch (NumberFormatException ex) {
-            throw new EntityException("Bad request", "Could not parse input", 400);
+        } catch (AuthorizeException ex) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
         } finally {
             removeConn(context);
         }
@@ -92,9 +103,9 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
         try {
             context = new Context();
 
-            UserRequestParams uparams = refreshParams(context);
+            refreshParams(context);
             if (entityExists(reference.getId())) {
-                return new UserEntity(reference.getId(), context, uparams);
+                return new UserEntity(reference.getId(), context);
             }
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
@@ -113,7 +124,6 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
 
             UserRequestParams uparams = refreshParams(context);
             List<Object> entities = new ArrayList<Object>();
-//            entities.add("count:"+ContentHelper.countItemsEPerson(context));
             EPerson[] ePersons = ContentHelper.findAllEPerson(context, _start, _limit);
             for (EPerson c : ePersons) {
                 entities.add(new UserEntity(c, context, uparams));

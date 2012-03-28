@@ -9,16 +9,10 @@
 package org.dspace.rest.entities;
 
 import org.dspace.authorize.ResourcePolicy;
-import org.dspace.core.Context;
-import org.dspace.rest.util.UserRequestParams;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityId;
 
 import java.sql.SQLException;
 
-/**
- * Entity describing policy
- * @author Lewis
- */
 public class PolicyEntity {
 
     @EntityId
@@ -30,32 +24,18 @@ public class PolicyEntity {
     private Object eperson;
     private Object group;
 
-    public PolicyEntity(String uid, Context context, int level, UserRequestParams uparams) {
-//        try {
-//
-//            //context.complete();
-//        } catch (SQLException ex) {
-//            throw new EntityException("Internal server error", "SQL error", 500);
-//        } catch (AuthorizeException ex) {
-//            throw new EntityException("Forbidden", "Forbidden", 403);
-//        }
-
+    public PolicyEntity() {
     }
 
-    public PolicyEntity(ResourcePolicy c, String name, int level, UserRequestParams uparams) throws SQLException {
+    public PolicyEntity(ResourcePolicy c, String name) throws SQLException {
 
         this.id = c.getID();
         this.name = name;
         this.resourceId = c.getResourceID();
         this.actionId = c.getAction();
         this.action = c.getActionText();
-        this.eperson = c.getEPerson()!=null?new UserEntityTrim(c.getEPerson()):null;
-        this.group = c.getGroup()!=null?new GroupEntity(c.getGroup()):null;
-
-
-    }
-
-    public PolicyEntity() {
+        this.eperson = c.getEPerson() != null ? new UserEntityTrim(c.getEPerson()) : null;
+        this.group = c.getGroup() != null ? new GroupEntity(c.getGroup()) : null;
     }
 
     public int getId() {

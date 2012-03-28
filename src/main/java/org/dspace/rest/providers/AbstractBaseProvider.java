@@ -590,6 +590,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     /**
      * Remove items from list in order to display only requested items
      * (according to _start, _limit etc.)
+     *
      * @param entities
      */
     public void removeTrailing(List<?> entities) {
@@ -659,7 +660,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         }
 
         if (segments[segments.length - 1].startsWith("count")) {
-            return getEntity(ref, segments[segments.length - 2]+"count");
+            return getEntity(ref, segments[segments.length - 2] + "count");
         }
 
         return getEntity(ref, segments[3]);

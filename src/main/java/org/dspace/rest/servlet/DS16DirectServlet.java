@@ -8,11 +8,7 @@
 
 package org.dspace.rest.servlet;
 
-import java.util.List;
-import java.util.Vector;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.dspace.core.ConfigurationManager;
 import org.dspace.rest.providers.*;
 import org.sakaiproject.entitybus.EntityBrokerManager;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
@@ -20,14 +16,19 @@ import org.sakaiproject.entitybus.impl.EntityBrokerCoreServiceManager;
 import org.sakaiproject.entitybus.providers.EntityRequestHandler;
 import org.sakaiproject.entitybus.rest.EntityBrokerRESTServiceManager;
 import org.sakaiproject.entitybus.util.servlet.DirectServlet;
-import org.dspace.core.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.List;
+import java.util.Vector;
 
 /**
  * Main class, here is started and initialized servlet, providers registered
+ *
+ * @author Bojan Suzic, bojan.suzic@gmail.com
+ *         Based on Aaron Zeckoski's SakaiProject.EntityBus
  * @see BundleEntityId
  * @see Bundle
- * @author Bojan Suzic, bojan.suzic@gmail.com
- * Based on Aaron Zeckoski's SakaiProject.EntityBus
  */
 public class DS16DirectServlet extends DirectServlet {
 
@@ -39,6 +40,7 @@ public class DS16DirectServlet extends DirectServlet {
     /**
      * Starts up all the entity providers, new providers should be added
      * to the list
+     *
      * @param entityProviderManager the provider manager
      */
     protected void startProviders(EntityProviderManager entityProviderManager) throws java.sql.SQLException, NoSuchMethodException {

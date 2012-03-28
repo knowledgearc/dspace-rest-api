@@ -33,7 +33,7 @@ public class UserEntity extends UserEntityTrim {
     public UserEntity() {
     }
 
-    public UserEntity(String uid, Context context, UserRequestParams uparams) throws SQLException {
+    public UserEntity(String uid, Context context) throws SQLException {
         super(uid, context);
 
         Group[] gs = Group.allMemberGroups(context, res);
@@ -127,8 +127,15 @@ public class UserEntity extends UserEntityTrim {
     public String edit(EntityReference ref, Map<String, Object> inputVar, Context context) {
 
         try {
-            Integer id = Integer.parseInt(ref.getId());
-            EPerson ePerson = EPerson.find(context, id);
+            int uid;
+            EPerson ePerson;
+
+            try {
+                uid = Integer.parseInt(ref.getId());
+                ePerson = EPerson.find(context, uid);
+            } catch (NumberFormatException ex) {
+                ePerson = EPerson.findByEmail(context, ref.getId());
+            }
 
             String email = Utils.getMapValue(inputVar, "email");
             String password = Utils.getMapValue(inputVar, "password");
@@ -212,7 +219,7 @@ public class UserEntity extends UserEntityTrim {
         return groups;
     }
 
-    public int compareTo(Object o1){
-        return ((UserEntity)(o1)).getEmail().compareTo(this.getEmail()) * -1;
+    public int compareTo(Object o1) {
+        return ((UserEntity) (o1)).getEmail().compareTo(this.getEmail()) * -1;
     }
 }

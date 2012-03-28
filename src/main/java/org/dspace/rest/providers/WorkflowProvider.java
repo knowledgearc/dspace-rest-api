@@ -17,8 +17,6 @@ import org.dspace.workflow.WorkflowItem;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
-import org.sakaiproject.entitybus.entityprovider.capabilities.Createable;
-import org.sakaiproject.entitybus.entityprovider.capabilities.Deleteable;
 import org.sakaiproject.entitybus.entityprovider.capabilities.Updateable;
 import org.sakaiproject.entitybus.entityprovider.search.Search;
 import org.sakaiproject.entitybus.exception.EntityException;
@@ -27,7 +25,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WorkflowProvider extends AbstractBaseProvider implements CoreEntityProvider, Createable, Updateable, Deleteable {
+public class WorkflowProvider extends AbstractBaseProvider implements CoreEntityProvider, Updateable {
 
     private static Logger log = Logger.getLogger(WorkflowProvider.class);
 

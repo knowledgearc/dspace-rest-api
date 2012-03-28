@@ -8,20 +8,21 @@
 
 package org.dspace.rest.util;
 
-import java.util.Comparator;
 import org.dspace.rest.entities.UserEntity;
+
 import java.util.ArrayList;
-import java.util.List;
-import org.sakaiproject.entitybus.exception.EntityException;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Provides basis for sorting entities in the list.
  * The values for sorting are definet in UtilHelper, the parameter extraction
  * and processing is done in AbstractBaseProvider
+ *
+ * @author Bojan Suzic, bojan.suzic@gmail.com
  * @see UtilHelper
  * @see AbstractBaseProvider
- * @author Bojan Suzic, bojan.suzic@gmail.com
  */
 public class GenComparator implements Comparator {
 
@@ -30,6 +31,7 @@ public class GenComparator implements Comparator {
 
     /**
      * Constructs and defines local values
+     *
      * @param methodList list of sorting methods by priority
      */
     public GenComparator(List<Integer> methodList) {
@@ -59,145 +61,138 @@ public class GenComparator implements Comparator {
         switch (method) {
             // sort by full name, e.g. in UsersEntity
             case UtilHelper.SORT_FULL_NAME:
-            case UtilHelper.SORT_FULL_NAME_REV:
-                 {
-                    try {
-                        String obj1Lang = o1.getClass().getDeclaredMethod("getFullName").invoke(o1).toString();
-                        String obj2Lang = o2.getClass().getDeclaredMethod("getFullName").invoke(o2).toString();
-                        int i = (obj1Lang.compareToIgnoreCase(obj2Lang));
-                        if ((i != 0) || (methodList.size() == 0)) {
-                            result = i;
-                        } else {
-                            result = compare(o1, o2);
-                        }
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        result = 0;
+            case UtilHelper.SORT_FULL_NAME_REV: {
+                try {
+                    String obj1Lang = o1.getClass().getDeclaredMethod("getFullName").invoke(o1).toString();
+                    String obj2Lang = o2.getClass().getDeclaredMethod("getFullName").invoke(o2).toString();
+                    int i = (obj1Lang.compareToIgnoreCase(obj2Lang));
+                    if ((i != 0) || (methodList.size() == 0)) {
+                        result = i;
+                    } else {
+                        result = compare(o1, o2);
                     }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    result = 0;
                 }
-                break;
+            }
+            break;
 
             // sort by last name, e.g. in UsersEntity
             case UtilHelper.SORT_LASTNAME:
-            case UtilHelper.SORT_LASTNAME_REV:
-                 {
-                    try {
-                        String obj1Lang = o1.getClass().getDeclaredMethod("getLastName").invoke(o1).toString();
-                        String obj2Lang = o2.getClass().getDeclaredMethod("getLastName").invoke(o2).toString();
-                        int i = (obj1Lang.compareToIgnoreCase(obj2Lang));
-                        if ((i != 0) || (methodList.size() == 0)) {
-                            result = i;
-                        } else {
-                            result = compare(o1, o2);
-                        }
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        result = 0;
+            case UtilHelper.SORT_LASTNAME_REV: {
+                try {
+                    String obj1Lang = o1.getClass().getDeclaredMethod("getLastName").invoke(o1).toString();
+                    String obj2Lang = o2.getClass().getDeclaredMethod("getLastName").invoke(o2).toString();
+                    int i = (obj1Lang.compareToIgnoreCase(obj2Lang));
+                    if ((i != 0) || (methodList.size() == 0)) {
+                        result = i;
+                    } else {
+                        result = compare(o1, o2);
                     }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    result = 0;
                 }
-                break;
+            }
+            break;
 
             // sort by count of items, e.g. in CollectionEntity
             case UtilHelper.SORT_COUNT_ITEMS:
-            case UtilHelper.SORT_COUNT_ITEMS_REV:
-                 {
-                    try {
-                        Integer obj1Cnt = Integer.parseInt(o1.getClass().getDeclaredMethod("getCountItems").invoke(o1).toString());
-                        Integer obj2Cnt = Integer.parseInt(o2.getClass().getDeclaredMethod("getCountItems").invoke(o2).toString());
-                        int i = (obj1Cnt.compareTo(obj2Cnt));
-                        if ((i != 0) || (methodList.size() == 0)) {
-                            result = i;
-                        } else {
-                            result = compare(o1, o2);
-                        }
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        result = 0;
+            case UtilHelper.SORT_COUNT_ITEMS_REV: {
+                try {
+                    Integer obj1Cnt = Integer.parseInt(o1.getClass().getDeclaredMethod("getCountItems").invoke(o1).toString());
+                    Integer obj2Cnt = Integer.parseInt(o2.getClass().getDeclaredMethod("getCountItems").invoke(o2).toString());
+                    int i = (obj1Cnt.compareTo(obj2Cnt));
+                    if ((i != 0) || (methodList.size() == 0)) {
+                        result = i;
+                    } else {
+                        result = compare(o1, o2);
                     }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    result = 0;
                 }
-                break;
+            }
+            break;
 
             // sort by language, e.g. by UserEntity
             case UtilHelper.SORT_LANGUAGE:
-            case UtilHelper.SORT_LANGUAGE_REV:
-                 {
-                    try {
-                        String obj1Lang = o1.getClass().getDeclaredMethod("getLanguage").invoke(o1).toString();
-                        String obj2Lang = o2.getClass().getDeclaredMethod("getLanguage").invoke(o2).toString();
-                        int i = (obj1Lang.compareToIgnoreCase(obj2Lang));
-                        if ((i != 0) || (methodList.size() == 0)) {
-                            result = i;
-                        } else {
-                            result = compare(o1, o2);
-                        }
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        result = 0;
+            case UtilHelper.SORT_LANGUAGE_REV: {
+                try {
+                    String obj1Lang = o1.getClass().getDeclaredMethod("getLanguage").invoke(o1).toString();
+                    String obj2Lang = o2.getClass().getDeclaredMethod("getLanguage").invoke(o2).toString();
+                    int i = (obj1Lang.compareToIgnoreCase(obj2Lang));
+                    if ((i != 0) || (methodList.size() == 0)) {
+                        result = i;
+                    } else {
+                        result = compare(o1, o2);
                     }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    result = 0;
                 }
-                break;
+            }
+            break;
 
             // sort by submitter, e.g. by ItemsEntity
             case UtilHelper.SORT_SUBMITTER:
-            case UtilHelper.SORT_SUBMITTER_REV:
-                 {
-                    try {
-                        UserEntity obj1User = (UserEntity) o1.getClass().getDeclaredMethod("getSubmitter").invoke(o1);
-                        UserEntity obj2User = (UserEntity) o2.getClass().getDeclaredMethod("getSubmitter").invoke(o2);
-                        int i = (obj1User.compareTo(obj2User));
-                        if ((i != 0) || (methodList.size() == 0)) {
-                            result = i;
-                        } else {
-                            result = compare(o1, o2);
-                        }
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        result = 0;
+            case UtilHelper.SORT_SUBMITTER_REV: {
+                try {
+                    UserEntity obj1User = (UserEntity) o1.getClass().getDeclaredMethod("getSubmitter").invoke(o1);
+                    UserEntity obj2User = (UserEntity) o2.getClass().getDeclaredMethod("getSubmitter").invoke(o2);
+                    int i = (obj1User.compareTo(obj2User));
+                    if ((i != 0) || (methodList.size() == 0)) {
+                        result = i;
+                    } else {
+                        result = compare(o1, o2);
                     }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    result = 0;
                 }
-                break;
+            }
+            break;
 
             // sort by last modified date, e.g. in ItemsEntity
             case UtilHelper.SORT_LASTMODIFIED:
-            case UtilHelper.SORT_LASTMODIFIED_REV:
-                 {
-                    try {
-                        Date obj1Date = (Date) o1.getClass().getDeclaredMethod("getLastModified").invoke(o1);
-                        Date obj2Date = (Date) o2.getClass().getDeclaredMethod("getLastModified").invoke(o2);
+            case UtilHelper.SORT_LASTMODIFIED_REV: {
+                try {
+                    Date obj1Date = (Date) o1.getClass().getDeclaredMethod("getLastModified").invoke(o1);
+                    Date obj2Date = (Date) o2.getClass().getDeclaredMethod("getLastModified").invoke(o2);
 
-                        int i = (obj1Date.compareTo(obj2Date));
-                        if ((i != 0) || (methodList.size() == 0)) {
-                            result = i;
-                        } else {
-                            result = compare(o1, o2);
-                        }
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        result = 0;
+                    int i = (obj1Date.compareTo(obj2Date));
+                    if ((i != 0) || (methodList.size() == 0)) {
+                        result = i;
+                    } else {
+                        result = compare(o1, o2);
                     }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    result = 0;
                 }
-                break;
+            }
+            break;
 
             // sort by name, e.g. in CommunityEntity
             case UtilHelper.SORT_NAME:
-            case UtilHelper.SORT_NAME_REV:
-                 {
-                    try {
-                        String obj1Name = o1.getClass().getDeclaredMethod("getName").invoke(o1).toString();
-                        String obj2Name = o2.getClass().getDeclaredMethod("getName").invoke(o2).toString();
-                        int i = (obj1Name.compareToIgnoreCase(obj2Name));
-                        if ((i != 0) || (methodList.size() == 0)) {
-                            result = i;
-                        } else {
-                            result = compare(o1, o2);
-                        }
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        result = 0;
+            case UtilHelper.SORT_NAME_REV: {
+                try {
+                    String obj1Name = o1.getClass().getDeclaredMethod("getName").invoke(o1).toString();
+                    String obj2Name = o2.getClass().getDeclaredMethod("getName").invoke(o2).toString();
+                    int i = (obj1Name.compareToIgnoreCase(obj2Name));
+                    if ((i != 0) || (methodList.size() == 0)) {
+                        result = i;
+                    } else {
+                        result = compare(o1, o2);
                     }
-
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    result = 0;
                 }
-                break;
+
+            }
+            break;
 
             // in default case it sorts by item id
             default: {

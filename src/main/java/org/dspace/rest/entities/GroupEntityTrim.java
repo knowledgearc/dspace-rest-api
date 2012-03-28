@@ -8,6 +8,7 @@
 
 package org.dspace.rest.entities;
 
+import org.dspace.core.Context;
 import org.dspace.eperson.Group;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 
@@ -17,6 +18,10 @@ public class GroupEntityTrim extends GroupEntityId {
     private String name;
 
     public GroupEntityTrim() {
+    }
+
+    public GroupEntityTrim(String uid, Context context) {
+        super(uid, context);
     }
 
     public GroupEntityTrim(Group egroup) {

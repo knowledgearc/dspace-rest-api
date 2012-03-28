@@ -10,323 +10,86 @@ package org.dspace.rest.entities;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
-import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.*;
-import org.dspace.content.Collection;
 import org.dspace.content.authority.Choices;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.rest.util.UserRequestParams;
 import org.sakaiproject.entitybus.EntityReference;
-import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 import org.sakaiproject.entitybus.exception.EntityException;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 
-public class ItemEntity extends ItemEntityId {
+public class ItemEntity extends ItemEntityTrim {
 
-    @EntityFieldRequired
-    private String name;
-    private String handle;
-    private int countItems;
-    //    List<Object> bundles = new ArrayList<Object>();
-//    List<Object> bitstreams = new ArrayList<Object>();
-//    List<Object> collections = new ArrayList<Object>();
-//    List<Object> communities = new ArrayList<Object>();
-    List<Object> metadata = new ArrayList<Object>();
-    //    List<Object> policies = new ArrayList<Object>();
-    List<Object> comments = new ArrayList<Object>();
-    //String metadata;
-    Date lastModified;
-    //    Object owningCollection;
-    boolean isArchived, isWithdrawn;
-//    UserEntity submitter;
-//    private DisseminationCrosswalk xHTMLHeadCrosswalk;
-
-    public ItemEntity(String uid, Context context, int level, UserRequestParams uparams) {
-        try {
-            Item res = Item.find(context, Integer.parseInt(uid));
-
-            // Check authorisation
-            AuthorizeManager.authorizeAction(context, res, Constants.READ);
-
-//            this.id = res.getID();
-//            this.canEdit = res.canEdit();
-            this.handle = res.getHandle();
-            this.name = res.getName();
-//            this.type = res.getType();
-            this.lastModified = res.getLastModified();
-            this.isArchived = res.isArchived();
-            this.isArchived = res.isWithdrawn();
-//            this.submitter = new UserEntity(res.getSubmitter());
-
-            Bundle[] bun = res.getBundles();
-            Bitstream[] bst = res.getNonInternalBitstreams();
-            Collection[] col = res.getCollections();
-            Community[] com = res.getCommunities();
-            List<ResourcePolicy> ps = AuthorizeManager.getPolicies(context, res);
-
-            boolean includeFull = false;
-            level++;
-            if (level <= uparams.getDetail()) {
-                includeFull = true;
-            }
-
-            for (ResourcePolicy c : ps) {
-//                this.policies.add(new PolicyEntity(c, "Policies for Item ("+c.getResourceID()+")", level, uparams));
-            }
-            Collection ownCol = res.getOwningCollection();
-            if (ownCol != null) {
-//                this.owningCollection = includeFull ? new CollectionEntity(ownCol, level, uparams) : new CollectionEntityId(ownCol);
-            }
-            for (Bundle b : bun) {
-//                this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
-                List<ResourcePolicy> bs = AuthorizeManager.getPolicies(context, b);
-                for (ResourcePolicy c : bs) {
-//                    this.policies.add(new PolicyEntity(c, "Policies for Bundle "+b.getName()+" ("+c.getResourceID()+")", level, uparams));
-                }
-                Bitstream[] bes = b.getBitstreams();
-                for (Bitstream bi : bes) {
-                    List<ResourcePolicy> bts = AuthorizeManager.getPolicies(context, bi);
-                    for (ResourcePolicy ci : bts) {
-//                        this.policies.add(new PolicyEntity(ci, "Policies for Bitsteam "+bi.getName()+" ("+ci.getResourceID()+")", level, uparams));
-                    }
-                }
-            }
-            for (Bitstream b : bst) {
-//                this.bitstreams.add(includeFull ? new BitstreamEntity(b, level, uparams) : new BitstreamEntityId(b));
-            }
-            for (Collection c : col) {
-//                this.collections.add(includeFull ? new CollectionEntity(c, level, uparams) : new CollectionEntityId(c));
-            }
-            for (Community c : com) {
-//                this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
-            }
-
-            DCValue[] dcValues = res.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-            for (DCValue dcValue : dcValues) {
-//                this.metadata.add(includeFull ? new MetadataEntity(dcValue, level, uparams) : new MetadataEntityId(dcValue));
-            }
-
-            //context.complete();
-
-        } catch (NumberFormatException ex) {
-        } catch (SQLException ex) {
-            throw new EntityException("Internal server error", "SQL error", 500);
-        } catch (AuthorizeException ex) {
-            throw new EntityException("Forbidden", "Forbidden", 403);
-        }
-    }
-
-    public ItemEntity(Item item, int level, UserRequestParams uparams) throws SQLException {
-        // check calling package/class in order to prevent chaining
-        boolean includeFull = false;
-        level++;
-        if (level <= uparams.getDetail()) {
-            includeFull = true;
-        }
-
-//        this.canEdit = item.canEdit();
-        this.handle = item.getHandle();
-        this.name = item.getName();
-//        this.type = item.getType();
-//        this.id = item.getID();
-        this.lastModified = item.getLastModified();
-        Collection ownCol = item.getOwningCollection();
-        if (ownCol != null) {
-//            this.owningCollection = includeFull ? new CollectionEntity(ownCol, level, uparams) : new CollectionEntityId(ownCol);
-        }
-        this.isArchived = item.isArchived();
-        this.isWithdrawn = item.isWithdrawn();
-//        this.submitter = new UserEntity(item.getSubmitter());
-
-        Bundle[] bun = item.getBundles();
-        Bitstream[] bst = item.getNonInternalBitstreams();
-        Collection[] col = item.getCollections();
-        Community[] com = item.getCommunities();
-        for (Bundle b : bun) {
-//            this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
-        }
-        for (Bitstream b : bst) {
-//            this.bitstreams.add(includeFull ? new BitstreamEntity(b, level, uparams) : new BitstreamEntityId(b));
-        }
-        for (Collection c : col) {
-//            this.collections.add(includeFull ? new CollectionEntity(c, level, uparams) : new CollectionEntityId(c));
-        }
-        for (Community c : com) {
-//            this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
-        }
-
-        DCValue[] dcValues = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-        for (DCValue dcValue : dcValues) {
-            this.metadata.add(includeFull ? new MetadataEntity(dcValue, level, uparams) : new MetadataEntityId(dcValue));
-        }
-
-    }
-
-    public ItemEntity(Item item) throws SQLException {
-        super(item);
-        this.handle = item.getHandle();
-        this.name = item.getName();
-        this.lastModified = item.getLastModified();
-        Collection ownCol = item.getOwningCollection();
-        if (ownCol != null) {
-//            this.owningCollection = includeFull ? new CollectionEntity(ownCol, level, uparams) : new CollectionEntityId(ownCol);
-        }
-        this.isArchived = item.isArchived();
-        this.isWithdrawn = item.isWithdrawn();
-//        this.submitter = new UserEntity(item.getSubmitter());
-
-        Bundle[] bun = item.getBundles();
-        Bitstream[] bst = item.getNonInternalBitstreams();
-        Collection[] col = item.getCollections();
-        Community[] com = item.getCommunities();
-        for (Bundle b : bun) {
-//            this.bundles.add(includeFull ? new BundleEntity(b, level, uparams) : new BundleEntityId(b));
-        }
-        for (Bitstream b : bst) {
-//            this.bitstreams.add(includeFull ? new BitstreamEntity(b, level, uparams) : new BitstreamEntityId(b));
-        }
-        for (Collection c : col) {
-//            this.collections.add(includeFull ? new CollectionEntity(c, level, uparams) : new CollectionEntityId(c));
-        }
-        for (Community c : com) {
-//            this.communities.add(includeFull ? new CommunityEntity(c, level, uparams) : new CommunityEntityId(c));
-        }
-
-        DCValue[] dcValues = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-        for (DCValue dcValue : dcValues) {
-            this.metadata.add(new MetadataEntity(dcValue));
-        }
-
-    }
+    private Object collection;
 
     public ItemEntity() {
     }
 
-    public ItemEntity(String uid, Context context) {
+    public ItemEntity(String uid, Context context, UserRequestParams uparams) throws SQLException {
+        super(uid, context);
+
+        boolean collections = uparams.getCollections();
+        boolean trim = uparams.getTrim();
+
+        this.collection = collections ? trim ? new CollectionEntityTrimC(res.getOwningCollection()) : new CollectionEntityC(res.getOwningCollection())
+                : new CollectionEntityId(res.getOwningCollection());
+    }
+
+    public ItemEntity(Item item, UserRequestParams uparams) throws SQLException {
+        super(item);
+
+        boolean collections = uparams.getCollections();
+        boolean trim = uparams.getTrim();
+
+        this.collection = collections ? trim ? new CollectionEntityTrimC(item.getOwningCollection()) : new CollectionEntityC(item.getOwningCollection())
+                : new CollectionEntityId(item.getOwningCollection());
+    }
+
+    public Object getMetadataFields(EntityReference ref, UserRequestParams uparams, Context context) {
         try {
-            Item res = Item.find(context, Integer.parseInt(uid));
-            // Check authorisation
-            AuthorizeManager.authorizeAction(context, res, Constants.READ);
+            List<Object> entities = new ArrayList<Object>();
 
-//        this.id = res.getID();
-        } catch (NumberFormatException ex) {
-        } catch (SQLException ex) {
-            throw new EntityException("Internal server error", "SQL error", 500);
-        } catch (AuthorizeException ex) {
-            throw new EntityException("Forbidden", "Forbidden", 403);
-        }
-
-    }
-
-    public List getMetadata() {
-        return this.metadata;
-    }
-
-    public boolean getIsArchived() {
-        return this.isArchived;
-    }
-
-    public boolean getIsWithdrawn() {
-        return this.isWithdrawn;
-    }
-
-    public Date getLastModified() {
-        return this.lastModified;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public String getHandle() {
-        return this.handle;
-    }
-
-    public void setCountItems(int countItems) {
-        this.countItems = countItems;
-    }
-
-    public void setComments(List<Object> comments) {
-        this.comments = comments;
-    }
-
-    public Object addBundle(EntityReference ref, Map<String, Object> inputVar, Context context) {
-        if (inputVar.containsKey("id")) {
-            try {
-                Item item = Item.find(context, Integer.parseInt(ref.getId().toString()));
-                Bundle bundle = Bundle.find(context, Integer.parseInt(inputVar.get("id").toString()));
-                if ((item != null) && (item != null)) {
-                    item.addBundle(bundle);
-                    return bundle.getID();
-                } else {
-                    throw new EntityException("Not found", "Entity not found", 404);
+            MetadataField[] fields = MetadataField.findAll(context);
+            for (MetadataField field : fields) {
+                int id = field.getFieldID();
+                MetadataSchema schema = MetadataSchema.find(context, field.getSchemaID());
+                String name = schema.getName() + "." + field.getElement();
+                if (field.getQualifier() != null) {
+                    name += "." + field.getQualifier();
                 }
-            } catch (SQLException ex) {
-                throw new EntityException("Internal server error", "SQL error", 500);
-            } catch (AuthorizeException ex) {
-                throw new EntityException("Forbidden", "Forbidden", 403);
+                entities.add(new MetadataFieldEntity(id, name));
             }
-        } else {
-            throw new EntityException("Bad request", "Value not included", 400);
-        }
-    }
-
-    public String createBundle(EntityReference ref, Map<String, Object> inputVar, Context context) {
-        String result = "";
-        String id = "";
-        String name = "";
-        try {
-            id = (String) inputVar.get("id");
-            name = (String) inputVar.get("name");
-        } catch (NullPointerException ex) {
-            throw new EntityException("Bad request", "Value not included", 400);
-        }
-
-        try {
-            Item item = Item.find(context, Integer.parseInt(id));
-            if (item != null) {
-                //Bundle bundle = item.createBundle(name);
-                //bundle.setName(name);
-                //item.update();
-                //result = Integer.toString(bundle.getID());
-            } else {
-                throw new EntityException("Internal server error", "Could not create subcommunity", 500);
-            }
-        } catch (SQLException ex) {
+            return entities;
+        } catch (SQLException e) {
             throw new EntityException("Internal server error", "SQL error", 500);
-            //}        catch (AuthorizeException ex) {
-            //throw new EntityException("Forbidden", "Forbidden", 403);
-        } catch (Exception ex) {
-            ex.printStackTrace();
         }
-        return result;
     }
 
-    public String addMetadata(EntityReference ref, Map<String, Object> inputVar, Context context) {
+    public String createMetadata(EntityReference ref, Map<String, Object> inputVar, Context context) {
 
         try {
-            Integer id = Integer.parseInt((String) inputVar.get("id"));
-            Item item = Item.find(context, id);
+            Item item = Item.find(context, Integer.parseInt(ref.getId()));
 
             AuthorizeManager.authorizeAction(context, item, Constants.WRITE);
 
-            Integer fieldID = Integer.parseInt((String) inputVar.get("fieldID"));
+            Integer id = Integer.parseInt((String) inputVar.get("id"));
             String value = (String) inputVar.get("value");
             String lang = (String) inputVar.get("lang");
 
-            MetadataField field = MetadataField.find(context, Integer.valueOf(fieldID));
+            MetadataField field = MetadataField.find(context, Integer.valueOf(id));
             MetadataSchema schema = MetadataSchema.find(context, field.getSchemaID());
 
             item.addMetadata(schema.getName(), field.getElement(), field.getQualifier(), lang, value);
-
             item.update();
-            context.complete();
-            return String.valueOf(item.getID());
 
+            return String.valueOf(item.getID());
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ae) {
@@ -339,8 +102,7 @@ public class ItemEntity extends ItemEntityId {
     public String editMetadata(EntityReference ref, Map<String, Object> inputVar, Context context) {
 
         try {
-            Integer id = Integer.parseInt((String) inputVar.get("id"));
-            Item item = Item.find(context, id);
+            Item item = Item.find(context, Integer.parseInt(ref.getId()));
 
             AuthorizeManager.authorizeAction(context, item, Constants.WRITE);
             item.clearMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
@@ -376,11 +138,9 @@ public class ItemEntity extends ItemEntityId {
                 }
                 item.addMetadata(parts[0], parts[1], parts[2], lang, value, authority, iconf);
             }
-
             item.update();
-            context.complete();
-            return String.valueOf(item.getID());
 
+            return String.valueOf(item.getID());
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ae) {
@@ -393,7 +153,7 @@ public class ItemEntity extends ItemEntityId {
     public void removeMetadata(EntityReference ref, Map<String, Object> inputVar, Context context) {
         try {
             Integer id = Integer.parseInt((String) inputVar.get("id"));
-            Item item = Item.find(context, id);
+            Item item = Item.find(context, Integer.parseInt(ref.getId()));
 
             AuthorizeManager.authorizeAction(context, item, Constants.WRITE);
 
@@ -404,7 +164,6 @@ public class ItemEntity extends ItemEntityId {
             } else {
                 throw new EntityException("Internal server error", "No such metadata value or not belongs to same item", 500);
             }
-
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ae) {
@@ -428,7 +187,6 @@ public class ItemEntity extends ItemEntityId {
         try {
             List<Object> entities = new ArrayList<Object>();
 
-//            entities.add("count:"+Comment.countItems(context, Integer.parseInt(ref.getId())));
             Comment[] comments = Comment.findAllTop(context, Integer.parseInt(ref.getId()), uparams.getStart(), uparams.getLimit());
             for (Comment comment : comments) {
                 entities.add(new CommentEntity(comment));
@@ -436,6 +194,29 @@ public class ItemEntity extends ItemEntityId {
             return entities;
         } catch (SQLException e) {
             throw new EntityException("Internal server error", "SQL error", 500);
+        }
+    }
+
+    public Object getBitstreams(EntityReference ref, UserRequestParams uparams, Context context) {
+
+        try {
+            Item res = Item.find(context, Integer.parseInt(ref.getId()));
+
+            AuthorizeManager.authorizeAction(context, res, Constants.READ);
+
+            List<Object> entities = new ArrayList<Object>();
+            Bitstream[] bst = res.getNonInternalBitstreams();
+
+            for (Bitstream b : bst) {
+                entities.add(new BitstreamEntity(b));
+            }
+            return entities;
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ex) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
         }
     }
 
@@ -457,4 +238,7 @@ public class ItemEntity extends ItemEntityId {
         return parts;
     }
 
+    public Object getCollection() {
+        return collection;
+    }
 }

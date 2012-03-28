@@ -9,35 +9,29 @@ package org.dspace.rest.util;
 
 /**
  * General exception to be thrown by code working with recent submissions
- * 
- * @author Richard Jones
  *
+ * @author Richard Jones
  */
-public class RecentSubmissionsException extends Exception
-{
+public class RecentSubmissionsException extends Exception {
 
-	public RecentSubmissionsException()
-	{
-		super();
-		// TODO Auto-generated constructor stub
-	}
+    public RecentSubmissionsException() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
 
-	public RecentSubmissionsException(String message)
-	{
-		super(message);
-		// TODO Auto-generated constructor stub
-	}
+    public RecentSubmissionsException(String message) {
+        super(message);
+        // TODO Auto-generated constructor stub
+    }
 
-	public RecentSubmissionsException(String message, Throwable cause)
-	{
-		super(message, cause);
-		// TODO Auto-generated constructor stub
-	}
+    public RecentSubmissionsException(String message, Throwable cause) {
+        super(message, cause);
+        // TODO Auto-generated constructor stub
+    }
 
-	public RecentSubmissionsException(Throwable cause)
-	{
-		super(cause);
-		// TODO Auto-generated constructor stub
-	}
+    public RecentSubmissionsException(Throwable cause) {
+        super(cause);
+        // TODO Auto-generated constructor stub
+    }
 
 }

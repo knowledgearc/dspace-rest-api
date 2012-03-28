@@ -8,13 +8,14 @@
 
 package org.dspace.rest.entities;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Entity decribing search results
- * @see SearchProvider
+ *
  * @author Bojan Suzic, bojan.suzic@gmail.com
+ * @see SearchProvider
  */
 public class SearchResultsInfoEntity {
 
@@ -26,11 +27,11 @@ public class SearchResultsInfoEntity {
     /**
      * Constructs SearchResultsInfoEntity, which should contain basic info
      * on results of search performed
-     * 
-     * @param res number of results
-     * @param types list including types (DAO entity type) of results
+     *
+     * @param res     number of results
+     * @param types   list including types (DAO entity type) of results
      * @param handles list including handles (DAO handle) of results
-     * @param ids list including ids of results
+     * @param ids     list including ids of results
      */
     public SearchResultsInfoEntity(int res, List types, List handles, List ids) {
         this.resultsCount = res;

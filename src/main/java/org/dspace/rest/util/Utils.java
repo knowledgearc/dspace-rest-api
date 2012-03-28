@@ -12,6 +12,7 @@ public class Utils {
     }
 
     private static Map<String, Integer> actionRoles = new HashMap<String, Integer>();
+
     static {
         actionRoles.put("admin", 1);
         actionRoles.put("submit", 2);

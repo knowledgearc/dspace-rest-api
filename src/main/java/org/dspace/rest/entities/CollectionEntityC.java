@@ -9,7 +9,7 @@ package org.dspace.rest.entities;
 
 import org.dspace.content.Collection;
 
-public class CollectionEntityC extends CollectionEntityTrimC{
+public class CollectionEntityC extends CollectionEntityTrimC {
 
     private String licence;
     private String short_description, introductory_text, copyright_text, side_bar_text;

@@ -29,8 +29,12 @@ public class UserEntityId {
 
     public UserEntityId(String uid, Context context) {
         try {
-
-            res = EPerson.find(context, Integer.parseInt(uid));
+            try {
+                int id = Integer.parseInt(uid);
+                res = EPerson.find(context, id);
+            } catch (NumberFormatException ex) {
+                res = EPerson.findByEmail(context, uid);
+            }
 
             AuthorizeManager.authorizeAction(context, res, Constants.READ);
 
@@ -39,8 +43,6 @@ public class UserEntityId {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ex) {
             throw new EntityException("Forbidden", "Forbidden", 403);
-        } catch (NumberFormatException ex) {
-            throw new EntityException("Bad request", "Could not parse input", 400);
         }
     }
 

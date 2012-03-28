@@ -8,29 +8,33 @@
 
 package org.dspace.rest.providers;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.log4j.Logger;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.dspace.rest.entities.SearchResultsInfoEntity;
+import org.dspace.rest.util.GenComparator;
+import org.dspace.rest.util.UserRequestParams;
+import org.dspace.search.DSQuery;
+import org.dspace.search.QueryArgs;
+import org.dspace.search.QueryResults;
+import org.dspace.sort.SortOption;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
 import org.sakaiproject.entitybus.entityprovider.search.Search;
-import org.dspace.core.Context;
-import java.sql.SQLException;
 import org.sakaiproject.entitybus.exception.EntityException;
-import org.dspace.rest.entities.*;
-import org.dspace.search.*;
-import org.apache.log4j.Logger;
-import org.dspace.sort.SortOption;
-import org.dspace.core.Constants;
+
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
-import org.dspace.rest.util.GenComparator;
-import org.dspace.rest.util.UserRequestParams;
+import java.util.List;
 
 /**
  * Enables users to search through items according to different criteria
- * @see SearchResultsInfoEntity
+ *
  * @author Bojan Suzic, bojan.suzic@gmail.com
+ * @see SearchResultsInfoEntity
  */
 public class SearchProvider extends AbstractBaseProvider implements CoreEntityProvider {
 
@@ -38,6 +42,7 @@ public class SearchProvider extends AbstractBaseProvider implements CoreEntityPr
 
     /**
      * Handles provider for search accross items
+     *
      * @param entityProviderManager
      * @throws java.sql.SQLException
      */
@@ -112,41 +117,35 @@ public class SearchProvider extends AbstractBaseProvider implements CoreEntityPr
              */
             for (int x = 0; x < qre.getHitTypes().size(); x++) {
                 switch ((Integer) (qre.getHitTypes().get(x))) {
-                    case Constants.ITEM:
-                         {
-                            entities.add(idOnly ? new ItemEntityId(qre.getHitIds().get(x).toString(), context) : new ItemEntity(qre.getHitIds().get(x).toString(), context,1, uparams));
-                        }
-                        break;
+                    case Constants.ITEM: {
+//                            entities.add(idOnly ? new ItemEntityId(qre.getHitIds().get(x).toString(), context) : new ItemEntity(qre.getHitIds().get(x).toString(), context,1, uparams));
+                    }
+                    break;
 
-                    case Constants.COMMUNITY:
-                         {
+                    case Constants.COMMUNITY: {
 //                            entities.add(idOnly ? new CommunityEntityId(qre.getHitIds().get(x).toString(), context) : new CommunityEntity(qre.getHitIds().get(x).toString(), context,1, uparams));
-                        }
-                        break;
+                    }
+                    break;
 
-                    case Constants.COLLECTION:
-                         {
+                    case Constants.COLLECTION: {
 //                            entities.add(idOnly ? new CollectionEntityId(qre.getHitIds().get(x).toString(), context) : new CollectionEntity(qre.getHitIds().get(x).toString(), context,1, uparams));
-                        }
-                        break;
+                    }
+                    break;
 
-                    case Constants.BITSTREAM:
-                         {
-                            entities.add(idOnly ? new BitstreamEntityId(qre.getHitIds().get(x).toString(), context) : new BitstreamEntity(qre.getHitIds().get(x).toString(), context,1, uparams));
-                        }
-                        break;
+                    case Constants.BITSTREAM: {
+//                            entities.add(idOnly ? new BitstreamEntityId(qre.getHitIds().get(x).toString(), context) : new BitstreamEntity(qre.getHitIds().get(x).toString(), context,1, uparams));
+                    }
+                    break;
 
-                    case Constants.BUNDLE:
-                         {
-                            entities.add(idOnly ? new BundleEntityId(qre.getHitIds().get(x).toString(), context) : new BundleEntity(qre.getHitIds().get(x).toString(), context,1, uparams));
-                        }
-                        break;
+                    case Constants.BUNDLE: {
+//                            entities.add(idOnly ? new BundleEntityId(qre.getHitIds().get(x).toString(), context) : new BundleEntity(qre.getHitIds().get(x).toString(), context,1, uparams));
+                    }
+                    break;
 
-                    case Constants.EPERSON:
-                         {
+                    case Constants.EPERSON: {
 //                            entities.add(idOnly ? new UserEntityId(qre.getHitIds().get(x).toString(), context) : new UserEntity(qre.getHitIds().get(x).toString(), context,1, uparams));
-                        }
-                        break;
+                    }
+                    break;
 
                 }
             }

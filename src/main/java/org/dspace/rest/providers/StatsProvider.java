@@ -7,29 +7,31 @@
  */
 package org.dspace.rest.providers;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.log4j.Logger;
+import org.dspace.app.statistics.ReportGenerator;
 import org.dspace.core.ConfigurationManager;
-import java.io.File;
+import org.dspace.core.Context;
+import org.dspace.rest.entities.CollectionEntity;
+import org.dspace.rest.entities.StatReport;
+import org.dspace.rest.entities.StatsEntity;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
 import org.sakaiproject.entitybus.entityprovider.search.Search;
-import org.dspace.core.Context;
 import org.sakaiproject.entitybus.exception.EntityException;
+
+import java.io.File;
 import java.sql.SQLException;
-import org.apache.log4j.Logger;
-import org.dspace.rest.entities.*;
-import org.dspace.app.statistics.ReportGenerator;
-import org.dspace.rest.entities.StatReport;
-import org.dspace.app.statistics.Report;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Provides interface for access to basic statistic data
- * @see StatsEntity
+ *
  * @author Bojan Suzic, bojan.suzic@gmail.com
+ * @see StatsEntity
  */
 public class StatsProvider extends AbstractBaseProvider implements CoreEntityProvider {
 
@@ -48,6 +50,7 @@ public class StatsProvider extends AbstractBaseProvider implements CoreEntityPro
 
     /**
      * By default in this provider there is no particular entity
+     *
      * @param id
      * @return
      */
@@ -78,10 +81,11 @@ public class StatsProvider extends AbstractBaseProvider implements CoreEntityPro
      * StatsEntity is used here to format and present data
      * It could be done using HashMap for now it is not functioning, updates
      * of related software needed
-     * @see StatsEntity
+     *
      * @param ref
      * @param search
      * @return
+     * @see StatsEntity
      */
     public List<?> getEntities(EntityReference ref, Search search) {
         log.info(userInfo() + "list_entities");

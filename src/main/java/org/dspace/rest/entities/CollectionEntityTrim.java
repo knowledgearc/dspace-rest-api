@@ -28,7 +28,7 @@ public class CollectionEntityTrim extends CollectionEntityId {
     }
 
     public CollectionEntityTrim(String uid, Context context) throws SQLException {
-        super(uid,context);
+        super(uid, context);
 
         this.name = res.getName();
         this.handle = res.getHandle();
