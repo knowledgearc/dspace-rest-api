@@ -38,21 +38,6 @@ public class BitstreamProvider extends AbstractBaseProvider implements CoreEntit
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = BitstreamEntity.class;
-//        func2actionMapGET.put("getMimeType", "mimeType");
-//        func2actionMapGET.put("getBundles", "bundles");
-//        func2actionMapGET.put("getCheckSum", "checkSum");
-//        func2actionMapGET.put("getCheckSumAlgorithm", "checkSumAlgorithm");
-//        func2actionMapGET.put("getDescription", "description");
-//        func2actionMapGET.put("getFormatDescription", "formatDescription");
-//        func2actionMapGET.put("getSequenceId", "sequenceId");
-//        func2actionMapGET.put("getSize", "size");
-//        func2actionMapGET.put("getSource", "source");
-//        func2actionMapGET.put("getStoreNumber", "storeNumber");
-//        func2actionMapGET.put("getUserFormatDescription", "userFormatDescription");
-//        func2actionMapGET.put("getName", "name");
-//        func2actionMapGET.put("getHandle", "handle");
-//        func2actionMapGET.put("getId", "id");
-//        func2actionMapGET.put("getType", "type");
         entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
 

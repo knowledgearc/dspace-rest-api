@@ -15,6 +15,7 @@ import org.dspace.rest.entities.GroupEntity;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
+import org.sakaiproject.entitybus.entityprovider.capabilities.Createable;
 import org.sakaiproject.entitybus.entityprovider.search.Search;
 import org.sakaiproject.entitybus.exception.EntityException;
 
@@ -22,7 +23,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GroupProvider extends AbstractBaseProvider implements CoreEntityProvider {
+public class GroupProvider extends AbstractBaseProvider implements CoreEntityProvider, Createable {
 
     private static Logger log = Logger.getLogger(GroupProvider.class);
 
@@ -30,18 +31,6 @@ public class GroupProvider extends AbstractBaseProvider implements CoreEntityPro
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = GroupEntity.class;
-//        func2actionMapGET.put("getEmail", "email");
-//        func2actionMapGET.put("getFirstName", "firstName");
-//        func2actionMapGET.put("getFullName", "fullName");
-//        func2actionMapGET.put("getHandle", "handle");
-//        func2actionMapGET.put("getId", "id");
-//        func2actionMapGET.put("getLanguage", "language");
-//        func2actionMapGET.put("getLastName", "lastName");
-//        func2actionMapGET.put("getName", "name");
-//        func2actionMapGET.put("getNetId", "netId");
-//        func2actionMapGET.put("getRequireCertificate", "requireCertificate");
-//        func2actionMapGET.put("getSelfRegistered", "selfRegistered");
-//        func2actionMapGET.put("getType", "type");
         func2actionMapPOST.put("addUser", "users");
         inputParamsPOST.put("addUser", new String[]{"email", "firstName", "lastName"});
         entityConstructor = processedEntity.getDeclaredConstructor();
