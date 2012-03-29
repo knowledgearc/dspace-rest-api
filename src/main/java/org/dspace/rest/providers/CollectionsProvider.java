@@ -39,11 +39,20 @@ public class CollectionsProvider extends AbstractBaseProvider implements CoreEnt
         func2actionMapGET.put("getItemsCount", "itemscount");
         func2actionMapGET.put("getItems", "items");
         func2actionMapGET.put("getRoles", "roles");
+        func2actionMapGET.put("getAdmin", "admin");
+        func2actionMapGET.put("getSubmit", "submit");
+        func2actionMapGET.put("getWFStep1", "workflow_step_1");
+        func2actionMapGET.put("getWFStep2", "workflow_step_2");
+        func2actionMapGET.put("getWFStep3", "workflow_step_3");
         func2actionMapGET.put("getLogo", "logo");
         func2actionMapPOST.put("createCollection", "");
         inputParamsPOST.put("createCollection", new String[]{"name", "communityId"});
-        func2actionMapPOST.put("createRoles", "roles");
-        inputParamsPOST.put("createRoles", new String[]{});
+//        func2actionMapPOST.put("createRoles", "roles");
+        func2actionMapPOST.put("createAdmin", "admin");
+        func2actionMapPOST.put("createSubmit", "submit");
+        func2actionMapPOST.put("createWFStep1", "workflow_step_1");
+        func2actionMapPOST.put("createWFStep2", "workflow_step_2");
+        func2actionMapPOST.put("createWFStep3", "workflow_step_3");
         func2actionMapPUT.put("editCollection", "");
         func2actionMapDELETE.put("removeCollection", "");
         func2actionMapDELETE.put("removeRoles", "roles");
@@ -88,6 +97,9 @@ public class CollectionsProvider extends AbstractBaseProvider implements CoreEnt
         }
 
         if (segments.length > 3) {
+            if (segments[3].startsWith("roles")) {
+                return super.getEntity(reference, segments[segments.length - 1]);
+            }
             return super.getEntity(reference);
         } else if ("count".equals(reference.getId())) {
             return super.getEntity(reference, "count");

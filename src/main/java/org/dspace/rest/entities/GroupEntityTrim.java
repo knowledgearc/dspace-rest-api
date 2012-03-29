@@ -22,11 +22,11 @@ public class GroupEntityTrim extends GroupEntityId {
 
     public GroupEntityTrim(String uid, Context context) {
         super(uid, context);
+        this.name = res.getName();
     }
 
     public GroupEntityTrim(Group egroup) {
         super(egroup);
-
         this.name = egroup.getName();
     }
 

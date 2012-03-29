@@ -161,6 +161,31 @@ public class CollectionEntity extends CollectionEntityTrim {
         }
     }
 
+    public String createAdmin(EntityReference ref, Map<String, Object> inputVar, Context context) {
+        inputVar.put("action", Utils.ADMIN);
+        return createRoles(ref, inputVar, context);
+    }
+
+    public String createSubmit(EntityReference ref, Map<String, Object> inputVar, Context context) {
+        inputVar.put("action", Utils.SUBMIT);
+        return createRoles(ref, inputVar, context);
+    }
+
+    public String createWFStep1(EntityReference ref, Map<String, Object> inputVar, Context context) {
+        inputVar.put("action", Utils.WF_STEP_1);
+        return createRoles(ref, inputVar, context);
+    }
+
+    public String createWFStep2(EntityReference ref, Map<String, Object> inputVar, Context context) {
+        inputVar.put("action", Utils.WF_STEP_2);
+        return createRoles(ref, inputVar, context);
+    }
+
+    public String createWFStep3(EntityReference ref, Map<String, Object> inputVar, Context context) {
+        inputVar.put("action", Utils.WF_STEP_3);
+        return createRoles(ref, inputVar, context);
+    }
+
     public String createRoles(EntityReference ref, Map<String, Object> inputVar, Context context) {
 
         try {
@@ -214,25 +239,31 @@ public class CollectionEntity extends CollectionEntityTrim {
                 switch (act) {
                     case 1: {
                         Group group = collection.getAdministrators();
-                        collection.removeAdministrators();
-                        collection.update();
-                        group.delete();
+                        if (group != null) {
+                            collection.removeAdministrators();
+                            collection.update();
+                            group.delete();
+                        }
                         break;
                     }
                     case 2: {
                         Group group = collection.getSubmitters();
-                        collection.removeSubmitters();
-                        collection.update();
-                        group.delete();
+                        if (group != null) {
+                            collection.removeSubmitters();
+                            collection.update();
+                            group.delete();
+                        }
                         break;
                     }
                     case 4:
                     case 5:
                     case 6: {
                         Group group = collection.getWorkflowGroup(act - 3);
-                        collection.removeWorkflowGroup(act - 3);
-                        collection.update();
-                        group.delete();
+                        if (group != null) {
+                            collection.removeWorkflowGroup(act - 3);
+                            collection.update();
+                            group.delete();
+                        }
                         break;
                     }
                 }
@@ -293,6 +324,31 @@ public class CollectionEntity extends CollectionEntityTrim {
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         }
+    }
+
+    public Object getAdmin(EntityReference ref, UserRequestParams uparams, Context context) {
+        uparams.setAction(Utils.ADMIN);
+        return getRoles(ref, uparams, context);
+    }
+
+    public Object getSubmit(EntityReference ref, UserRequestParams uparams, Context context) {
+        uparams.setAction(Utils.SUBMIT);
+        return getRoles(ref, uparams, context);
+    }
+
+    public Object getWFStep1(EntityReference ref, UserRequestParams uparams, Context context) {
+        uparams.setAction(Utils.WF_STEP_1);
+        return getRoles(ref, uparams, context);
+    }
+
+    public Object getWFStep2(EntityReference ref, UserRequestParams uparams, Context context) {
+        uparams.setAction(Utils.WF_STEP_2);
+        return getRoles(ref, uparams, context);
+    }
+
+    public Object getWFStep3(EntityReference ref, UserRequestParams uparams, Context context) {
+        uparams.setAction(Utils.WF_STEP_3);
+        return getRoles(ref, uparams, context);
     }
 
     public Object getRoles(EntityReference ref, UserRequestParams uparams, Context context) {

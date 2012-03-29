@@ -16,6 +16,7 @@ import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
 import org.sakaiproject.entitybus.entityprovider.capabilities.Createable;
+import org.sakaiproject.entitybus.entityprovider.capabilities.Deleteable;
 import org.sakaiproject.entitybus.entityprovider.capabilities.Updateable;
 import org.sakaiproject.entitybus.entityprovider.search.Search;
 import org.sakaiproject.entitybus.exception.EntityException;
@@ -24,7 +25,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GroupProvider extends AbstractBaseProvider implements CoreEntityProvider, Createable, Updateable {
+public class GroupProvider extends AbstractBaseProvider implements CoreEntityProvider, Createable, Updateable, Deleteable {
 
     private static Logger log = Logger.getLogger(GroupProvider.class);
 
@@ -32,9 +33,14 @@ public class GroupProvider extends AbstractBaseProvider implements CoreEntityPro
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = GroupEntity.class;
+        func2actionMapGET.put("getGroups", "groups");
+        func2actionMapGET.put("getUsers", "users");
         func2actionMapPOST.put("createUser", "users");
         inputParamsPOST.put("createUser", new String[]{"email", "firstName", "lastName"});
+        func2actionMapPUT.put("assignGroup", "groups");
         func2actionMapPUT.put("assignUser", "users");
+        func2actionMapDELETE.put("removeGroup", "groups");
+        func2actionMapDELETE.put("removeUser", "users");
         entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
     }

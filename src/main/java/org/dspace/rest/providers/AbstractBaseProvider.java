@@ -16,7 +16,6 @@ import org.dspace.eperson.EPerson;
 import org.dspace.rest.entities.CommunityEntity;
 import org.dspace.rest.util.UserRequestParams;
 import org.dspace.rest.util.UtilHelper;
-import org.dspace.rest.util.Utils;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.EntityView;
 import org.sakaiproject.entitybus.entityprovider.EntityProvider;
@@ -836,7 +835,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         String[] mandatory_params;
 
         String action = (String) inputVar.get("action");
-        if (action == null || Utils.getActionRole(action) > 0) {
+        if (action == null) {
             String segments[] = {};
             if (params.containsKey("pathInfo")) {
                 segments = params.get("pathInfo").toString().split("/");
@@ -854,10 +853,11 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         if (func2actionMapPOST_rev.containsKey(action)) {
             function = func2actionMapPOST_rev.get(action);
             mandatory_params = inputParamsPOST.get(function);
-
-            for (String param : mandatory_params) {
-                if (inputVar.get(param) == null) {
-                    throw new EntityException("Bad request", "Incomplete request [mandatory param]", 400);
+            if (mandatory_params != null) {
+                for (String param : mandatory_params) {
+                    if (inputVar.get(param) == null) {
+                        throw new EntityException("Bad request", "Incomplete request [mandatory param]", 400);
+                    }
                 }
             }
 

@@ -9,9 +9,12 @@
 package org.dspace.rest.entities;
 
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.rest.util.UserRequestParams;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.exception.EntityException;
 
@@ -30,6 +33,16 @@ public class GroupEntity extends GroupEntityTrim {
 
     public GroupEntity(String uid, Context context) throws SQLException {
         super(uid, context);
+        for (EPerson member : res.getMembers()) {
+            users.add(new UserEntityTrim(member));
+        }
+        for (Group group : res.getMemberGroups()) {
+            if (group.getMemberGroups().length > 0) {
+                groups.add(new GroupEntity(group));
+            } else {
+                groups.add(new GroupEntityTrim(group));
+            }
+        }
     }
 
     public GroupEntity(Group egroup) {
@@ -44,6 +57,42 @@ public class GroupEntity extends GroupEntityTrim {
             } else {
                 groups.add(new GroupEntityTrim(group));
             }
+        }
+    }
+
+    public Object getGroups(EntityReference ref, UserRequestParams uparams, Context context) {
+        try {
+            Group res = Group.find(context, Integer.parseInt(ref.getId()));
+            AuthorizeManager.authorizeAction(context, res, Constants.READ);
+
+            for (Group group : res.getMemberGroups()) {
+                if (group.getMemberGroups().length > 0) {
+                    groups.add(new GroupEntity(group));
+                } else {
+                    groups.add(new GroupEntityTrim(group));
+                }
+            }
+            return groups;
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ex) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        }
+    }
+
+    public Object getUsers(EntityReference ref, UserRequestParams uparams, Context context) {
+        try {
+            Group res = Group.find(context, Integer.parseInt(ref.getId()));
+            AuthorizeManager.authorizeAction(context, res, Constants.READ);
+
+            for (EPerson member : res.getMembers()) {
+                users.add(new UserEntityTrim(member));
+            }
+            return users;
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ex) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
         }
     }
 
@@ -101,12 +150,40 @@ public class GroupEntity extends GroupEntityTrim {
         return result;
     }
 
+    public void assignGroup(EntityReference ref, Map<String, Object> inputVar, Context context) {
+
+        String id = (String) inputVar.get("id");
+
+        try {
+            Group group = Group.find(context, Integer.parseInt(ref.getId()));
+            AuthorizeManager.authorizeAction(context, group, Constants.WRITE);
+            if (group != null) {
+                Group eGroup = Group.find(context, Integer.parseInt(id));
+                if (eGroup != null) {
+                    group.addMember(eGroup);
+                    group.update();
+                } else {
+                    throw new IllegalArgumentException("Invalid id:" + ref.getId());
+                }
+            } else {
+                throw new IllegalArgumentException("Invalid id:" + ref.getId());
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ae) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
+    }
+
     public void assignUser(EntityReference ref, Map<String, Object> inputVar, Context context) {
 
         String id = (String) inputVar.get("id");
 
         try {
             Group group = Group.find(context, Integer.parseInt(ref.getId()));
+            AuthorizeManager.authorizeAction(context, group, Constants.WRITE);
             if (group != null) {
                 EPerson ePerson = EPerson.find(context, Integer.parseInt(id));
                 if (ePerson != null) {
@@ -117,6 +194,50 @@ public class GroupEntity extends GroupEntityTrim {
                 }
             } else {
                 throw new IllegalArgumentException("Invalid id:" + ref.getId());
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ae) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
+    }
+
+    public void removeGroup(EntityReference ref, Map<String, Object> inputVar, Context context) {
+        try {
+            int id = Integer.parseInt(ref.getId());
+            Group group = Group.find(context, id);
+            AuthorizeManager.authorizeAction(context, group, Constants.WRITE);
+            if ((group != null)) {
+                int eid = Integer.parseInt((String) inputVar.get("eid"));
+                Group eGroup = Group.find(context, eid);
+                if (eGroup != null) {
+                    group.removeMember(eGroup);
+                    group.update();
+                }
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ae) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
+    }
+
+    public void removeUser(EntityReference ref, Map<String, Object> inputVar, Context context) {
+        try {
+            int id = Integer.parseInt(ref.getId());
+            Group group = Group.find(context, id);
+            AuthorizeManager.authorizeAction(context, group, Constants.WRITE);
+            if ((group != null)) {
+                int eid = Integer.parseInt((String) inputVar.get("eid"));
+                EPerson ePerson = EPerson.find(context, eid);
+                if (ePerson != null) {
+                    group.removeMember(ePerson);
+                    group.update();
+                }
             }
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
