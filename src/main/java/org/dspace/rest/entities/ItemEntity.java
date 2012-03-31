@@ -195,6 +195,21 @@ public class ItemEntity extends ItemEntityTrim {
         }
     }
 
+    public Object getRating(EntityReference ref, UserRequestParams uparams, Context context) {
+        try {
+            int itemId = Integer.parseInt(ref.getId());
+            if (context.getCurrentUser() != null) {
+                Rating rating = Rating.find(context, itemId, context.getCurrentUser().getID());
+                return rating == null ? new RatingEntityId() : new RatingEntity(rating);
+            }
+            return 0;
+        } catch (SQLException e) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
+    }
+
     public Object getBitstreams(EntityReference ref, UserRequestParams uparams, Context context) {
 
         try {

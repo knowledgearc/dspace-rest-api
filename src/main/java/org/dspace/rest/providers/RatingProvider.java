@@ -9,17 +9,13 @@
 package org.dspace.rest.providers;
 
 import org.apache.log4j.Logger;
-import org.dspace.content.Item;
-import org.dspace.content.ItemIterator;
+import org.dspace.content.Rating;
 import org.dspace.core.Context;
-import org.dspace.rest.entities.ItemEntity;
-import org.dspace.rest.util.UserRequestParams;
+import org.dspace.rest.entities.RatingEntity;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
 import org.sakaiproject.entitybus.entityprovider.capabilities.Createable;
-import org.sakaiproject.entitybus.entityprovider.capabilities.Deleteable;
-import org.sakaiproject.entitybus.entityprovider.capabilities.Updateable;
 import org.sakaiproject.entitybus.entityprovider.search.Search;
 import org.sakaiproject.entitybus.exception.EntityException;
 
@@ -27,38 +23,27 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemsProvider extends AbstractBaseProvider implements CoreEntityProvider, Updateable, Createable, Deleteable {
+public class RatingProvider extends AbstractBaseProvider implements CoreEntityProvider, Createable {
 
-    private static Logger log = Logger.getLogger(ItemsProvider.class);
+    private static Logger log = Logger.getLogger(RatingProvider.class);
 
-    public ItemsProvider(EntityProviderManager entityProviderManager) throws SQLException, NoSuchMethodException {
+    public RatingProvider(EntityProviderManager entityProviderManager) throws SQLException, NoSuchMethodException {
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
-        processedEntity = ItemEntity.class;
-        func2actionMapGET.put("getBitstreams", "bitstreams");
-        func2actionMapGET.put("getCommentsCount", "commentscount");
-        func2actionMapGET.put("getComments", "comments");
-        func2actionMapGET.put("getRating", "rating");
-        func2actionMapGET.put("getMetadataFields", "metadatafields");
-        func2actionMapPOST.put("createMetadata", "metadata");
-        inputParamsPOST.put("createMetadata", new String[]{"id", "value"});
-        func2actionMapPUT.put("editMetadata", "metadata");
-        func2actionMapDELETE.put("removeMetadata", "metadata");
+        processedEntity = RatingEntity.class;
+        func2actionMapPOST.put("create", "");
+        inputParamsPOST.put("create", new String[]{"itemId", "rating"});
 
         entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
     }
 
     public String getEntityPrefix() {
-        return "items";
+        return "ratings";
     }
 
     public boolean entityExists(String id) {
-        log.info(userInfo() + "item_exists:" + id);
-
-        if ("metadatafields".equals(id)) {
-            return true;
-        }
+        log.info(userInfo() + "rating_exists:" + id);
 
         Context context = null;
         try {
@@ -66,7 +51,7 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
 
             refreshParams(context);
 
-            Item comm = Item.find(context, Integer.parseInt(id));
+            Rating comm = Rating.find(context, Integer.parseInt(id));
             return comm != null ? true : false;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
@@ -78,7 +63,7 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
     }
 
     public Object getEntity(EntityReference reference) {
-        log.info(userInfo() + "get_item:" + reference.getId());
+        log.info(userInfo() + "get_rating:" + reference.getId());
         String segments[] = {};
 
         if (reqStor.getStoredValue("pathInfo") != null) {
@@ -87,17 +72,15 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
 
         if (segments.length > 3) {
             return super.getEntity(reference);
-        }else if ("metadatafields".equals(reference.getId())) {
-            return super.getEntity(reference, "metadatafields");
         }
 
         Context context = null;
         try {
             context = new Context();
 
-            UserRequestParams uparams = refreshParams(context);
+            refreshParams(context);
             if (entityExists(reference.getId())) {
-                return new ItemEntity(reference.getId(), context, uparams);
+                return new RatingEntity(reference.getId(), context);
             }
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
@@ -108,18 +91,18 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
-        log.info(userInfo() + "list_items");
+        log.info(userInfo() + "list_ratings");
 
         Context context = null;
         try {
             context = new Context();
 
-            UserRequestParams uparams = refreshParams(context);
+            refreshParams(context);
             List<Object> entities = new ArrayList<Object>();
 
-            ItemIterator items = Item.findAll(context);
-            while (items.hasNext()) {
-                entities.add(new ItemEntity(items.next(), uparams));
+            Rating[] ratings = Rating.findAll(context);
+            for (Rating rating : ratings) {
+                entities.add(new RatingEntity(rating));
             }
 
             return entities;
@@ -131,6 +114,6 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
     }
 
     public Object getSampleEntity() {
-        return new ItemEntity();
+        return new RatingEntity();
     }
 }

@@ -27,8 +27,6 @@ import java.util.Vector;
  *
  * @author Bojan Suzic, bojan.suzic@gmail.com
  *         Based on Aaron Zeckoski's SakaiProject.EntityBus
- * @see BundleEntityId
- * @see Bundle
  */
 public class DS16DirectServlet extends DirectServlet {
 
@@ -65,6 +63,7 @@ public class DS16DirectServlet extends DirectServlet {
         this.entityProviders.add(new DiscoverProvider(entityProviderManager));
         this.entityProviders.add(new WorkflowProvider(entityProviderManager));
         this.entityProviders.add(new CommentsProvider(entityProviderManager));
+        this.entityProviders.add(new RatingProvider(entityProviderManager));
     }
 
     @Override
