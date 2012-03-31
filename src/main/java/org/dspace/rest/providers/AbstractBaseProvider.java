@@ -729,7 +729,13 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
                     inputVar.put("element", segments[x]);
                     break;
                 case 4:
-                    inputVar.put("eid", segments[x]);
+                    String s = segments[x];
+                    if(s!=null && !"".equals(s)) {
+                        if (s.lastIndexOf(".") > 0) {
+                            s = s.substring(0, s.lastIndexOf("."));
+                        }
+                    }
+                    inputVar.put("eid", s);
                     break;
                 case 5:
                     inputVar.put("trail", segments[x]);
