@@ -33,8 +33,8 @@ public class GroupProvider extends AbstractBaseProvider implements CoreEntityPro
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = GroupEntity.class;
-        func2actionMapGET.put("getGroups", "groups");
-        func2actionMapGET.put("getUsers", "users");
+        func2actionMapGET.put("groups", "groups");
+        func2actionMapGET.put("users", "users");
         func2actionMapPOST.put("createUser", "users");
         inputParamsPOST.put("createUser", new String[]{"email", "firstName", "lastName"});
         func2actionMapPUT.put("assignGroup", "groups");

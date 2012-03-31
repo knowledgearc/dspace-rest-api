@@ -60,7 +60,7 @@ public class GroupEntity extends GroupEntityTrim {
         }
     }
 
-    public Object getGroups(EntityReference ref, UserRequestParams uparams, Context context) {
+    public Object groups(EntityReference ref, UserRequestParams uparams, Context context) {
         try {
             Group res = Group.find(context, Integer.parseInt(ref.getId()));
             AuthorizeManager.authorizeAction(context, res, Constants.READ);
@@ -80,7 +80,7 @@ public class GroupEntity extends GroupEntityTrim {
         }
     }
 
-    public Object getUsers(EntityReference ref, UserRequestParams uparams, Context context) {
+    public Object users(EntityReference ref, UserRequestParams uparams, Context context) {
         try {
             Group res = Group.find(context, Integer.parseInt(ref.getId()));
             AuthorizeManager.authorizeAction(context, res, Constants.READ);
