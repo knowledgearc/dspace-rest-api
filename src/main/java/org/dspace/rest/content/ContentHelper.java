@@ -3,6 +3,7 @@ package org.dspace.rest.content;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -138,9 +139,9 @@ public class ContentHelper {
             String param = "%" + q.toLowerCase() + "%";
 
             String query = "SELECT COUNT(*) FROM (" +
-                    "SELECT DISTINCT eperson.email, eperson.* FROM workflowitem, item, eperson " +
+                    "SELECT DISTINCT eperson.email em, eperson.* FROM workflowitem, item, eperson " +
                     "WHERE workflowitem.item_id = item.item_id AND item.submitter_id = eperson.eperson_id AND " +
-                    "(LOWER(firstname) LIKE LOWER(?) OR LOWER(lastname) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?)))";
+                    "(LOWER(firstname) LIKE LOWER(?) OR LOWER(lastname) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?))) t";
 
             statement = context.getDBConnection().prepareStatement(query);
             statement.setString(1, param);
@@ -580,18 +581,16 @@ public class ContentHelper {
             epid = ep.getID();
         }
 
-        int own;
-        int submit;
-        int pool;
-
         int reviewer = parseEPersonInt(c, reviewerStr);
         int submitter = parseEPersonInt(c, submitterStr);
-        if (reviewer > 0 || submitter > 0) {
-            pool = 0;
-            own = epid > 0 ? reviewer > 0 ? reviewer : 0 : 0;
-            submit = epid > 0 ? submitter > 0 ? submitter : 0 : 0;
-        } else {
-            pool = own = submit = epid;
+
+        boolean reviewInd = false;
+        boolean poolInd = false;
+
+        if ("pool".equals(status)) {
+            poolInd = true;
+        } else if ("review".equals(status)) {
+            reviewInd = true;
         }
 
         String insql;
@@ -630,28 +629,133 @@ public class ContentHelper {
             insql = "item its";
         }
 
-        boolean reviewInd = false;
-        boolean poolInd = false;
+        String sql = "SELECT workflowitem.* FROM workflowitem, item, " + insql + " WHERE workflowitem.item_id = its.item_id AND its.item_id=item.item_id"
+                        + (reviewInd ? (reviewer>0 ? " AND workflowitem.owner=" + reviewer : " AND workflowitem.owner>0") : "")
+                        + (poolInd ? " AND workflowitem.owner is NULL" : "")
+                        + (submitter>0 ? " AND item.submitter_id="+submitter : "")
+                        + (epid>0 ? "" : " AND item.submitter_id=0");
+        return sql;
+    }
 
-        int submitinstatus = 0;
-        if (epid > 0) {
-            if (status != null && !"".equals(status)) {
-                own = pool = submit = 0;
-                submitinstatus = submitter > 0 ? submitter : 0;
-                if ("pool".equals(status)) {
-                    poolInd = true;
-                } else if ("review".equals(status)) {
-                    reviewInd = true;
+    public static int countItemsSubmission(Context c) throws SQLException {
+        int itemcount = 0;
+        PreparedStatement statement = null;
+        ResultSet rs = null;
+
+        try {
+            String query = "SELECT COUNT(*) FROM (\n" +
+                    fillSqlSubmission(c) +
+                    ") t";
+
+            statement = c.getDBConnection().prepareStatement(query);
+
+            rs = statement.executeQuery();
+            if (rs != null) {
+                rs.next();
+                itemcount = rs.getInt(1);
+            }
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException sqle) {
+                }
+            }
+
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException sqle) {
                 }
             }
         }
 
+        return itemcount;
+    }
 
-        String sql = "SELECT workflowitem.* FROM workflowitem, item, " + insql + " WHERE workflowitem.item_id = its.item_id" + (reviewInd ? (submitinstatus > 0 ? (" AND item.submitter_id=" + submitinstatus) : "") + " AND workflowitem.owner>0" : " AND workflowitem.owner=" + own) + " AND its.item_id=item.item_id \n" +
+    public static WorkspaceItem[] findAllSubmission(Context c, int offset, int limit) throws SQLException {
+        List<WorkspaceItem> wsItems = new ArrayList<WorkspaceItem>();
+
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append("SELECT * FROM (\n")
+                .append(fillSqlSubmission(c))
+                .append(") t ORDER BY workspace_item_id");
+
+        // Add offset and limit restrictions - Oracle requires special code
+        if ("oracle".equals(ConfigurationManager.getProperty("db.name"))) {
+            // First prepare the query to generate row numbers
+            if (limit > 0 || offset > 0) {
+                queryBuf.insert(0, "SELECT /*+ FIRST_ROWS(n) */ rec.*, ROWNUM rnum  FROM (");
+                queryBuf.append(") ");
+            }
+
+            // Restrict the number of rows returned based on the limit
+            if (limit > 0) {
+                queryBuf.append("rec WHERE rownum<=? ");
+                // If we also have an offset, then convert the limit into the maximum row number
+                if (offset > 0) {
+                    limit += offset;
+                }
+            }
+
+            // Return only the records after the specified offset (row number)
+            if (offset > 0) {
+                queryBuf.insert(0, "SELECT * FROM (");
+                queryBuf.append(") WHERE rnum>?");
+            }
+        } else {
+            if (limit > 0) {
+                queryBuf.append(" LIMIT ? ");
+            }
+
+            if (offset > 0) {
+                queryBuf.append(" OFFSET ? ");
+            }
+        }
+
+        // Create the parameter array, including limit and offset if part of the query
+        Object[] paramArr = new Object[]{};
+        if (limit > 0 && offset > 0) {
+            paramArr = new Object[]{limit, offset};
+        } else if (limit > 0) {
+            paramArr = new Object[]{limit};
+        } else if (offset > 0) {
+            paramArr = new Object[]{offset};
+        }
+
+        TableRowIterator tri = DatabaseManager.query(c, queryBuf.toString(), paramArr);
+
+        try {
+            // make a list of workflow items
+            while (tri.hasNext()) {
+                TableRow row = tri.next();
+                WorkspaceItem wi = new WorkspaceItem(c, row);
+                wsItems.add(wi);
+            }
+        } finally {
+            if (tri != null) {
+                tri.close();
+            }
+        }
+
+        return wsItems.toArray(new WorkspaceItem[wsItems.size()]);
+    }
+
+    private static String fillSqlSubmission(Context c) {
+        int epid = 0;
+        EPerson ep = c.getCurrentUser();
+        if (ep != null) {
+            epid = ep.getID();
+        }
+
+        String sql = "SELECT workspaceitem.* FROM workspaceitem, item " +
+                "       WHERE workspaceitem.item_id=item.item_id " +
+                "       AND item.submitter_id= "+epid+" \n" +
                 "UNION\n" +
-                "SELECT workflowitem.* FROM workflowitem, item, taskListItem, " + insql + " WHERE workflowitem.item_id = its.item_id" + (poolInd ? submitinstatus > 0 ? (" AND item.submitter_id=" + submitinstatus) : "" : " AND tasklistitem.eperson_id=" + pool) + " AND tasklistitem.workflow_id=workflowitem.workflow_id AND its.item_id=item.item_id \n" +
-                "UNION\n" +
-                "SELECT workflowitem.* FROM workflowitem, item, " + insql + " WHERE workflowitem.item_id=its.item_id AND item.submitter_id=" + submit + " AND its.item_id=item.item_id \n";
+                "SELECT DISTINCT workspaceitem.* FROM workspaceitem, epersongroup2workspaceitem, epersongroup2eperson " +
+                "       WHERE workspaceitem.workspace_item_id = epersongroup2workspaceitem.workspace_item_id " +
+                "       AND epersongroup2workspaceitem.eperson_group_id = epersongroup2eperson.eperson_group_id " +
+                "       AND epersongroup2eperson.eperson_id= "+epid+" \n";
         return sql;
     }
 

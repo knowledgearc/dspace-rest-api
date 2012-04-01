@@ -8,7 +8,6 @@
 package org.dspace.rest.entities;
 
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.rest.content.ContentHelper;
@@ -27,8 +26,10 @@ import java.util.Map;
 public class WorkflowEntity {
 
     private int id;
+    private int state;
     private Object item;
     private Object reviewer;
+    private Object collection;
 
     public WorkflowEntity() {
     }
@@ -41,10 +42,12 @@ public class WorkflowEntity {
 //            AuthorizeManager.authorizeAction(context, item, Constants.READ);
 
             this.id = res.getID();
+            this.state = res.getState();
             this.item = new ItemEntityTrim(res.getItem());
             if (res.getOwner() != null) {
                 this.reviewer = new UserEntityTrim(res.getOwner());
             }
+            this.collection = new CollectionEntityTrimC(res.getCollection());
 //            context.complete();
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
@@ -57,14 +60,16 @@ public class WorkflowEntity {
 
     public WorkflowEntity(WorkflowItem res) {
         try {
-            Item item = res.getItem();
+//            Item item = res.getItem();
 //            AuthorizeManager.authorizeAction(context, item, Constants.READ);
 
             this.id = res.getID();
+            this.state = res.getState();
             this.item = new ItemEntityTrim(res.getItem());
             if (res.getOwner() != null) {
                 this.reviewer = new UserEntityTrim(res.getOwner());
             }
+            this.collection = new CollectionEntityTrimC(res.getCollection());
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
 //        } catch (AuthorizeException ex) {
@@ -158,12 +163,20 @@ public class WorkflowEntity {
         return id;
     }
 
+    public int getState() {
+        return state;
+    }
+
     public Object getItem() {
         return item;
     }
 
     public Object getReviewer() {
         return reviewer;
+    }
+
+    public Object getCollection() {
+        return collection;
     }
 
     @Override

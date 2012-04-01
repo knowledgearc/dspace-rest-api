@@ -38,8 +38,11 @@ public class ItemEntity extends ItemEntityTrim {
         boolean collections = uparams.getCollections();
         boolean trim = uparams.getTrim();
 
-        this.collection = collections ? trim ? new CollectionEntityTrimC(res.getOwningCollection()) : new CollectionEntityC(res.getOwningCollection())
-                : new CollectionEntityId(res.getOwningCollection());
+        Collection collection = res.getOwningCollection();
+        if (collection != null) {
+        this.collection = collections ? trim ? new CollectionEntityTrimC(collection) : new CollectionEntityC(collection)
+                : new CollectionEntityId(collection);
+        }
     }
 
     public ItemEntity(Item item, UserRequestParams uparams) throws SQLException {
@@ -48,8 +51,11 @@ public class ItemEntity extends ItemEntityTrim {
         boolean collections = uparams.getCollections();
         boolean trim = uparams.getTrim();
 
-        this.collection = collections ? trim ? new CollectionEntityTrimC(item.getOwningCollection()) : new CollectionEntityC(item.getOwningCollection())
-                : new CollectionEntityId(item.getOwningCollection());
+        Collection collection = item.getOwningCollection();
+        if (collection != null) {
+            this.collection = collections ? trim ? new CollectionEntityTrimC(collection) : new CollectionEntityC(collection)
+                    : new CollectionEntityId(collection);
+        }
     }
 
     public Object getMetadataFields(EntityReference ref, UserRequestParams uparams, Context context) {

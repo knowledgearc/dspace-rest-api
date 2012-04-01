@@ -443,9 +443,9 @@ public class EntityEncodingManager {
                         || Formats.FORM.equals(format)) {
                     sb.append("<h1>"+ref.getPrefix() + COLLECTION + "</h1>\n");
                 } else if (Formats.JSON.equals(format)) {
-                    sb.append("workflows".equals(ref.getPrefix())?"":("{\"" + ref.getPrefix() + "\": [\n"));
+                    sb.append(("workflows".equals(ref.getPrefix())||"submissions".equals(ref.getPrefix()))?"":("{\"" + ref.getPrefix() + "\": [\n"));
                 } else if (Formats.XML.equals(format)) {
-                    sb.append("workflows".equals(ref.getPrefix())?"":"<" + ref.getPrefix() + ">\n");
+                    sb.append(("workflows".equals(ref.getPrefix())||"submissions".equals(ref.getPrefix()))?"":"<" + ref.getPrefix() + ">\n");
                 } else { // general case
                     sb.append(ref.getPrefix() + COLLECTION + "\n");
                 }
@@ -475,9 +475,9 @@ public class EntityEncodingManager {
                         || Formats.FORM.equals(format)) {
                     sb.append("\n<b>Collection size:</b> "+encodedEntities+"\n");
                 } else if (Formats.JSON.equals(format)) {
-                    sb.append("workflows".equals(ref.getPrefix())?"":"\n]}");
+                    sb.append(("workflows".equals(ref.getPrefix())||"submissions".equals(ref.getPrefix()))?"":"\n]}");
                 } else if (Formats.XML.equals(format)) {
-                    sb.append("workflows".equals(ref.getPrefix())?"":"</"+ ref.getPrefix() + ">");
+                    sb.append(("workflows".equals(ref.getPrefix())||"submissions".equals(ref.getPrefix()))?"":"</"+ ref.getPrefix() + ">");
                 } else { // general case
                     sb.append("\nSize: " + encodedEntities + "\n");
                 }
