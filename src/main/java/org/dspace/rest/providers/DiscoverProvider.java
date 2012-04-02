@@ -22,7 +22,6 @@ import org.sakaiproject.entitybus.entityprovider.search.Search;
 import org.sakaiproject.entitybus.exception.EntityException;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +29,7 @@ public class DiscoverProvider extends AbstractBaseProvider implements CoreEntity
 
     private static Logger log = Logger.getLogger(DiscoverProvider.class);
 
-    public DiscoverProvider(EntityProviderManager entityProviderManager) throws SQLException {
+    public DiscoverProvider(EntityProviderManager entityProviderManager) {
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
     }
@@ -43,8 +42,8 @@ public class DiscoverProvider extends AbstractBaseProvider implements CoreEntity
         return true;
     }
 
-    public Object getEntity(EntityReference reference) {
-        log.info(userInfo() + "get_entity:" + reference.getId());
+    public Object getEntity(EntityReference ref) {
+        log.info(userInfo() + "get_entity:" + ref.getId());
         throw new EntityException("Not Acceptable", "The data is not available", 406);
     }
 

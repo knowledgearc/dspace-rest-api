@@ -15,7 +15,6 @@ import org.dspace.rest.entities.GroupEntity;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
-import org.sakaiproject.entitybus.entityprovider.capabilities.Createable;
 import org.sakaiproject.entitybus.entityprovider.capabilities.Deleteable;
 import org.sakaiproject.entitybus.entityprovider.capabilities.Updateable;
 import org.sakaiproject.entitybus.entityprovider.search.Search;
@@ -25,11 +24,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GroupProvider extends AbstractBaseProvider implements CoreEntityProvider, Createable, Updateable, Deleteable {
+public class GroupProvider extends AbstractBaseProvider implements CoreEntityProvider, Updateable, Deleteable {
 
     private static Logger log = Logger.getLogger(GroupProvider.class);
 
-    public GroupProvider(EntityProviderManager entityProviderManager) throws SQLException, NoSuchMethodException {
+    public GroupProvider(EntityProviderManager entityProviderManager) throws NoSuchMethodException {
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = GroupEntity.class;
@@ -55,7 +54,6 @@ public class GroupProvider extends AbstractBaseProvider implements CoreEntityPro
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
 
             Group comm = Group.find(context, Integer.parseInt(id));
@@ -69,32 +67,28 @@ public class GroupProvider extends AbstractBaseProvider implements CoreEntityPro
         }
     }
 
-    public Object getEntity(EntityReference reference) {
-        log.info(userInfo() + "get_group:" + reference.getId());
-        String segments[] = {};
-
-        if (reqStor.getStoredValue("pathInfo") != null) {
-            segments = reqStor.getStoredValue("pathInfo").toString().split("/");
-        }
+    public Object getEntity(EntityReference ref) {
+        log.info(userInfo() + "get_group:" + ref.getId());
+        String segments[] = getSegments();
 
         if (segments.length > 3) {
-            return super.getEntity(reference);
+            return super.getEntity(ref);
         }
 
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
-            if (entityExists(reference.getId())) {
-                return new GroupEntity(reference.getId(), context);
+
+            if (entityExists(ref.getId())) {
+                return new GroupEntity(ref.getId(), context);
             }
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } finally {
             removeConn(context);
         }
-        throw new IllegalArgumentException("Invalid id:" + reference.getId());
+        throw new IllegalArgumentException("Invalid id:" + ref.getId());
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
@@ -103,14 +97,14 @@ public class GroupProvider extends AbstractBaseProvider implements CoreEntityPro
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
-            List<Object> entities = new ArrayList<Object>();
 
+            List<Object> entities = new ArrayList<Object>();
             Group[] groups = Group.findAll(context, Group.NAME);
             for (Group g : groups) {
                 entities.add(new GroupEntity(g));
             }
+
             return entities;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);

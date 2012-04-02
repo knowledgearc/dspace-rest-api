@@ -23,9 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class WorkflowEntity {
+public class WorkflowEntity extends WorkflowEntityId {
 
-    private int id;
     private int state;
     private Object item;
     private Object reviewer;
@@ -35,35 +34,22 @@ public class WorkflowEntity {
     }
 
     public WorkflowEntity(String uid, Context context) {
+        super(uid, context);
         try {
-            WorkflowItem res = WorkflowItem.find(context, Integer.parseInt(uid));
-//            Item item = res.getItem();
-            // Check authorisation
-//            AuthorizeManager.authorizeAction(context, item, Constants.READ);
-
-            this.id = res.getID();
             this.state = res.getState();
             this.item = new ItemEntityTrim(res.getItem());
             if (res.getOwner() != null) {
                 this.reviewer = new UserEntityTrim(res.getOwner());
             }
             this.collection = new CollectionEntityTrimC(res.getCollection());
-//            context.complete();
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
-//        } catch (AuthorizeException ex) {
-//            throw new EntityException("Forbidden", "Forbidden", 403);
-        } catch (NumberFormatException ex) {
-            throw new EntityException("Bad request", "Could not parse input", 400);
         }
     }
 
     public WorkflowEntity(WorkflowItem res) {
+        super(res);
         try {
-//            Item item = res.getItem();
-//            AuthorizeManager.authorizeAction(context, item, Constants.READ);
-
-            this.id = res.getID();
             this.state = res.getState();
             this.item = new ItemEntityTrim(res.getItem());
             if (res.getOwner() != null) {
@@ -72,10 +58,22 @@ public class WorkflowEntity {
             this.collection = new CollectionEntityTrimC(res.getCollection());
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
-//        } catch (AuthorizeException ex) {
-//            throw new EntityException("Forbidden", "Forbidden", 403);
-        } catch (NumberFormatException ex) {
-            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
+    }
+
+    public Object getCount(EntityReference ref, UserRequestParams uparams, Context context) {
+        try {
+            return ContentHelper.countItemsWorkflow(context, uparams.getReviewer(), uparams.getSubmitter(), uparams.getFields(), uparams.getStatus());
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        }
+    }
+
+    public Object getSubmittersCount(EntityReference ref, UserRequestParams uparams, Context context) {
+        try {
+            return ContentHelper.countItemsSubmitters(context, uparams.getQuery());
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
         }
     }
 
@@ -87,8 +85,7 @@ public class WorkflowEntity {
             for (EPerson e : ePersons) {
                 entities.add(new UserEntityTrim(e));
             }
-            int count = ContentHelper.countItemsSubmitters(context, uparams.getQuery());
-            return new SubmittersEntity(count, entities);
+            return entities;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         }
@@ -159,10 +156,6 @@ public class WorkflowEntity {
         }
     }
 
-    public int getId() {
-        return id;
-    }
-
     public int getState() {
         return state;
     }
@@ -177,10 +170,5 @@ public class WorkflowEntity {
 
     public Object getCollection() {
         return collection;
-    }
-
-    @Override
-    public String toString() {
-        return "id:" + this.id;
     }
 }

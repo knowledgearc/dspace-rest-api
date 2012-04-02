@@ -7,13 +7,13 @@
  */
 package org.dspace.rest.providers;
 
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.Collection;
-import org.dspace.content.Community;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
-import org.dspace.rest.entities.CommunityEntity;
 import org.dspace.rest.util.UserRequestParams;
 import org.dspace.rest.util.UtilHelper;
 import org.sakaiproject.entitybus.EntityReference;
@@ -42,21 +42,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractBaseProvider implements EntityProvider, Resolvable, CollectionResolvable, InputTranslatable, RequestAware, Outputable, Describeable, ActionsExecutable, Redirectable, RequestStorable, RequestInterceptor {
+@SuppressWarnings("unchecked")
+public abstract class AbstractBaseProvider implements EntityProvider, Resolvable, CollectionResolvable, InputTranslatable, RequestAware, Outputable, ActionsExecutable, Redirectable, RequestStorable, RequestInterceptor{
 
     protected RequestStorage reqStor;
-    protected boolean idOnly, topLevelOnly, in_archive, immediateOnly, withdrawn;
     protected String user = "";
     protected String pass = "";
     protected String userc = "";
     protected String passc = "";
-    protected String format = "";
-    protected String query, _order, _sort, loggedUser, _sdate, _edate;
-    protected int _start, _page, _perpage, _limit, sort;
+    protected String query, _order, _sort, loggedUser;
+    protected int _start, _limit;
     protected List<Integer> sortOptions = new ArrayList<Integer>();
-    protected Collection _collection = null;
-    protected Community _community = null;
-    private static Logger log = Logger.getLogger(UserProvider.class);
+
+    private static Logger log = Logger.getLogger(AbstractBaseProvider.class);
     protected Map<String, String> func2actionMapGET = new HashMap<String, String>();
     protected Map<String, String> func2actionMapPUT = new HashMap<String, String>();
     protected Map<String, String> func2actionMapPOST = new HashMap<String, String>();
@@ -70,10 +68,12 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     protected Map<String, String> func2actionMapPUT_rev = new HashMap<String, String>();
     protected Map<String, String> func2actionMapPOST_rev = new HashMap<String, String>();
     protected Map<String, String> func2actionMapDELETE_rev = new HashMap<String, String>();
-    protected Class<?> processedEntity = CommunityEntity.class;
+    protected Class<?> processedEntity = null;
     protected Constructor<?> entityConstructor = null;
     protected RequestGetter requestGetter;
+    protected EntityProviderManager entityProviderManager;
 
+    protected String format = "";
     protected String[] fields;
     protected String status;
     protected String submitter, reviewer;
@@ -85,20 +85,14 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     protected boolean groups = false;
     protected boolean replies = false;
 
-    protected String action;
+//    protected String action;
 
-    public AbstractBaseProvider(EntityProviderManager entityProviderManager) throws SQLException {
+    public AbstractBaseProvider(EntityProviderManager entityProviderManager) {
         this.entityProviderManager = entityProviderManager;
-        try {
-            init();
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to register the provider (" + this + "): " + e, e);
-
-        } // get request info for later parsing of parameters
-        //this.reqStor = entityProviderManager.getRequestStorage();
+        entityProviderManager.registerEntityProvider(this);
     }
 
-    protected void initMappings(Class<?> processedEntity) throws NoSuchMethodException {
+    protected void initMappings(Class<?> processedEntity) {
         // scan for methods;
         Method[] entityMethods = processedEntity.getMethods();
         for (Method m : entityMethods) {
@@ -131,42 +125,21 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         this.reqStor = rStor;
     }
 
-    protected EntityProviderManager entityProviderManager;
-
-    public void init() throws Exception {
-        entityProviderManager.registerEntityProvider(this);
-
-
-    }
-
-    public void destroy() throws Exception {
+    public void destroy() {
         entityProviderManager.unregisterEntityProvider(this);
-
-
     }
 
     public String userInfo() {
         String ipaddr = "";
 
-
         try {
             ipaddr = this.entityProviderManager.getRequestGetter().getRequest().getRemoteAddr();
-
-
         } catch (NullPointerException ex) {
         }
         return "user:" + loggedUser + ":ip_addr=" + ipaddr + ":";
-
-
     }
 
     public String readIStoString(InputStream is) throws IOException {
-        /*
-         * To convert the InputStream to String we use the BufferedReader.readLine()
-         * method. We iterate until the BufferedReader return null which means
-         * there's no more data to read. Each line will appended to a StringBuilder
-         * and returned as String.
-         */
         if (is != null) {
             StringBuilder sb = new StringBuilder();
             String line;
@@ -186,51 +159,40 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     }
 
     public void before(EntityView view, HttpServletRequest req, HttpServletResponse res) {
+
         log.info(userInfo() + "starting to write for collection adding");
         try {
             if (req.getContentType().equals("application/json")) {
                 view.setExtension("json");
                 format = "json";
-
-
             } else if (req.getContentType().equals("application/xml")) {
                 view.setExtension("xml");
                 format = "xml";
-
+            } else if (req.getContentType().startsWith("multipart/form-data")) {
+                view.setExtension("stream");
+                format = "stream";
             } else {
                 view.setExtension("json");
                 format = "json";
-
-
             }
         } catch (Exception ex) {
             if (view.getFormat().equals("xml")) {
                 view.setExtension("xml");
                 format = "xml";
-
-
             } else {
                 view.setExtension("json");
                 format = "json";
-
             }
         }
 
-        /**
-         * Check user/login data in header and apply if present
-         */
         try {
             if (!(req.getHeader("user").isEmpty() && req.getHeader("pass").isEmpty())) {
                 userc = req.getHeader("user");
                 passc = req.getHeader("pass");
-
-
             }
         } catch (NullPointerException nu) {
             userc = "";
             passc = "";
-
-
         }
     }
 
@@ -241,9 +203,6 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
         UserRequestParams uparam = new UserRequestParams();
 
-        /**
-         * now check user login info and try to register
-         */
         try {
             user = reqStor.getStoredValue("user").toString();
         } catch (NullPointerException ex) {
@@ -256,7 +215,6 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             pass = "";
         }
 
-        // these are from header - have priority
         try {
             if (!(userc.isEmpty() && passc.isEmpty())) {
                 user = userc;
@@ -266,7 +224,6 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             ex.printStackTrace();
         } // now try to login user
         loggedUser = "anonymous";
-
 
         try {
             EPerson eUser = EPerson.findByEmail(context, user);
@@ -300,33 +257,12 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         this.replies = "true".equals(reqStor.getStoredValue("replies"));
         uparam.setReplies(this.replies);
 
-        try {
-            action = reqStor.getStoredValue("action").toString();
-            uparam.setAction(action);
-        } catch (NullPointerException ex) {
-            action = "";
-        }
-
-        try {
-            this.idOnly = reqStor.getStoredValue("idOnly").equals("true");
-            uparam.setIdOnly(true);
-        } catch (NullPointerException ex) {
-            idOnly = false;
-        }
-
-        try {
-            this.immediateOnly = reqStor.getStoredValue("immediateOnly").equals("false");
-            uparam.setImmediateOnly(false);
-        } catch (NullPointerException ex) {
-            immediateOnly = true;
-        }
-
-        try {
-            this.topLevelOnly = !(reqStor.getStoredValue("topLevelOnly").equals("false"));
-            uparam.setTopLevelOnly(false);
-        } catch (NullPointerException ex) {
-            topLevelOnly = true;
-        }
+//        try {
+//            action = reqStor.getStoredValue("action").toString();
+//            uparam.setAction(action);
+//        } catch (NullPointerException ex) {
+//            action = "";
+//        }
 
         try {
             query = reqStor.getStoredValue("query").toString();
@@ -344,41 +280,34 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             } else if (o == null) {
                 fields = null;
             }
+            uparam.setFields(fields);
         } catch (NullPointerException ex) {
             fields = null;
         }
 
         try {
             status = reqStor.getStoredValue("status").toString();
+            uparam.setStatus(status);
         } catch (NullPointerException ex) {
             status = "";
         }
 
         try {
             submitter = reqStor.getStoredValue("submitter").toString();
+            uparam.setSubmitter(submitter);
         } catch (NullPointerException ex) {
             submitter = "";
         }
 
         try {
             reviewer = reqStor.getStoredValue("reviewer").toString();
+            uparam.setReviewer(reviewer);
         } catch (NullPointerException ex) {
             reviewer = "";
         }
 
-
         try {
-            in_archive = reqStor.getStoredValue("in_archive").toString().equalsIgnoreCase("true");
-            uparam.setInArchive(true);
-        } catch (NullPointerException ex) {
-            in_archive = false;
-
-        }
-        /**
-         * these are fields based on RoR conventions
-         */
-        try {
-            _order = reqStor.getStoredValue("_order").toString();
+            _order = reqStor.getStoredValue("order").toString();
             uparam.setOrder(_order);
         } catch (NullPointerException ex) {
             _order = "";
@@ -404,70 +333,15 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         }
 
         try {
-            _page = Integer.parseInt(reqStor.getStoredValue("_page").toString());
-            uparam.setPage(_page);
-        } catch (NullPointerException ex) {
-            _page = 0;
-        }
-
-        try {
-            _perpage = Integer.parseInt(reqStor.getStoredValue("_perpage").toString());
-            uparam.setPerPage(_perpage);
-        } catch (NullPointerException ex) {
-            _perpage = 0;
-        }
-
-        try {
             _limit = Integer.parseInt(reqStor.getStoredValue("limit").toString());
             uparam.setLimit(_limit);
         } catch (NullPointerException ex) {
             _limit = 0;
         } // some checking for invalid values
 
-        if (_page < 0) {
-            _page = 0;
-        }
-        if (_perpage < 0) {
-            _perpage = 0;
-        }
         if (_limit < 0) {
             _limit = 0;
         }
-
-
-        try {
-            _sdate = reqStor.getStoredValue("startdate").toString();
-            uparam.setSDate(_sdate);
-        } catch (NullPointerException ex) {
-            _sdate = null;
-        }
-
-        try {
-            _edate = reqStor.getStoredValue("enddate").toString();
-            uparam.setEDate(_edate);
-        } catch (NullPointerException ex) {
-            _edate = null;
-        }
-
-        try {
-            withdrawn = reqStor.getStoredValue("withdrawn").toString().equalsIgnoreCase("true");
-            uparam.setWithdrawn(withdrawn);
-        } catch (NullPointerException ex) {
-            withdrawn = false;
-        }
-
-        try {
-            String detail = reqStor.getStoredValue("detail").toString();
-            if (detail.equals("minimum")) {
-                uparam.setDetail(UtilHelper.DEPTH_MINIMAL);
-            } else if (detail.equals("standard")) {
-                uparam.setDetail(UtilHelper.DEPTH_STANDARD);
-            } else if (detail.equals("extended")) {
-                uparam.setDetail(UtilHelper.DEPTH_EXTENDED);
-            }
-        } catch (NullPointerException ex) {
-        }
-
 
         // defining sort fields and values
         _sort = _sort.toLowerCase();
@@ -503,122 +377,48 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             }
         }
 
-        int intcommunity = 0;
-
-
-        int intcollection = 0;
-
-        // integer values used in some parts
-
-
-        try {
-            intcommunity = Integer.parseInt(reqStor.getStoredValue("community").toString());
-        } catch (NullPointerException nul) {
-        }
-
-        try {
-            _community = Community.find(context, intcommunity);
-
-
-        } catch (NullPointerException nul) {
-        } catch (SQLException sql) {
-        }
-
-        try {
-            intcollection = Integer.parseInt(reqStor.getStoredValue("collection").toString());
-
-
-        } catch (NullPointerException nul) {
-        }
-
-        try {
-            _collection = Collection.find(context, intcollection);
-
-
-        } catch (NullPointerException nul) {
-        } catch (SQLException sql) {
-        }
-
-        if ((intcommunity > 0) && (intcollection > 0)) {
-            throw new EntityException("Bad request", "Community and collection selected", 400);
-
-
-        }
-
-        if ((intcommunity > 0) && (_community == null)) {
-            throw new EntityException("Bad request", "Unknown community", 400);
-
-
-        }
-
-        if ((intcollection > 0) && (_collection == null)) {
-            throw new EntityException("Bad request", "Unknown collection", 400);
-
-
-        }
-
         return uparam;
     }
 
     public String[] getHandledInputFormats() {
-        return new String[]{Formats.HTML, Formats.XML, Formats.JSON};
+        return new String[]{Formats.HTML, Formats.XML, Formats.JSON, "stream"};
     }
 
     public Object translateFormattedData(EntityReference ref, String format, InputStream input, Map<String, Object> params) {
         String IS = "";
-        try {
-            IS = readIStoString(input);
-            System.out.println("is+= " + IS);
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        if (format.equals("xml") || format.equals("json")) {
+            try {
+                IS = readIStoString(input);
+//                System.out.println("is+= " + IS);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }    
         }
-        Map<String, Object> decodedInput;
+        
+        Map<String, Object> decodedInput = null;
         EntityEncodingManager em = new EntityEncodingManager(null, null);
         if (format.equals("xml")) {
             decodedInput = em.decodeData(IS, Formats.XML);
-        } else {
+        } else if (format.equals("json")) {
             decodedInput = em.decodeData(IS, Formats.JSON);
+        } else if (format.equals("stream")) {
+            try {
+                ServletFileUpload upload = new ServletFileUpload();
+                FileItemIterator iter = upload.getItemIterator(requestGetter.getRequest());
+                while (iter.hasNext()) {
+                    FileItemStream item = iter.next();
+                    return item.openStream();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-
 
         System.out.println("== translate formated data called");
         System.out.println("got: \n" + IS + "\ndecoded " + decodedInput);
         return decodedInput;
     }
 
-    /**
-     * Remove items from list in order to display only requested items
-     * (according to _start, _limit etc.)
-     *
-     * @param entities
-     */
-    public void removeTrailing(List<?> entities) {
-        if ((_start > 0) && (_start < entities.size())) {
-            for (int x = 0; x
-                    < _start; x++) {
-                entities.remove(x);
-
-
-            }
-        }
-        if (_perpage > 0) {
-            entities.subList(0, _page * _perpage).clear();
-
-
-        }
-        if ((_limit > 0) && entities.size() > _limit) {
-            entities.subList(_limit, entities.size()).clear();
-
-
-        }
-    }
-
-    /**
-     * Complete connection in order to lower load of sql server
-     * this way it goes faster and prevents droppings with higher load
-     *
-     * @param context
-     */
     public void removeConn(Context context) {
         // close connection to prevent connection problems
         try {
@@ -636,7 +436,6 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
     public String[] getHandledOutputFormats() {
         return new String[]{Formats.JSON, Formats.XML, Formats.FORM, Formats.ATOM};
-
     }
 
     public void addParameters(String function, Class<?>[] parameters, Map<String, Class<?>[]> mappings_parameters) {
@@ -651,12 +450,27 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         return mappings_rev.get(field);
     }
 
-    public Object getEntity(EntityReference ref) {
+    public String[] getSegments() {
+        return getSegments(null);
+    }
+
+    public String[] getSegments(Map<String, Object> params) {
         String segments[] = {};
 
-        if (reqStor.getStoredValue("pathInfo") != null) {
-            segments = reqStor.getStoredValue("pathInfo").toString().split("/");
+        if (params != null) {
+            if (params.containsKey("pathInfo")) {
+                segments = params.get("pathInfo").toString().split("/");
+            }
+        } else {
+            if (reqStor.getStoredValue("pathInfo") != null) {
+                segments = reqStor.getStoredValue("pathInfo").toString().split("/");
+            }
         }
+        return segments;
+    }
+
+    public Object getEntity(EntityReference ref) {
+        String segments[] = getSegments();
 
         if (segments[segments.length - 1].startsWith("count")) {
             return getEntity(ref, segments[segments.length - 2] + "count");
@@ -674,6 +488,9 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         if (func2actionMapGET_rev.containsKey(action)) {
             Object result;
             String function = getMethod(action, func2actionMapGET_rev);
+            if (function == null) {
+                throw new EntityException("Bad request", "Method not supported - not defined", 400);
+            }
 
             Context context = null;
             try {
@@ -682,9 +499,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
                 Object CE = entityConstructor.newInstance();
                 Method method = CE.getClass().getMethod(function, funcParamsGET.get(action));
-
                 result = method.invoke(CE, ref, uparams, context);
-
             } catch (NoSuchMethodException ex) {
                 throw new EntityException("Not found", "Method not supported ", 404);
             } catch (SQLException ex) {
@@ -700,7 +515,6 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             } finally {
                 removeConn(context);
             }
-
             return result;
         } else {
             throw new EntityException("Bad request", "Method not supported " + action, 400);
@@ -708,14 +522,9 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     }
 
     public void deleteEntity(EntityReference ref, Map<String, Object> params) {
-        String segments[] = {};
+        String segments[] = getSegments(params);
         String action = "";
         Map<String, Object> inputVar = new HashMap<String, Object>();
-
-        if (reqStor.getStoredValue("pathInfo") != null) {
-            segments = reqStor.getStoredValue("pathInfo").toString().split("/");
-        }
-
 
         for (int x = 0; x < segments.length; x++) {
             switch (x) {
@@ -757,7 +566,6 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             Context context = null;
             try {
                 context = new Context();
-
                 refreshParams(context);
 
                 Object CE = entityConstructor.newInstance();
@@ -783,30 +591,27 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         }
     }
 
-    @SuppressWarnings("unchecked")
     public void updateEntity(EntityReference ref, Object entity, Map<String, Object> params) {
         Map<String, Object> inputVar = (HashMap<String, Object>) entity;
-        String segments[] = {};
-        if (params.containsKey("pathInfo")) {
-            segments = params.get("pathInfo").toString().split("/");
-        }
+        String segments[] = getSegments(params);
 
-        String action;
+        String action = "";
         if (segments.length > 3) {
             action = segments[3];
             if (action.lastIndexOf(".") > 0) {
-                action = segments[3].substring(0, segments[3].lastIndexOf("."));
+                action = action.substring(0, action.lastIndexOf("."));
             }
-        } else {
-            action = "";
         }
 
         if (func2actionMapPUT_rev.containsKey(action)) {
             String function = getMethod(action, func2actionMapPUT_rev);
+            if (function == null) {
+                throw new EntityException("Bad request", "Method not supported - not defined", 400);
+            }
+
             Context context = null;
             try {
                 context = new Context();
-
                 refreshParams(context);
 
                 Object CE = entityConstructor.newInstance();
@@ -832,32 +637,30 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         }
     }
 
-    @SuppressWarnings("unchecked")
     public String createEntity(EntityReference ref, Object entity, Map<String, Object> params) {
         String result;
-        Map<String, Object> inputVar = (HashMap<String, Object>) entity;
+        Map<String, Object> inputVar = new HashMap<String, Object>();
+        if(entity instanceof Map){
+            inputVar = (HashMap<String, Object>) entity;
+        }
 
         String function;
         String[] mandatory_params;
 
-        String action = (String) inputVar.get("action");
-        if (action == null) {
-            String segments[] = {};
-            if (params.containsKey("pathInfo")) {
-                segments = params.get("pathInfo").toString().split("/");
-            }
-            if (segments.length > 2) {
-                action = segments[segments.length - 1];
-                if (action.lastIndexOf(".") > 0) {
-                    action = action.substring(0, action.lastIndexOf("."));
-                }
-            } else {
-                action = "";
+        String action = "";
+        String segments[] = getSegments(params);
+        if (segments.length > 2) {
+            action = segments[segments.length - 1];
+            if (action.lastIndexOf(".") > 0) {
+                action = action.substring(0, action.lastIndexOf("."));
             }
         }
 
         if (func2actionMapPOST_rev.containsKey(action)) {
             function = func2actionMapPOST_rev.get(action);
+            if (function == null) {
+                throw new EntityException("Bad request", "Method not supported - not defined", 400);
+            }
             mandatory_params = inputParamsPOST.get(function);
             if (mandatory_params != null) {
                 for (String param : mandatory_params) {
@@ -874,8 +677,11 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
                 Object CE = entityConstructor.newInstance();
                 Method method = CE.getClass().getMethod(function, funcParamsPOST.get(action));
-                result = (String) method.invoke(CE, ref, inputVar, context);
-
+                if(entity instanceof Map){
+                    result = (String) method.invoke(CE, ref, inputVar, context);
+                }else {
+                    result = (String) method.invoke(CE, ref, entity, context);
+                }
             } catch (NoSuchMethodException ex) {
                 throw new EntityException("Not found", "Method not supported ", 404);
             } catch (SQLException ex) {
@@ -891,12 +697,9 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             } finally {
                 removeConn(context);
             }
-
             return result;
-
         } else {
             throw new EntityException("Bad request", "Method not supported " + action, 400);
         }
-
     }
 }

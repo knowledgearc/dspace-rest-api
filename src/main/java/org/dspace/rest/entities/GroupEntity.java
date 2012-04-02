@@ -31,7 +31,7 @@ public class GroupEntity extends GroupEntityTrim {
     public GroupEntity() {
     }
 
-    public GroupEntity(String uid, Context context) throws SQLException {
+    public GroupEntity(String uid, Context context) {
         super(uid, context);
         for (EPerson member : res.getMembers()) {
             users.add(new UserEntityTrim(member));
@@ -206,8 +206,7 @@ public class GroupEntity extends GroupEntityTrim {
 
     public void removeGroup(EntityReference ref, Map<String, Object> inputVar, Context context) {
         try {
-            int id = Integer.parseInt(ref.getId());
-            Group group = Group.find(context, id);
+            Group group = Group.find(context, Integer.parseInt(ref.getId()));
             AuthorizeManager.authorizeAction(context, group, Constants.WRITE);
             if ((group != null)) {
                 int eid = Integer.parseInt((String) inputVar.get("eid"));
@@ -228,8 +227,7 @@ public class GroupEntity extends GroupEntityTrim {
 
     public void removeUser(EntityReference ref, Map<String, Object> inputVar, Context context) {
         try {
-            int id = Integer.parseInt(ref.getId());
-            Group group = Group.find(context, id);
+            Group group = Group.find(context, Integer.parseInt(ref.getId()));
             AuthorizeManager.authorizeAction(context, group, Constants.WRITE);
             if ((group != null)) {
                 int eid = Integer.parseInt((String) inputVar.get("eid"));

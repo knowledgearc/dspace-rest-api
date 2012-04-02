@@ -7,30 +7,28 @@
  */
 package org.dspace.rest.entities;
 
-import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Context;
-import org.dspace.rest.content.ContentHelper;
-import org.dspace.rest.util.UserRequestParams;
-import org.sakaiproject.entitybus.EntityReference;
+import org.dspace.workflow.WorkflowItem;
 import org.sakaiproject.entitybus.exception.EntityException;
 
 import java.sql.SQLException;
 
-public class SubmissionEntity {
+public class WorkflowEntityId {
 
-    private Object item;
-    private Object collection;
+    private int id;
+    protected WorkflowItem res;
 
-    public SubmissionEntity() {
+    public WorkflowEntityId() {
     }
 
-    public SubmissionEntity(WorkspaceItem res) {
+    public WorkflowEntityId(String uid, Context context) {
         try {
+            res = WorkflowItem.find(context, Integer.parseInt(uid));
 //            Item item = res.getItem();
+            // Check authorisation
 //            AuthorizeManager.authorizeAction(context, item, Constants.READ);
 
-            this.item = new ItemEntityTrim(res.getItem());
-            this.collection = new CollectionEntityTrimC(res.getCollection());
+            this.id = res.getID();
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
 //        } catch (AuthorizeException ex) {
@@ -40,19 +38,16 @@ public class SubmissionEntity {
         }
     }
 
-    public Object getCount(EntityReference ref, UserRequestParams uparams, Context context) {
-        try {
-            return ContentHelper.countItemsSubmission(context);
-        } catch (SQLException ex) {
-            throw new EntityException("Internal server error", "SQL error", 500);
-        }
+    public WorkflowEntityId(WorkflowItem res) {
+        this.id = res.getID();
     }
 
-    public Object getItem() {
-        return item;
+    public int getId() {
+        return id;
     }
 
-    public Object getCollection() {
-        return collection;
+    @Override
+    public String toString() {
+        return "id:" + this.id;
     }
 }

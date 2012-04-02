@@ -43,7 +43,7 @@ public class CommentEntityId {
         }
     }
 
-    public CommentEntityId(Comment comment) throws SQLException {
+    public CommentEntityId(Comment comment) {
         this.id = comment.getID();
     }
 

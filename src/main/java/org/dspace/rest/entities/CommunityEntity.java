@@ -21,6 +21,7 @@ import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired
 import org.sakaiproject.entitybus.exception.EntityException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Map;
 
@@ -132,8 +133,7 @@ public class CommunityEntity extends CommunityEntityTrim {
 
     public void removeCommunity(EntityReference ref, Map<String, Object> inputVar, Context context) {
         try {
-            int id = Integer.parseInt(ref.getId());
-            Community com = Community.find(context, id);
+            Community com = Community.find(context, Integer.parseInt(ref.getId()));
             if ((com != null)) {
                 com.delete();
             }
@@ -173,8 +173,7 @@ public class CommunityEntity extends CommunityEntityTrim {
 
     public void removeAdministrators(EntityReference ref, Map<String, Object> inputVar, Context context) {
         try {
-            int id = Integer.parseInt(ref.getId());
-            Community com = Community.find(context, id);
+            Community com = Community.find(context, Integer.parseInt(ref.getId()));
             if ((com != null)) {
                 com.removeAdministrators();
                 com.update();
@@ -208,6 +207,46 @@ public class CommunityEntity extends CommunityEntityTrim {
             throw new EntityException("Bad request", "Could not parse input", 400);
         }
         return new GroupEntityTrim();
+    }
+
+    public String createLogo(EntityReference ref, Object inputVar, Context context) {
+
+        try {
+            Community com = Community.find(context, Integer.parseInt(ref.getId()));
+            if (com != null) {
+                Bitstream bitstream = com.setLogo((InputStream) inputVar);
+                com.update();
+                return String.valueOf(bitstream.getID());
+            } else {
+                throw new EntityException("Not found", "Entity not found", 404);
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ex) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (IOException ie) {
+            throw new EntityException("Internal server error", "SQL error, cannot create logo", 500);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
+    }
+
+    public void removeLogo(EntityReference ref, Map<String, Object> inputVar, Context context) {
+        try {
+            Community com = Community.find(context, Integer.parseInt(ref.getId()));
+            if ((com != null)) {
+                com.setLogo(null);
+                com.update();
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ae) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (IOException ie) {
+            throw new EntityException("Internal server error", "SQL error, cannot remove logo", 500);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
     }
 
     public Object getLogo(EntityReference ref, UserRequestParams uparams, Context context) {

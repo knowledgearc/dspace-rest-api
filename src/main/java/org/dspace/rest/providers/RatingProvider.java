@@ -27,13 +27,12 @@ public class RatingProvider extends AbstractBaseProvider implements CoreEntityPr
 
     private static Logger log = Logger.getLogger(RatingProvider.class);
 
-    public RatingProvider(EntityProviderManager entityProviderManager) throws SQLException, NoSuchMethodException {
+    public RatingProvider(EntityProviderManager entityProviderManager) throws NoSuchMethodException {
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = RatingEntity.class;
         func2actionMapPOST.put("create", "");
         inputParamsPOST.put("create", new String[]{"itemId", "rating"});
-
         entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
     }
@@ -48,7 +47,6 @@ public class RatingProvider extends AbstractBaseProvider implements CoreEntityPr
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
 
             Rating comm = Rating.find(context, Integer.parseInt(id));
@@ -62,32 +60,28 @@ public class RatingProvider extends AbstractBaseProvider implements CoreEntityPr
         }
     }
 
-    public Object getEntity(EntityReference reference) {
-        log.info(userInfo() + "get_rating:" + reference.getId());
-        String segments[] = {};
-
-        if (reqStor.getStoredValue("pathInfo") != null) {
-            segments = reqStor.getStoredValue("pathInfo").toString().split("/");
-        }
+    public Object getEntity(EntityReference ref) {
+        log.info(userInfo() + "get_rating:" + ref.getId());
+        String segments[] = getSegments();
 
         if (segments.length > 3) {
-            return super.getEntity(reference);
+            return super.getEntity(ref);
         }
 
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
-            if (entityExists(reference.getId())) {
-                return new RatingEntity(reference.getId(), context);
+
+            if (entityExists(ref.getId())) {
+                return new RatingEntity(ref.getId(), context);
             }
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } finally {
             removeConn(context);
         }
-        throw new IllegalArgumentException("Invalid id:" + reference.getId());
+        throw new IllegalArgumentException("Invalid id:" + ref.getId());
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
@@ -96,10 +90,9 @@ public class RatingProvider extends AbstractBaseProvider implements CoreEntityPr
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
-            List<Object> entities = new ArrayList<Object>();
 
+            List<Object> entities = new ArrayList<Object>();
             Rating[] ratings = Rating.findAll(context);
             for (Rating rating : ratings) {
                 entities.add(new RatingEntity(rating));

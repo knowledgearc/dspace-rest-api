@@ -32,7 +32,7 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
 
     private static Logger log = Logger.getLogger(UserProvider.class);
 
-    public UserProvider(EntityProviderManager entityProviderManager) throws SQLException, NoSuchMethodException {
+    public UserProvider(EntityProviderManager entityProviderManager) throws NoSuchMethodException {
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = UserEntity.class;
@@ -55,13 +55,15 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
     public boolean entityExists(String id) {
         log.info(userInfo() + "user_exists:" + id);
 
-        if ("authenticate".equals(id) || "count".equals(id)) {
+        try {
+            Integer.parseInt(id);
+        } catch (NumberFormatException ex) {
             return true;
         }
+
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
 
             int uid;
@@ -85,34 +87,34 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
         }
     }
 
-    public Object getEntity(EntityReference reference) {
-        log.info(userInfo() + "get_user:" + reference.getId());
-        String segments[] = {};
-
-        if (reqStor.getStoredValue("pathInfo") != null) {
-            segments = reqStor.getStoredValue("pathInfo").toString().split("/");
-        }
+    public Object getEntity(EntityReference ref) {
+        log.info(userInfo() + "get_user:" + ref.getId());
+        String segments[] = getSegments();
 
         if (segments.length > 3) {
-            return super.getEntity(reference);
-        } else if ("count".equals(reference.getId())) {
-            return super.getEntity(reference, "count");
+            return super.getEntity(ref);
+        } else {
+            try{
+                Integer.parseInt(ref.getId());
+            } catch (NumberFormatException ex) {
+                return super.getEntity(ref, ref.getId());
+            }
         }
 
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
-            if (entityExists(reference.getId())) {
-                return new UserEntity(reference.getId(), context);
+
+            if (entityExists(ref.getId())) {
+                return new UserEntity(ref.getId(), context);
             }
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } finally {
             removeConn(context);
         }
-        throw new IllegalArgumentException("Invalid id:" + reference.getId());
+        throw new IllegalArgumentException("Invalid id:" + ref.getId());
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
@@ -121,8 +123,8 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
         Context context = null;
         try {
             context = new Context();
-
             UserRequestParams uparams = refreshParams(context);
+
             List<Object> entities = new ArrayList<Object>();
             EPerson[] ePersons = ContentHelper.findAllEPerson(context, _start, _limit);
             for (EPerson c : ePersons) {

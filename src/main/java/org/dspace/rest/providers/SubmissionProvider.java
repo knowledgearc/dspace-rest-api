@@ -13,7 +13,6 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Context;
 import org.dspace.rest.content.ContentHelper;
 import org.dspace.rest.entities.SubmissionEntity;
-import org.dspace.rest.entities.SubmissionsEntity;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
@@ -28,10 +27,11 @@ public class SubmissionProvider extends AbstractBaseProvider implements CoreEnti
 
     private static Logger log = Logger.getLogger(SubmissionProvider.class);
 
-    public SubmissionProvider(EntityProviderManager entityProviderManager) throws SQLException, NoSuchMethodException {
+    public SubmissionProvider(EntityProviderManager entityProviderManager) throws NoSuchMethodException {
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = SubmissionEntity.class;
+        func2actionMapGET.put("getCount", "count");
         entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
     }
@@ -44,8 +44,14 @@ public class SubmissionProvider extends AbstractBaseProvider implements CoreEnti
         return true;
     }
 
-    public Object getEntity(EntityReference reference) {
-        return null;
+    public Object getEntity(EntityReference ref) {
+        log.info(userInfo() + "get_submission:" + ref.getId());
+        try {
+            Integer.parseInt(ref.getId());
+        } catch (NumberFormatException ex) {
+            return super.getEntity(ref, ref.getId());
+        }
+        throw new EntityException("Not Acceptable", "The data is not available", 406);
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
@@ -54,10 +60,7 @@ public class SubmissionProvider extends AbstractBaseProvider implements CoreEnti
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
-
-            List<Object> results = new ArrayList<Object>();
 
             List<Object> entities = new ArrayList<Object>();
             WorkspaceItem[] workspaceItems = ContentHelper.findAllSubmission(context, _start, _limit);
@@ -65,10 +68,7 @@ public class SubmissionProvider extends AbstractBaseProvider implements CoreEnti
                 entities.add(new SubmissionEntity(workspaceItem));
             }
 
-            int count = ContentHelper.countItemsSubmission(context);
-            results.add(new SubmissionsEntity(count, entities));
-
-            return results;
+            return entities;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } finally {

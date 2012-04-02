@@ -22,12 +22,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Vector;
 
-/**
- * Main class, here is started and initialized servlet, providers registered
- *
- * @author Bojan Suzic, bojan.suzic@gmail.com
- *         Based on Aaron Zeckoski's SakaiProject.EntityBus
- */
 public class DS16DirectServlet extends DirectServlet {
 
     private static final long serialVersionUID = 2L;
@@ -35,12 +29,6 @@ public class DS16DirectServlet extends DirectServlet {
     private transient EntityBrokerRESTServiceManager entityRESTServiceManager;
     private transient List<AbstractBaseProvider> entityProviders;
 
-    /**
-     * Starts up all the entity providers, new providers should be added
-     * to the list
-     *
-     * @param entityProviderManager the provider manager
-     */
     protected void startProviders(EntityProviderManager entityProviderManager) throws java.sql.SQLException, NoSuchMethodException {
         String config = getServletContext().getInitParameter("dspace-config");
 

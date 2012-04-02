@@ -61,7 +61,7 @@ public class UserEntity extends UserEntityTrim {
         }
     }
 
-    public List<Object> groups(EntityReference ref, UserRequestParams uparams, Context context) throws SQLException {
+    public List<Object> groups(EntityReference ref, UserRequestParams uparams, Context context) {
 
         try {
             Integer id = Integer.parseInt(ref.getId());
@@ -95,7 +95,7 @@ public class UserEntity extends UserEntityTrim {
         boolean selfRegistered = "true".equals(inputVar.get("selfRegistered"));
 
         try {
-            if (EPerson.findByEmail(context, email) == null) {
+            if (EPerson.findByEmail(context, email) == null && EPerson.findByNetid(context, netId) == null) {
                 EPerson ePerson = EPerson.create(context);
                 if (ePerson != null) {
                     result = String.valueOf(ePerson.getID());
@@ -179,8 +179,7 @@ public class UserEntity extends UserEntityTrim {
 
     public void remove(EntityReference ref, Map<String, Object> inputVar, Context context) {
         try {
-            int id = Integer.parseInt(ref.getId());
-            EPerson ePerson = EPerson.find(context, id);
+            EPerson ePerson = EPerson.find(context, Integer.parseInt(ref.getId()));
             if ((ePerson != null)) {
                 ePerson.delete();
             }

@@ -31,7 +31,7 @@ public class CollectionsProvider extends AbstractBaseProvider implements CoreEnt
 
     private static Logger log = Logger.getLogger(UserProvider.class);
 
-    public CollectionsProvider(EntityProviderManager entityProviderManager) throws SQLException, NoSuchMethodException {
+    public CollectionsProvider(EntityProviderManager entityProviderManager) throws NoSuchMethodException {
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = CollectionEntity.class;
@@ -47,15 +47,16 @@ public class CollectionsProvider extends AbstractBaseProvider implements CoreEnt
         func2actionMapGET.put("getLogo", "logo");
         func2actionMapPOST.put("createCollection", "");
         inputParamsPOST.put("createCollection", new String[]{"name", "communityId"});
-//        func2actionMapPOST.put("createRoles", "roles");
         func2actionMapPOST.put("createAdmin", "admin");
         func2actionMapPOST.put("createSubmit", "submit");
         func2actionMapPOST.put("createWFStep1", "workflow_step_1");
         func2actionMapPOST.put("createWFStep2", "workflow_step_2");
         func2actionMapPOST.put("createWFStep3", "workflow_step_3");
+        func2actionMapPOST.put("createLogo", "logo");
         func2actionMapPUT.put("editCollection", "");
         func2actionMapDELETE.put("removeCollection", "");
         func2actionMapDELETE.put("removeRoles", "roles");
+        func2actionMapDELETE.put("removeLogo", "logo");
         entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
     }
@@ -67,58 +68,57 @@ public class CollectionsProvider extends AbstractBaseProvider implements CoreEnt
     public boolean entityExists(String id) {
         log.info(userInfo() + "collection_exists:" + id);
 
-        if ("count".equals(id)) {
+        try {
+            Integer.parseInt(id);
+        } catch (NumberFormatException ex) {
             return true;
         }
 
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
 
             Collection comm = Collection.find(context, Integer.parseInt(id));
             return comm != null ? true : false;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
-        } catch (NumberFormatException ex) {
-            throw new EntityException("Bad request", "Could not parse input", 400);
         } finally {
             removeConn(context);
         }
     }
 
-    public Object getEntity(EntityReference reference) {
-        log.info(userInfo() + "get_collection:" + reference.getId());
-        String segments[] = {};
-
-        if (reqStor.getStoredValue("pathInfo") != null) {
-            segments = reqStor.getStoredValue("pathInfo").toString().split("/");
-        }
+    public Object getEntity(EntityReference ref) {
+        log.info(userInfo() + "get_collection:" + ref.getId());
+        String segments[] = getSegments();
 
         if (segments.length > 3) {
             if (segments[3].startsWith("roles")) {
-                return super.getEntity(reference, segments[segments.length - 1]);
+                return super.getEntity(ref, segments[segments.length - 1]);
             }
-            return super.getEntity(reference);
-        } else if ("count".equals(reference.getId())) {
-            return super.getEntity(reference, "count");
+            return super.getEntity(ref);
+        } else {
+            try {
+                Integer.parseInt(ref.getId());
+            } catch (NumberFormatException ex) {
+                return super.getEntity(ref, ref.getId());
+            }
         }
 
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
-            if (entityExists(reference.getId())) {
-                return new CollectionEntity(reference.getId(), context);
+
+            if (entityExists(ref.getId())) {
+                return new CollectionEntity(ref.getId(), context);
             }
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } finally {
             removeConn(context);
         }
-        throw new IllegalArgumentException("Invalid id:" + reference.getId());
+        throw new IllegalArgumentException("Invalid id:" + ref.getId());
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
@@ -127,10 +127,9 @@ public class CollectionsProvider extends AbstractBaseProvider implements CoreEnt
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
-            List<Object> entities = new ArrayList<Object>();
 
+            List<Object> entities = new ArrayList<Object>();
             Collection[] collections = ContentHelper.findAllCollection(context, _start, _limit);
             for (Collection c : collections) {
                 entities.add(trim ? new CollectionEntityTrim(c) : new CollectionEntity(c));

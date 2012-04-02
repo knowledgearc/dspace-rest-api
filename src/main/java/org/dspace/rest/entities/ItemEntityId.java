@@ -46,7 +46,7 @@ public class ItemEntityId {
         }
     }
 
-    public ItemEntityId(Item item) throws SQLException {
+    public ItemEntityId(Item item) {
         this.id = item.getID();
     }
 

@@ -11,7 +11,6 @@ package org.dspace.rest.providers;
 import org.apache.log4j.Logger;
 import org.dspace.core.Context;
 import org.dspace.rest.content.ContentHelper;
-import org.dspace.rest.entities.PoolEntity;
 import org.dspace.rest.entities.WorkflowEntity;
 import org.dspace.workflow.WorkflowItem;
 import org.sakaiproject.entitybus.EntityReference;
@@ -29,10 +28,12 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
 
     private static Logger log = Logger.getLogger(WorkflowProvider.class);
 
-    public WorkflowProvider(EntityProviderManager entityProviderManager) throws SQLException, NoSuchMethodException {
+    public WorkflowProvider(EntityProviderManager entityProviderManager) throws NoSuchMethodException {
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = WorkflowEntity.class;
+        func2actionMapGET.put("getCount", "count");
+        func2actionMapGET.put("getSubmittersCount", "submitterscount");
         func2actionMapGET.put("getSubmitters", "submitters");
         func2actionMapPUT.put("accept", "accept");
         func2actionMapPUT.put("approve", "approve");
@@ -49,54 +50,54 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
     public boolean entityExists(String id) {
         log.info(userInfo() + "workflow_exists:" + id);
 
-        if ("submitters".equals(id)) {
+        try {
+            Integer.parseInt(id);
+        } catch (NumberFormatException ex) {
             return true;
         }
+
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
 
             WorkflowItem comm = WorkflowItem.find(context, Integer.parseInt(id));
             return comm != null ? true : false;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
-        } catch (NumberFormatException ex) {
-            throw new EntityException("Bad request", "Could not parse input", 400);
         } finally {
             removeConn(context);
         }
     }
 
-    public Object getEntity(EntityReference reference) {
-        log.info(userInfo() + "get_workflow:" + reference.getId());
-        String segments[] = {};
-
-        if (reqStor.getStoredValue("pathInfo") != null) {
-            segments = reqStor.getStoredValue("pathInfo").toString().split("/");
-        }
+    public Object getEntity(EntityReference ref) {
+        log.info(userInfo() + "get_workflow:" + ref.getId());
+        String segments[] = getSegments();
 
         if (segments.length > 3) {
-            return super.getEntity(reference);
-        } else if ("submitters".equals(reference.getId())) {
-            return super.getEntity(reference, "submitters");
+            return super.getEntity(ref);
+        } else {
+            try {
+                Integer.parseInt(ref.getId());
+            } catch (NumberFormatException ex) {
+                return super.getEntity(ref, ref.getId());
+            }
         }
 
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
-            if (entityExists(reference.getId())) {
-                return new WorkflowEntity(reference.getId(), context);
+
+            if (entityExists(ref.getId())) {
+                return new WorkflowEntity(ref.getId(), context);
             }
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } finally {
             removeConn(context);
         }
-        throw new IllegalArgumentException("Invalid id:" + reference.getId());
+        throw new IllegalArgumentException("Invalid id:" + ref.getId());
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
@@ -105,10 +106,7 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
-
-            List<Object> results = new ArrayList<Object>();
 
             List<Object> entities = new ArrayList<Object>();
             WorkflowItem[] workflowItems = ContentHelper.findAllWorkflow(context, reviewer, submitter, fields, status, _start, _limit);
@@ -116,10 +114,7 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
                 entities.add(new WorkflowEntity(wfi));
             }
 
-            int count = ContentHelper.countItemsWorkflow(context, reviewer, submitter, fields, status);
-            results.add(new PoolEntity(count, entities));
-
-            return results;
+            return entities;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } finally {

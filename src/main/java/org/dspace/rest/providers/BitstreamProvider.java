@@ -34,13 +34,12 @@ public class BitstreamProvider extends AbstractBaseProvider implements CoreEntit
 
     private static Logger log = Logger.getLogger(BitstreamProvider.class);
 
-    public BitstreamProvider(EntityProviderManager entityProviderManager) throws SQLException, NoSuchMethodException {
+    public BitstreamProvider(EntityProviderManager entityProviderManager) throws NoSuchMethodException {
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = BitstreamEntity.class;
         entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
-
     }
 
     public String getEntityPrefix() {
@@ -53,7 +52,6 @@ public class BitstreamProvider extends AbstractBaseProvider implements CoreEntit
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
 
             Bitstream bst = Bitstream.find(context, Integer.parseInt(reference.getId()));
@@ -97,7 +95,6 @@ public class BitstreamProvider extends AbstractBaseProvider implements CoreEntit
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
 
             Bitstream comm = Bitstream.find(context, Integer.parseInt(id));
@@ -111,32 +108,28 @@ public class BitstreamProvider extends AbstractBaseProvider implements CoreEntit
         }
     }
 
-    public Object getEntity(EntityReference reference) {
-        log.info(userInfo() + "get_bitstream:" + reference.getId());
-        String segments[] = {};
-
-        if (reqStor.getStoredValue("pathInfo") != null) {
-            segments = reqStor.getStoredValue("pathInfo").toString().split("/");
-        }
+    public Object getEntity(EntityReference ref) {
+        log.info(userInfo() + "get_bitstream:" + ref.getId());
+        String segments[] = getSegments();
 
         if (segments.length > 3) {
-            return super.getEntity(reference);
+            return super.getEntity(ref);
         }
 
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
-            if (entityExists(reference.getId())) {
-                return new BitstreamEntity(reference.getId(), context);
+
+            if (entityExists(ref.getId())) {
+                return new BitstreamEntity(ref.getId(), context);
             }
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } finally {
             removeConn(context);
         }
-        throw new IllegalArgumentException("Invalid id:" + reference.getId());
+        throw new IllegalArgumentException("Invalid id:" + ref.getId());
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {

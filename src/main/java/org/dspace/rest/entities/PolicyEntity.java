@@ -68,6 +68,6 @@ public class PolicyEntity {
 
     @Override
     public String toString() {
-        return "id:" + this.id + ", stuff.....";
+        return "id:" + this.id;
     }
 }

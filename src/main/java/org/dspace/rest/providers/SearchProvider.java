@@ -12,7 +12,6 @@ import org.apache.log4j.Logger;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.rest.entities.SearchResultsInfoEntity;
-import org.dspace.rest.util.GenComparator;
 import org.dspace.rest.util.UserRequestParams;
 import org.dspace.search.DSQuery;
 import org.dspace.search.QueryArgs;
@@ -27,26 +26,13 @@ import org.sakaiproject.entitybus.exception.EntityException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-/**
- * Enables users to search through items according to different criteria
- *
- * @author Bojan Suzic, bojan.suzic@gmail.com
- * @see SearchResultsInfoEntity
- */
 public class SearchProvider extends AbstractBaseProvider implements CoreEntityProvider {
 
     private static Logger log = Logger.getLogger(UserProvider.class);
 
-    /**
-     * Handles provider for search accross items
-     *
-     * @param entityProviderManager
-     * @throws java.sql.SQLException
-     */
-    public SearchProvider(EntityProviderManager entityProviderManager) throws SQLException {
+    public SearchProvider(EntityProviderManager entityProviderManager) {
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
     }
@@ -85,9 +71,9 @@ public class SearchProvider extends AbstractBaseProvider implements CoreEntityPr
             QueryArgs arg = new QueryArgs();
             arg.setQuery(query);
 
-            if (_perpage > 0) {
-                arg.setPageSize(_perpage);
-            }
+//            if (_perpage > 0) {
+//                arg.setPageSize(_perpage);
+//            }
             arg.setStart(_start);
 
             if ((_order.equalsIgnoreCase("descending")) || (_order.equalsIgnoreCase("desc"))) {
@@ -102,13 +88,13 @@ public class SearchProvider extends AbstractBaseProvider implements CoreEntityPr
              * search can be performed only on community or collection selected
              * or all, not on the both in same time; check this requirement
              */
-            if (_community != null) {
-                qre = DSQuery.doQuery(context, arg, _community);
-            } else if (_collection != null) {
-                qre = DSQuery.doQuery(context, arg, _collection);
-            } else {
+//            if (_community != null) {
+//                qre = DSQuery.doQuery(context, arg, _community);
+//            } else if (_collection != null) {
+//                qre = DSQuery.doQuery(context, arg, _collection);
+//            } else {
                 qre = DSQuery.doQuery(context, arg);
-            }
+//            }
             entities.add(new SearchResultsInfoEntity(qre.getHitCount(), qre.getHitTypes(), qre.getHitHandles(), qre.getHitIds()));
 
             /**
@@ -161,9 +147,9 @@ public class SearchProvider extends AbstractBaseProvider implements CoreEntityPr
          * if the full info are requested and there are sorting requirements
          * process entities through sorting filter first
          */
-        if (!idOnly && sortOptions.size() > 0) {
-            Collections.sort(entities, new GenComparator(sortOptions));
-        }
+//        if (!idOnly && sortOptions.size() > 0) {
+//            Collections.sort(entities, new GenComparator(sortOptions));
+//        }
 
         /**
          * process entities according to _limit, _perpage etc

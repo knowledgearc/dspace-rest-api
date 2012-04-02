@@ -13,14 +13,6 @@ import org.sakaiproject.entitybus.entityprovider.EntityProvider;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
 import org.sakaiproject.entitybus.entityprovider.extension.RequestStorage;
 
-/**
- * Makes it easier to write {@link EntityProvider}s in webapps <br/>
- * A class to extend that gets rid of some of the redundant code that has
- * to be written over and over, causes this provider to be registered when it
- * is created and unregistered when it is destroyed
- *
- * @author Aaron Zeckoski (aaron@caret.cam.ac.uk)
- */
 public abstract class AbstractRESTProvider implements EntityProvider {
     protected Context context;
     protected RequestStorage reqStor;
@@ -55,5 +47,4 @@ public abstract class AbstractRESTProvider implements EntityProvider {
     public void destroy() throws Exception {
         entityProviderManager.unregisterEntityProvider(this);
     }
-
 }

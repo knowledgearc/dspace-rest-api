@@ -27,21 +27,19 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CommentsProvider extends AbstractBaseProvider implements CoreEntityProvider, Updateable, Createable, Deleteable {
+public class CommentsProvider extends AbstractBaseProvider implements CoreEntityProvider, Createable, Updateable, Deleteable {
 
     private static Logger log = Logger.getLogger(CommentsProvider.class);
 
-    public CommentsProvider(EntityProviderManager entityProviderManager) throws SQLException, NoSuchMethodException {
+    public CommentsProvider(EntityProviderManager entityProviderManager) throws NoSuchMethodException {
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = CommentEntity.class;
-
         func2actionMapPOST.put("create", "");
         inputParamsPOST.put("create", new String[]{"itemId", "subject", "body"});
         func2actionMapPUT.put("edit", "");
         func2actionMapPUT.put("approve", "approve");
         func2actionMapDELETE.put("remove", "");
-
         entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
     }
@@ -56,7 +54,6 @@ public class CommentsProvider extends AbstractBaseProvider implements CoreEntity
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
 
             Comment comm = Comment.find(context, Integer.parseInt(id));
@@ -70,33 +67,28 @@ public class CommentsProvider extends AbstractBaseProvider implements CoreEntity
         }
     }
 
-    public Object getEntity(EntityReference reference) {
-        log.info(userInfo() + "get_comment:" + reference.getId());
-        String segments[] = {};
-
-        if (reqStor.getStoredValue("pathInfo") != null) {
-            segments = reqStor.getStoredValue("pathInfo").toString().split("/");
-        }
+    public Object getEntity(EntityReference ref) {
+        log.info(userInfo() + "get_comment:" + ref.getId());
+        String segments[] = getSegments();
 
         if (segments.length > 3) {
-            return super.getEntity(reference);
+            return super.getEntity(ref);
         }
 
         Context context = null;
         try {
             context = new Context();
-
             UserRequestParams uparams = refreshParams(context);
             boolean replies = uparams.getReplies();
-            if (entityExists(reference.getId())) {
-                return replies ? new CommentEntity(reference.getId(), context) : new CommentEntityTrim(reference.getId(), context);
+            if (entityExists(ref.getId())) {
+                return replies ? new CommentEntity(ref.getId(), context) : new CommentEntityTrim(ref.getId(), context);
             }
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } finally {
             removeConn(context);
         }
-        throw new IllegalArgumentException("Invalid id:" + reference.getId());
+        throw new IllegalArgumentException("Invalid id:" + ref.getId());
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
@@ -105,10 +97,9 @@ public class CommentsProvider extends AbstractBaseProvider implements CoreEntity
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
-            List<Object> entities = new ArrayList<Object>();
 
+            List<Object> entities = new ArrayList<Object>();
             Comment[] comments = Comment.findAllTop(context);
             for (Comment comment : comments) {
                 entities.add(new CommentEntity(comment));

@@ -27,11 +27,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemsProvider extends AbstractBaseProvider implements CoreEntityProvider, Updateable, Createable, Deleteable {
+public class ItemsProvider extends AbstractBaseProvider implements CoreEntityProvider, Createable, Updateable, Deleteable {
 
     private static Logger log = Logger.getLogger(ItemsProvider.class);
 
-    public ItemsProvider(EntityProviderManager entityProviderManager) throws SQLException, NoSuchMethodException {
+    public ItemsProvider(EntityProviderManager entityProviderManager) throws NoSuchMethodException {
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = ItemEntity.class;
@@ -44,7 +44,6 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
         inputParamsPOST.put("createMetadata", new String[]{"id", "value"});
         func2actionMapPUT.put("editMetadata", "metadata");
         func2actionMapDELETE.put("removeMetadata", "metadata");
-
         entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
     }
@@ -56,55 +55,54 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
     public boolean entityExists(String id) {
         log.info(userInfo() + "item_exists:" + id);
 
-        if ("metadatafields".equals(id)) {
+        try {
+            Integer.parseInt(id);
+        } catch (NumberFormatException ex) {
             return true;
         }
 
         Context context = null;
         try {
             context = new Context();
-
             refreshParams(context);
 
             Item comm = Item.find(context, Integer.parseInt(id));
             return comm != null ? true : false;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
-        } catch (NumberFormatException ex) {
-            throw new EntityException("Bad request", "Could not parse input", 400);
         } finally {
             removeConn(context);
         }
     }
 
-    public Object getEntity(EntityReference reference) {
-        log.info(userInfo() + "get_item:" + reference.getId());
-        String segments[] = {};
-
-        if (reqStor.getStoredValue("pathInfo") != null) {
-            segments = reqStor.getStoredValue("pathInfo").toString().split("/");
-        }
+    public Object getEntity(EntityReference ref) {
+        log.info(userInfo() + "get_item:" + ref.getId());
+        String segments[] = getSegments();
 
         if (segments.length > 3) {
-            return super.getEntity(reference);
-        }else if ("metadatafields".equals(reference.getId())) {
-            return super.getEntity(reference, "metadatafields");
+            return super.getEntity(ref);
+        } else {
+            try {
+                Integer.parseInt(ref.getId());
+            } catch (NumberFormatException ex) {
+                return super.getEntity(ref, ref.getId());
+            }
         }
 
         Context context = null;
         try {
             context = new Context();
-
             UserRequestParams uparams = refreshParams(context);
-            if (entityExists(reference.getId())) {
-                return new ItemEntity(reference.getId(), context, uparams);
+
+            if (entityExists(ref.getId())) {
+                return new ItemEntity(ref.getId(), context, uparams);
             }
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);
         } finally {
             removeConn(context);
         }
-        throw new IllegalArgumentException("Invalid id:" + reference.getId());
+        throw new IllegalArgumentException("Invalid id:" + ref.getId());
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
@@ -113,10 +111,9 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
         Context context = null;
         try {
             context = new Context();
-
             UserRequestParams uparams = refreshParams(context);
-            List<Object> entities = new ArrayList<Object>();
 
+            List<Object> entities = new ArrayList<Object>();
             ItemIterator items = Item.findAll(context);
             while (items.hasNext()) {
                 entities.add(new ItemEntity(items.next(), uparams));

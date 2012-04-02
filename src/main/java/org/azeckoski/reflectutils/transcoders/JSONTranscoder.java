@@ -98,7 +98,7 @@ public class JSONTranscoder implements Transcoder {
         this.includeClassField = includeClassField;
     }
 
-    private int maxLevel = 7;
+    private int maxLevel = 20;
     /**
      * @param maxLevel the number of objects to follow when traveling through the object,
      * 0 means only the fields in the initial object, default is 7

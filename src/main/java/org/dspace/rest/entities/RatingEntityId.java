@@ -43,7 +43,7 @@ public class RatingEntityId {
         }
     }
 
-    public RatingEntityId(Rating rating) throws SQLException {
+    public RatingEntityId(Rating rating) {
         this.id = rating.getID();
     }
 

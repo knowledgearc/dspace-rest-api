@@ -9,21 +9,17 @@
 package org.dspace.rest.entities;
 
 import org.dspace.content.DCValue;
-import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 
 import java.sql.SQLException;
 
 public class MetadataEntity extends MetadataEntityId {
-
-    @EntityFieldRequired
-    private String name;
 
     private String element;
     private String qualifier;
     private String schema;
     private String value;
 
-    public MetadataEntity(DCValue dcValue) throws SQLException {
+    public MetadataEntity(DCValue dcValue) {
         super(dcValue);
         this.element = dcValue.element;
         this.qualifier = dcValue.qualifier;
