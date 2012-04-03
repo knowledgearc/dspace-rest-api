@@ -59,8 +59,8 @@ public class DiscoverProvider extends AbstractBaseProvider implements CoreEntity
 
             log.info("DiscoverProvider search.getRestrictions().length - " + search.getRestrictions().length);
             log.info("DiscoverProvider format - " + format);
+            List<NameValuePair> nameValuePairsList = new ArrayList<NameValuePair>();
             if (search.getRestrictions().length > 0) {
-                List<NameValuePair> nameValuePairsList = new ArrayList<NameValuePair>();
                 for (int i = 0; i < search.getRestrictions().length; i++) {
                     log.info("DiscoverProvider search.getRestrictions()[i].getProperty() - " + search.getRestrictions()[i].getProperty());
                     log.info("DiscoverProvider search.getRestrictions()[i].getStringValue() - " + search.getRestrictions()[i].getStringValue());
@@ -71,10 +71,18 @@ public class DiscoverProvider extends AbstractBaseProvider implements CoreEntity
                 if ("json".equals(format)) {
                     nameValuePairsList.add(new NameValuePair("wt", "json"));
                 }
-                NameValuePair[] nameValuePairs = new NameValuePair[nameValuePairsList.size()];
-                nameValuePairsList.toArray(nameValuePairs);
-                method.setQueryString(nameValuePairs);
             }
+
+            if (search.getOrders().length > 0) {
+                for (int i = 0; i < search.getOrders().length; i++) {
+                    log.info("DiscoverProvider search.getOrders()[i].getProperty() - " + search.getOrders()[i].getProperty());
+                    nameValuePairsList.add(new NameValuePair("sort", search.getOrders()[i].getProperty()));
+                }
+            }
+
+            NameValuePair[] nameValuePairs = new NameValuePair[nameValuePairsList.size()];
+            nameValuePairsList.toArray(nameValuePairs);
+            method.setQueryString(nameValuePairs);
 
             client.executeMethod(method);
             String s = method.getResponseBodyAsString();
