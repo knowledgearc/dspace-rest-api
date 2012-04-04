@@ -45,6 +45,7 @@ public class CollectionsProvider extends AbstractBaseProvider implements CoreEnt
         func2actionMapGET.put("getWFStep2", "workflow_step_2");
         func2actionMapGET.put("getWFStep3", "workflow_step_3");
         func2actionMapGET.put("getLogo", "logo");
+        func2actionMapGET.put("getPolicies", "policies");
         func2actionMapPOST.put("createCollection", "");
         inputParamsPOST.put("createCollection", new String[]{"name", "communityId"});
         func2actionMapPOST.put("createAdmin", "admin");
@@ -53,10 +54,12 @@ public class CollectionsProvider extends AbstractBaseProvider implements CoreEnt
         func2actionMapPOST.put("createWFStep2", "workflow_step_2");
         func2actionMapPOST.put("createWFStep3", "workflow_step_3");
         func2actionMapPOST.put("createLogo", "logo");
+        func2actionMapPOST.put("createPolicies", "policies");
         func2actionMapPUT.put("editCollection", "");
         func2actionMapDELETE.put("removeCollection", "");
         func2actionMapDELETE.put("removeRoles", "roles");
         func2actionMapDELETE.put("removeLogo", "logo");
+        func2actionMapDELETE.put("removePolicies", "policies");
         entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
     }

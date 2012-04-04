@@ -10,10 +10,12 @@ package org.dspace.rest.entities;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Community;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.rest.util.UserRequestParams;
 import org.sakaiproject.entitybus.EntityReference;
@@ -23,6 +25,8 @@ import org.sakaiproject.entitybus.exception.EntityException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class CommunityEntity extends CommunityEntityTrim {
@@ -266,6 +270,89 @@ public class CommunityEntity extends CommunityEntityTrim {
             throw new EntityException("Bad request", "Could not parse input", 400);
         }
         return new BitstreamEntityId();
+    }
+
+    public String createPolicies(EntityReference ref, Map<String, Object> inputVar, Context context) {
+
+        try {
+            Community com = Community.find(context, Integer.parseInt(ref.getId()));
+            AuthorizeManager.authorizeAction(context, com, Constants.WRITE);
+            int actionId = Constants.getActionID((String) inputVar.get("action"));
+            String userId = (String) inputVar.get("userId");
+            String groupId = (String) inputVar.get("groupId");
+
+            if (com != null && actionId != -1) {
+                ResourcePolicy policy = ResourcePolicy.create(context);
+                policy.setResource(com);
+                policy.setAction(actionId);
+                EPerson user;
+                if (!"".equals(userId)) {
+                    try {
+                        user = EPerson.find(context, Integer.parseInt(userId));
+                        policy.setEPerson(user);
+                    } catch (NumberFormatException ex) {
+                    }
+                }
+                Group group;
+                if (!"".equals(groupId)) {
+                    try {
+                        group = Group.find(context, Integer.parseInt(groupId));
+                        policy.setGroup(group);
+                    } catch (NumberFormatException ex) {
+                    }
+                }
+                policy.update();
+                return String.valueOf(policy.getID());
+            } else {
+                throw new EntityException("Not found", "Entity not found", 404);
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ex) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
+    }
+
+    public void removePolicies(EntityReference ref, Map<String, Object> inputVar, Context context) {
+        try {
+            Community com = Community.find(context, Integer.parseInt(ref.getId()));
+            AuthorizeManager.authorizeAction(context, com, Constants.WRITE);
+            if ((com != null)) {
+                int eid = Integer.parseInt((String) inputVar.get("eid"));
+                ResourcePolicy policy = ResourcePolicy.find(context, eid);
+                if (policy != null) {
+                    policy.delete();
+                }
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ae) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
+    }
+
+    public Object getPolicies(EntityReference ref, UserRequestParams uparams, Context context) {
+        try {
+            Community res = Community.find(context, Integer.parseInt(ref.getId()));
+//            AuthorizeManager.authorizeAction(context, res, Constants.READ);
+            List<Object> entities = new ArrayList<Object>();
+
+            List<ResourcePolicy> policies = AuthorizeManager.getPolicies(context, res);
+            for (ResourcePolicy policy : policies) {
+                entities.add(new PolicyEntity(policy));
+            }
+            return entities;
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+//        } catch (AuthorizeException ex) {
+//            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
     }
 
     public String getShortDescription() {
