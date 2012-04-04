@@ -109,7 +109,7 @@ public class WorkflowProvider extends AbstractBaseProvider implements CoreEntity
             refreshParams(context);
 
             List<Object> entities = new ArrayList<Object>();
-            WorkflowItem[] workflowItems = ContentHelper.findAllWorkflow(context, reviewer, submitter, fields, status, _start, _limit);
+            WorkflowItem[] workflowItems = ContentHelper.findAllWorkflow(context, reviewer, submitter, fields, status, _start, _limit, _sort.replaceAll("_", " "));
             for (WorkflowItem wfi : workflowItems) {
                 entities.add(new WorkflowEntity(wfi));
             }

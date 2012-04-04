@@ -172,12 +172,12 @@ public class ContentHelper {
         return itemcount;
     }
 
-    public static EPerson[] findAllSubmitters(Context context, String query, int offset, int limit, String orderby) throws SQLException {
+    public static EPerson[] findAllSubmitters(Context context, String query, int offset, int limit, String sort) throws SQLException {
 
         String params = "%" + query.toLowerCase() + "%";
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append("SELECT DISTINCT eperson.email em, eperson.* FROM workflowitem, item, eperson WHERE workflowitem.item_id = item.item_id AND item.submitter_id = eperson.eperson_id AND ");
-        queryBuf.append("(LOWER(firstname) LIKE LOWER(?) OR LOWER(lastname) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?)) " + (!"".equals(orderby) ? "ORDER BY " + orderby : ""));
+        queryBuf.append("(LOWER(firstname) LIKE LOWER(?) OR LOWER(lastname) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?)) " + (!"".equals(sort) ? "ORDER BY " + sort : ""));
 
         // Add offset and limit restrictions - Oracle requires special code
         if ("oracle".equals(ConfigurationManager.getProperty("db.name"))) {
@@ -476,7 +476,7 @@ public class ContentHelper {
 
         try {
             String query = "SELECT COUNT(*) FROM (\n" +
-                    fillSqlWorkflow(c, reviewerStr, submitterStr, fields, status) +
+                    fillSqlWorkflow(c, reviewerStr, submitterStr, fields, status, "") +
                     ") t";
 
             statement = c.getDBConnection().prepareStatement(query);
@@ -506,13 +506,13 @@ public class ContentHelper {
     }
 
     public static WorkflowItem[] findAllWorkflow(Context c, String reviewerStr, String submitterStr, String[] fields,
-                                                 String status, int offset, int limit) throws SQLException {
+                                                 String status, int offset, int limit, String sort) throws SQLException {
         List<WorkflowItem> wfItems = new ArrayList<WorkflowItem>();
 
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append("SELECT * FROM (\n")
-                .append(fillSqlWorkflow(c, reviewerStr, submitterStr, fields, status))
-                .append(") t ORDER BY workflow_id");
+                .append(fillSqlWorkflow(c, reviewerStr, submitterStr, fields, status, sort))
+                .append(") t");
 
         // Add offset and limit restrictions - Oracle requires special code
         if ("oracle".equals(ConfigurationManager.getProperty("db.name"))) {
@@ -574,7 +574,7 @@ public class ContentHelper {
         return wfItems.toArray(new WorkflowItem[wfItems.size()]);
     }
 
-    private static String fillSqlWorkflow(Context c, String reviewerStr, String submitterStr, String[] fields, String status) {
+    private static String fillSqlWorkflow(Context c, String reviewerStr, String submitterStr, String[] fields, String status, String sort) {
         int epid = 0;
         EPerson ep = c.getCurrentUser();
         if (ep != null) {
@@ -591,6 +591,9 @@ public class ContentHelper {
             poolInd = true;
         } else if ("review".equals(status)) {
             reviewInd = true;
+        } else if ("own".equals(status)) {
+            reviewInd = true;
+            reviewer = epid;
         }
 
         String insql;
@@ -629,11 +632,17 @@ public class ContentHelper {
             insql = "item its";
         }
 
-        String sql = "SELECT workflowitem.* FROM workflowitem, item, " + insql + " WHERE workflowitem.item_id = its.item_id AND its.item_id=item.item_id"
+        String sql = "SELECT workflowitem.* FROM workflowitem, item, eperson, "
+                        + " (SELECT mv.item_id, "+("oracle".equals(ConfigurationManager.getProperty("db.name"))?"TO_CHAR":"") +"(mv.text_value) title "
+                        + " FROM metadataschemaregistry msr, metadatafieldregistry mfr, metadatavalue mv"
+                        + " WHERE msr.metadata_schema_id = mfr.metadata_schema_id AND mfr.metadata_field_id = mv.metadata_field_id"
+                        + " AND msr.short_id = 'dc' AND  mfr.element = 'title') mvts, "
+                        + insql + " WHERE workflowitem.item_id = its.item_id AND its.item_id=item.item_id AND item.submitter_id = eperson.eperson_id AND mvts.item_id = item.item_id"
                         + (reviewInd ? (reviewer>0 ? " AND workflowitem.owner=" + reviewer : " AND workflowitem.owner>0") : "")
                         + (poolInd ? " AND workflowitem.owner is NULL" : "")
                         + (submitter>0 ? " AND item.submitter_id="+submitter : "")
-                        + (epid>0 ? "" : " AND item.submitter_id=0");
+                        + (epid>0 ? "" : " AND item.submitter_id=0")
+                        + (!"".equals(sort) ? " ORDER BY " + sort : "");
         return sql;
     }
 
