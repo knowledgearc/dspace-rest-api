@@ -11,7 +11,6 @@ import org.apache.log4j.Logger;
 import org.dspace.app.statistics.ReportGenerator;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
-import org.dspace.rest.entities.CollectionEntity;
 import org.dspace.rest.entities.StatReport;
 import org.dspace.rest.entities.StatsEntity;
 import org.sakaiproject.entitybus.EntityReference;
@@ -27,15 +26,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Provides interface for access to basic statistic data
- *
- * @author Bojan Suzic, bojan.suzic@gmail.com
- * @see StatsEntity
- */
 public class StatsProvider extends AbstractBaseProvider implements CoreEntityProvider {
 
-    private static Logger log = Logger.getLogger(UserProvider.class);
+    private static Logger log = Logger.getLogger(StatsProvider.class);
     private Pattern analysisMonthlyPattern = Pattern.compile("dspace-log-monthly-([0-9][0-9][0-9][0-9]-[0-9]+)\\.dat");
     private Pattern analysisGeneralPattern = Pattern.compile("dspace-log-general-([0-9]+-[0-9]+-[0-9]+)\\.dat");
 
@@ -48,12 +41,6 @@ public class StatsProvider extends AbstractBaseProvider implements CoreEntityPro
         return "stats";
     }
 
-    /**
-     * By default in this provider there is no particular entity
-     *
-     * @param id
-     * @return
-     */
     public boolean entityExists(String id) {
         log.info(userInfo() + "entity_exists:" + id);
 
@@ -76,17 +63,6 @@ public class StatsProvider extends AbstractBaseProvider implements CoreEntityPro
         throw new IllegalArgumentException("Invalid id:" + reference.getId());
     }
 
-    /**
-     * Here are statistical data extracted and returned as the list
-     * StatsEntity is used here to format and present data
-     * It could be done using HashMap for now it is not functioning, updates
-     * of related software needed
-     *
-     * @param ref
-     * @param search
-     * @return
-     * @see StatsEntity
-     */
     public List<?> getEntities(EntityReference ref, Search search) {
         log.info(userInfo() + "list_entities");
 
@@ -130,8 +106,7 @@ public class StatsProvider extends AbstractBaseProvider implements CoreEntityPro
         }
     }
 
-    // TODO CHANGE
     public Object getSampleEntity() {
-        return new CollectionEntity();
+        return new StatsEntity();
     }
 }
