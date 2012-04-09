@@ -23,7 +23,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 public class ItemEntity extends ItemEntityTrim {
 
@@ -115,12 +114,10 @@ public class ItemEntity extends ItemEntityTrim {
             List<Map> fieldList = new ArrayList<Map>();
             Object o = inputVar.get("metadata");
             if (o instanceof Map) {
-                Map map = (Map) o;
-                fieldList.add((Map) map.get("field"));
-            } else if (o instanceof Vector) {
-                Vector vector = (Vector) o;
-                for (int i = 0; i < vector.size(); i++) {
-                    fieldList.add((Map) vector.get(i));
+                fieldList.add((Map) ((Map) o).get("field"));
+            } else if (o instanceof List) {
+                for (int i = 0; i < ((List) o).size(); i++) {
+                    fieldList.add((Map) ((List) o).get(i));
                 }
             }
 
