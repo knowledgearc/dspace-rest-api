@@ -21,6 +21,7 @@ import org.sakaiproject.entitybus.exception.EntityException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -217,15 +218,38 @@ public class ItemEntity extends ItemEntityTrim {
 
         try {
             Item res = Item.find(context, Integer.parseInt(ref.getId()));
-
             AuthorizeManager.authorizeAction(context, res, Constants.READ);
 
             List<Object> entities = new ArrayList<Object>();
-            Bitstream[] bst = res.getNonInternalBitstreams();
+            List<Bundle> bundles = new ArrayList<Bundle>();
 
-            for (Bitstream b : bst) {
-                entities.add(new BitstreamEntity(b));
+            String[] bundlename = uparams.getBundle();
+            if (bundlename == null) {
+                Bundle[] tbundles = res.getBundles();
+                if (tbundles != null) {
+                    bundles.addAll(Arrays.asList(tbundles));
+                }
+            } else {
+                for(String name : bundlename){
+                    Bundle[] tbundles = res.getBundles(name);
+                    if (tbundles != null) {
+                        bundles.addAll(Arrays.asList(tbundles));
+                    }
+                }
             }
+
+            for (Bundle bundle : bundles) {
+                Bitstream[] bitstreams = bundle.getBitstreams();
+                if(bitstreams != null){
+                    List<Object> bis = new ArrayList<Object>();
+                    for (Bitstream b : bundle.getBitstreams()) {
+                        bis.add(new BitstreamEntity(b));
+                    }
+                    BundleEntity bundleEntity = new BundleEntity(bundle, bis);
+                    entities.add(bundleEntity);
+                }
+            }
+
             return entities;
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);

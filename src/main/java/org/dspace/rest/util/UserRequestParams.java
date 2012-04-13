@@ -28,6 +28,8 @@ public class UserRequestParams {
     protected boolean groups = false;
     protected boolean replies = false;
 
+    protected String[] bundle;
+
     protected String action = "";
 
     public void setQuery(String param) {
@@ -156,5 +158,15 @@ public class UserRequestParams {
 
     public void setReviewer(String reviewer) {
         this.reviewer = reviewer;
+    }
+
+    public String[] getBundle()
+    {
+        return bundle;
+    }
+
+    public void setBundle(String[] bundle)
+    {
+        this.bundle = bundle;
     }
 }

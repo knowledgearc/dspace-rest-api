@@ -30,7 +30,7 @@ public class BundleEntityId {
     public BundleEntityId(String uid, Context context) {
         try {
 
-            Bundle res = Bundle.find(context, Integer.parseInt(uid));
+            res = Bundle.find(context, Integer.parseInt(uid));
             // Check authorisation
             AuthorizeManager.authorizeAction(context, res, Constants.READ);
 
