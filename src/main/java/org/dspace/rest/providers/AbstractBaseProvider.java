@@ -85,7 +85,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
     protected boolean groups = false;
     protected boolean replies = false;
 
-    protected String[] bundle;
+    protected String[] type;
 //    protected String action;
 
     public AbstractBaseProvider(EntityProviderManager entityProviderManager) {
@@ -308,10 +308,10 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
         }
 
         try {
-            String bundleStr = reqStor.getStoredValue("bundle").toString();
-            uparam.setBundle(bundleStr.split(","));
+            String bundleStr = reqStor.getStoredValue("type").toString();
+            uparam.setType(bundleStr.split(","));
         } catch (NullPointerException ex) {
-            bundle = null;
+            type = null;
         }
 
         try {

@@ -214,7 +214,7 @@ public class ItemEntity extends ItemEntityTrim {
         }
     }
 
-    public Object getBitstreams(EntityReference ref, UserRequestParams uparams, Context context) {
+    public Object getBundles(EntityReference ref, UserRequestParams uparams, Context context) {
 
         try {
             Item res = Item.find(context, Integer.parseInt(ref.getId()));
@@ -223,7 +223,7 @@ public class ItemEntity extends ItemEntityTrim {
             List<Object> entities = new ArrayList<Object>();
             List<Bundle> bundles = new ArrayList<Bundle>();
 
-            String[] bundlename = uparams.getBundle();
+            String[] bundlename = uparams.getType();
             if (bundlename == null) {
                 Bundle[] tbundles = res.getBundles();
                 if (tbundles != null) {

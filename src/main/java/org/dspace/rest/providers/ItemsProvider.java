@@ -35,7 +35,7 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = ItemEntity.class;
-        func2actionMapGET.put("getBitstreams", "bitstreams");
+        func2actionMapGET.put("getBundles", "bundles");
         func2actionMapGET.put("getCommentsCount", "commentscount");
         func2actionMapGET.put("getComments", "comments");
         func2actionMapGET.put("getRating", "rating");

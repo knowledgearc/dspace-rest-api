@@ -28,7 +28,7 @@ public class UserRequestParams {
     protected boolean groups = false;
     protected boolean replies = false;
 
-    protected String[] bundle;
+    protected String[] type;
 
     protected String action = "";
 
@@ -160,13 +160,13 @@ public class UserRequestParams {
         this.reviewer = reviewer;
     }
 
-    public String[] getBundle()
+    public String[] getType()
     {
-        return bundle;
+        return type;
     }
 
-    public void setBundle(String[] bundle)
+    public void setType(String[] type)
     {
-        this.bundle = bundle;
+        this.type = type;
     }
 }
