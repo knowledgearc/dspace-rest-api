@@ -437,7 +437,7 @@ public class EntityEncodingManager {
             // encoding a collection of entities
             StringBuilder sb = new StringBuilder(40);
 
-            if (!"discover".equals(ref.getPrefix())) {
+            if (!("discover".equals(ref.getPrefix())||"statistics".equals(ref.getPrefix()))) {
                 // make header
                 if (Formats.HTML.equals(format)
                         || Formats.FORM.equals(format)) {
@@ -469,7 +469,7 @@ public class EntityEncodingManager {
                 }
             }
 
-            if (!"discover".equals(ref.getPrefix())) {
+            if (!("discover".equals(ref.getPrefix())||"statistics".equals(ref.getPrefix()))) {
                 // make footer
                 if (Formats.HTML.equals(format)
                         || Formats.FORM.equals(format)) {
@@ -515,7 +515,7 @@ public class EntityEncodingManager {
             String title = view.getViewKey() + ":" + ref;
             encoded = XML_HEADER + XHTML_HEADER.replace("{title}", title) + encoded + XHTML_FOOTER;
         } else if (Formats.XML.equals(format)) {
-            if (!"discover".equals(ref.getPrefix())) {
+            if (!("discover".equals(ref.getPrefix())||"statistics".equals(ref.getPrefix()))) {
                 encoded = XML_HEADER + encoded;
             }
         }
@@ -766,7 +766,7 @@ public class EntityEncodingManager {
             }
             // do the encoding
             try {
-                if (!"discover".equals(prefix)) {
+                if (!("discover".equals(prefix)||"statistics".equals(prefix))) {
                     encoded = encodeData(toEncode, format, prefix, entityProps);
                 }else{
                     encoded = (String) toEncode;
