@@ -31,7 +31,6 @@ public abstract class AbstractRESTProvider implements EntityProvider {
         } catch (NullPointerException ex) {
             idOnly = false;
         }
-        ;
     }
 
     private EntityProviderManager entityProviderManager;

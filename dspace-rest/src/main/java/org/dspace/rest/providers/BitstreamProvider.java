@@ -133,7 +133,7 @@ public class BitstreamProvider extends AbstractBaseProvider implements CoreEntit
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
-        log.info(userInfo() + "list_bitstreams:");
+        log.info(userInfo() + "list_bitstreams");
         return null;
     }
 

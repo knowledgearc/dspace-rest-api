@@ -118,7 +118,7 @@ public class UserProvider extends AbstractBaseProvider implements CoreEntityProv
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
-        log.info(userInfo() + "list_users:");
+        log.info(userInfo() + "list_users");
 
         Context context = null;
         try {

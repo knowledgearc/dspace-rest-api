@@ -92,7 +92,7 @@ public class GroupProvider extends AbstractBaseProvider implements CoreEntityPro
     }
 
     public List<?> getEntities(EntityReference ref, Search search) {
-        log.info(userInfo() + "list_groups:");
+        log.info(userInfo() + "list_groups");
 
         Context context = null;
         try {

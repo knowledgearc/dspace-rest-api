@@ -10,9 +10,7 @@ package org.dspace.rest.entities;
 
 import org.dspace.content.DCValue;
 
-import java.sql.SQLException;
-
-public class MetadataEntity extends MetadataEntityId {
+public class MetadataEntity {
 
     private String element;
     private String qualifier;
@@ -20,7 +18,6 @@ public class MetadataEntity extends MetadataEntityId {
     private String value;
 
     public MetadataEntity(DCValue dcValue) {
-        super(dcValue);
         this.element = dcValue.element;
         this.qualifier = dcValue.qualifier;
         this.schema = dcValue.schema;

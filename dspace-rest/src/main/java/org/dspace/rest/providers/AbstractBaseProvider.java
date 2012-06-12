@@ -12,6 +12,8 @@ import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.rest.util.UserRequestParams;
@@ -46,14 +48,16 @@ import java.util.Map;
 public abstract class AbstractBaseProvider implements EntityProvider, Resolvable, CollectionResolvable, InputTranslatable, RequestAware, Outputable, ActionsExecutable, Redirectable, RequestStorable, RequestInterceptor{
 
     protected RequestStorage reqStor;
+    protected boolean withdrawn;
     protected String user = "";
     protected String pass = "";
     protected String userc = "";
     protected String passc = "";
-    protected String query, _order, _sort, loggedUser;
+    protected String query, _order, _sort, loggedUser, _sdate, _edate;
     protected int _start, _limit;
     protected List<Integer> sortOptions = new ArrayList<Integer>();
-
+    protected Collection _collection = null;
+    protected Community _community = null;
     private static Logger log = Logger.getLogger(AbstractBaseProvider.class);
     protected Map<String, String> func2actionMapGET = new HashMap<String, String>();
     protected Map<String, String> func2actionMapPUT = new HashMap<String, String>();
@@ -228,7 +232,7 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
 
         try {
             EPerson eUser = EPerson.findByEmail(context, user);
-            if ((eUser.canLogIn()) && (eUser.checkPassword(pass) || eUser.checkMD5Password(pass))) {
+            if ((eUser.canLogIn()) && (eUser.checkPassword(pass))) {
                 context.setCurrentUser(eUser);
                 loggedUser = eUser.getName();
             } else {
@@ -351,6 +355,24 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
             _limit = 0;
         }
 
+
+        try {
+            _sdate = reqStor.getStoredValue("startdate").toString();
+        } catch (NullPointerException ex) {
+            _sdate = null;
+        }
+
+        try {
+            _edate = reqStor.getStoredValue("enddate").toString();
+        } catch (NullPointerException ex) {
+            _edate = null;
+        }
+
+        try {
+            withdrawn = reqStor.getStoredValue("withdrawn").toString().equalsIgnoreCase("true");
+        } catch (NullPointerException ex) {
+            withdrawn = false;
+        }
         // defining sort fields and values
         _sort = _sort.toLowerCase();
         String[] sort_arr = _sort.split(",");
@@ -383,6 +405,42 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
                 i += 100;
                 sortOptions.add(i);
             }
+        }
+
+        int intcommunity = 0;
+        int intcollection = 0;
+
+        // integer values used in some parts
+        try {
+            intcommunity = Integer.parseInt(reqStor.getStoredValue("community").toString());
+        } catch (NullPointerException nul) {
+        }
+
+        try {
+            _community = Community.find(context, intcommunity);
+        } catch (SQLException sql) {
+        }
+
+        try {
+            intcollection = Integer.parseInt(reqStor.getStoredValue("collection").toString());
+        } catch (NullPointerException nul) {
+        }
+
+        try {
+            _collection = Collection.find(context, intcollection);
+        } catch (SQLException sql) {
+        }
+
+        if ((intcommunity > 0) && (intcollection > 0)) {
+            throw new EntityException("Bad request", "Community and collection selected", 400);
+        }
+
+        if ((intcommunity > 0) && (_community == null)) {
+            throw new EntityException("Bad request", "Unknown community", 400);
+        }
+
+        if ((intcollection > 0) && (_collection == null)) {
+            throw new EntityException("Bad request", "Unknown collection", 400);
         }
 
         return uparam;

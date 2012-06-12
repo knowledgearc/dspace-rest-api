@@ -177,43 +177,6 @@ public class ItemEntity extends ItemEntityTrim {
         }
     }
 
-    public Object getCommentsCount(EntityReference ref, UserRequestParams uparams, Context context) {
-        try {
-            return Comment.countItems(context, Integer.parseInt(ref.getId()));
-        } catch (SQLException ex) {
-            throw new EntityException("Internal server error", "SQL error", 500);
-        }
-    }
-
-    public Object getComments(EntityReference ref, UserRequestParams uparams, Context context) {
-        try {
-            List<Object> entities = new ArrayList<Object>();
-
-            Comment[] comments = Comment.findAllTop(context, Integer.parseInt(ref.getId()), uparams.getStart(), uparams.getLimit());
-            for (Comment comment : comments) {
-                entities.add(new CommentEntity(comment));
-            }
-            return entities;
-        } catch (SQLException e) {
-            throw new EntityException("Internal server error", "SQL error", 500);
-        }
-    }
-
-    public Object getRating(EntityReference ref, UserRequestParams uparams, Context context) {
-        try {
-            int itemId = Integer.parseInt(ref.getId());
-            if (context.getCurrentUser() != null) {
-                Rating rating = Rating.find(context, itemId, context.getCurrentUser().getID());
-                return rating == null ? new RatingEntityId() : new RatingEntity(rating);
-            }
-            return 0;
-        } catch (SQLException e) {
-            throw new EntityException("Internal server error", "SQL error", 500);
-        } catch (NumberFormatException ex) {
-            throw new EntityException("Bad request", "Could not parse input", 400);
-        }
-    }
-
     public Object getBundles(EntityReference ref, UserRequestParams uparams, Context context) {
 
         try {

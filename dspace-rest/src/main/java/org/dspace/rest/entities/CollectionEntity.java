@@ -262,7 +262,7 @@ public class CollectionEntity extends CollectionEntityTrim {
                     case 6: {
                         Group group = collection.getWorkflowGroup(act - 3);
                         if (group != null) {
-                            collection.removeWorkflowGroup(act - 3);
+                            collection.setWorkflowGroup(act - 3,null);
                             collection.update();
                             group.delete();
                         }

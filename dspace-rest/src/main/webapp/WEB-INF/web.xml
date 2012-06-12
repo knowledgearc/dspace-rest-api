@@ -14,11 +14,11 @@
     <description>DSpace REST Webapp</description>
 
     <!-- kernel start listener (from impl), starts up the kernel for standalong webapps -->
-<!--
+
     <listener>
         <listener-class>org.dspace.servicemanager.servlet.DSpaceKernelServletContextListener</listener-class>
     </listener>
--->
+
     <!-- session/request filter (from util), handles setting up requests and sessions correctly -->
 <!--
     <filter>
@@ -42,11 +42,6 @@
     <param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
     <param-value>Messages</param-value>
   </context-param>
-
-    <!-- kernel start listener (from impl), starts up the kernel for standalong webapps -->
-  <listener>
-     <listener-class>org.dspace.servicemanager.servlet.DSpaceKernelServletContextListener</listener-class>
-  </listener>
 
     <!-- rest servlet -->
     <servlet>

@@ -19,12 +19,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Entity describing basic system statistics
- *
- * @author Bojan Suzic, bojan.suzic@gmail.com
- * @see StatsProvider
- */
 public class StatsEntity {
 
     @EntityId

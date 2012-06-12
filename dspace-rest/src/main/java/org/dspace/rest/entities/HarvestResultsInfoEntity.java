@@ -8,13 +8,6 @@
 
 package org.dspace.rest.entities;
 
-/**
- * Entity describing Harvesting results
- *
- * @author Bojan Suzic, bojan.suzic@gmail.com
- * @see HarvestProvider
- * @see Harvest
- */
 public class HarvestResultsInfoEntity {
 
     int resultsCount;

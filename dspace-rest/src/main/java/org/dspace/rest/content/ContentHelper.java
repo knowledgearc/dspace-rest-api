@@ -117,7 +117,7 @@ public class ContentHelper {
                 if (fromCache != null) {
                     epeople[i] = fromCache;
                 } else {
-                    epeople[i] = new EPerson(context, row);
+                    epeople[i] = EPerson.find(context, row.getIntColumn("eperson_id"));
                 }
             }
 
@@ -236,7 +236,7 @@ public class ContentHelper {
                 if (fromCache != null) {
                     epeople[i] = fromCache;
                 } else {
-                    epeople[i] = new EPerson(context, row);
+                    epeople[i] = EPerson.find(context, row.getIntColumn("eperson_id"));
                 }
             }
 
@@ -343,7 +343,7 @@ public class ContentHelper {
                 if (fromCache != null) {
                     collections.add(fromCache);
                 } else {
-                    collections.add(new Collection(context, row));
+                    collections.add(Collection.find(context, row.getIntColumn("collection_id")));
                 }
             }
         } finally {
@@ -457,7 +457,7 @@ public class ContentHelper {
                 if (fromCache != null) {
                     items.add(fromCache);
                 } else {
-                    items.add(new Item(context, row));
+                    items.add(Item.find(context, row.getIntColumn("item_id")));
                 }
             }
         } finally {
@@ -562,7 +562,7 @@ public class ContentHelper {
             // make a list of workflow items
             while (tri.hasNext()) {
                 TableRow row = tri.next();
-                WorkflowItem wi = new WorkflowItem(c, row);
+                WorkflowItem wi = WorkflowItem.find(c, row.getIntColumn("workflow_id"));
                 wfItems.add(wi);
             }
         } finally {
@@ -738,7 +738,7 @@ public class ContentHelper {
             // make a list of workflow items
             while (tri.hasNext()) {
                 TableRow row = tri.next();
-                WorkspaceItem wi = new WorkspaceItem(c, row);
+                WorkspaceItem wi = WorkspaceItem.find(c, row.getIntColumn("workspace_item_id"));
                 wsItems.add(wi);
             }
         } finally {
