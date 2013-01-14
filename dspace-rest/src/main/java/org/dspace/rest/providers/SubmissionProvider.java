@@ -65,7 +65,7 @@ public class SubmissionProvider extends AbstractBaseProvider implements CoreEnti
             List<Object> entities = new ArrayList<Object>();
             WorkspaceItem[] workspaceItems = ContentHelper.findAllSubmission(context, _start, _limit);
             for (WorkspaceItem workspaceItem : workspaceItems) {
-                entities.add(new SubmissionEntity(workspaceItem));
+                entities.add(new SubmissionEntity(workspaceItem, context));
             }
 
             return entities;

@@ -36,9 +36,6 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
         entityProviderManager.registerEntityProvider(this);
         processedEntity = ItemEntity.class;
         func2actionMapGET.put("getBundles", "bundles");
-        func2actionMapGET.put("getCommentsCount", "commentscount");
-        func2actionMapGET.put("getComments", "comments");
-        func2actionMapGET.put("getRating", "rating");
         func2actionMapGET.put("getMetadataFields", "metadatafields");
         func2actionMapPOST.put("createMetadata", "metadata");
         inputParamsPOST.put("createMetadata", new String[]{"id", "value"});
@@ -116,7 +113,7 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
             List<Object> entities = new ArrayList<Object>();
             ItemIterator items = Item.findAll(context);
             while (items.hasNext()) {
-                entities.add(new ItemEntity(items.next(), uparams));
+                entities.add(new ItemEntity(items.next(), context, uparams));
             }
 
             return entities;

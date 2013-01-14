@@ -7,6 +7,7 @@
  */
 package org.dspace.rest.entities;
 
+import org.dspace.app.util.AuthorizeUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.ResourcePolicy;
@@ -101,8 +102,6 @@ public class CollectionEntity extends CollectionEntityTrim {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ex) {
             throw new EntityException("Forbidden", "Forbidden", 403);
-        } catch (IOException ex) {
-            throw new EntityException("Internal server error", "SQL error, cannot create collection", 500);
         }
     }
 
@@ -138,8 +137,6 @@ public class CollectionEntity extends CollectionEntityTrim {
             throw new EntityException("Forbidden", "Forbidden", 403);
         } catch (NumberFormatException ex) {
             throw new EntityException("Bad request", "Could not parse input", 400);
-        } catch (IOException e) {
-            throw new EntityException("Internal server error", "SQL error, cannot update collection", 500);
         }
     }
 
@@ -224,8 +221,6 @@ public class CollectionEntity extends CollectionEntityTrim {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ae) {
             throw new EntityException("Forbidden", "Forbidden", 403);
-        } catch (IOException ie) {
-            throw new EntityException("Internal server error", "SQL error, cannot create roles", 500);
         } catch (NumberFormatException ex) {
             throw new EntityException("Bad request", "Could not parse input", 400);
         }
@@ -262,7 +257,7 @@ public class CollectionEntity extends CollectionEntityTrim {
                     case 6: {
                         Group group = collection.getWorkflowGroup(act - 3);
                         if (group != null) {
-                            collection.setWorkflowGroup(act - 3,null);
+                            removeWorkflowGroup(act - 3, context, collection);
                             collection.update();
                             group.delete();
                         }
@@ -276,8 +271,6 @@ public class CollectionEntity extends CollectionEntityTrim {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ae) {
             throw new EntityException("Forbidden", "Forbidden", 403);
-        } catch (IOException ie) {
-            throw new EntityException("Internal server error", "SQL error, cannot remove roles", 500);
         } catch (NumberFormatException ex) {
             throw new EntityException("Bad request", "Could not parse input", 400);
         }
@@ -296,6 +289,15 @@ public class CollectionEntity extends CollectionEntityTrim {
             throw new EntityException("Bad request", "Could not parse input", 400);
         }
     }
+
+    private void removeWorkflowGroup(int step, Context context, Collection collection) throws SQLException, AuthorizeException
+    {
+    	// Check authorisation - Must be an Admin to delete Submitters Group
+        AuthorizeUtil.authorizeManageWorkflowsGroup(context, collection);
+
+        collection.setWorkflowGroup(step, null);
+    }
+
 
     public Object getCount(EntityReference ref, UserRequestParams uparams, Context context) {
         try {
@@ -320,7 +322,7 @@ public class CollectionEntity extends CollectionEntityTrim {
 
             Item[] items = ContentHelper.findAllItem(context, Integer.parseInt(ref.getId()), uparams.getStart(), uparams.getLimit());
             for (Item item : items) {
-                entities.add(new ItemEntityTrim(item));
+                entities.add(new ItemEntityTrim(item, context));
             }
             return entities;
         } catch (SQLException ex) {

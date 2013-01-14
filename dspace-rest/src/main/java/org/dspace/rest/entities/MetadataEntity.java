@@ -8,20 +8,23 @@
 
 package org.dspace.rest.entities;
 
-import org.dspace.content.DCValue;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataSchema;
+import org.dspace.content.MetadataValue;
 
-public class MetadataEntity {
+public class MetadataEntity extends MetadataEntityId {
 
     private String element;
     private String qualifier;
     private String schema;
     private String value;
 
-    public MetadataEntity(DCValue dcValue) {
-        this.element = dcValue.element;
-        this.qualifier = dcValue.qualifier;
-        this.schema = dcValue.schema;
-        this.value = dcValue.value;
+    public MetadataEntity(MetadataValue mdValue, MetadataField mdField, MetadataSchema mdSchema) {
+        super(mdValue);
+        this.element = mdField.getElement();
+        this.qualifier = mdField.getQualifier();
+        this.schema = mdSchema.getName();
+        this.value = mdValue.getValue();
 
     }
 

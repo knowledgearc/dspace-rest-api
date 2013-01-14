@@ -4,34 +4,45 @@
     <artifactId>dspace-rest</artifactId>
     <packaging>war</packaging>
     <name>DSpace REST API</name>
-    <url>http://projects.dspace.org</url>
     <description>The REST API for DSpace using the Sakai EntityBus</description>
 
     <parent>
         <artifactId>dspace-parent</artifactId>
         <groupId>org.dspace</groupId>
-        <version>1.8.1</version>
+        <version>3.0</version>
         <relativePath>..</relativePath>
     </parent>
 
-     <scm>
-        <connection>scm:svn:http://scm.dspace.org/svn/repo/modules/dspace-rest/trunk</connection>
-        <developerConnection>scm:svn:https://scm.dspace.org/svn/repo/modules/dspace-rest/trunk</developerConnection>
-        <url>http://scm.dspace.org/svn/repo/modules/dspace-rest/trunk</url>
-    </scm>
+    <properties>
+        <!-- This is the path to the root [dspace-src] directory. -->
+        <root.basedir>${basedir}/..</root.basedir>
+    </properties>
 
     <build>
         <plugins>
             <plugin>
-                <groupId>com.mycila.maven-license-plugin</groupId>
-                <artifactId>maven-license-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
                 <configuration>
-                    <!--Exclude license check for REST files which don't need it-->
-                    <excludes>
-                    </excludes>
-                    <quiet>true</quiet>
-                    <failIfMissing>false</failIfMissing>
+                    <attachClasses>true</attachClasses>
+                    <!-- In version 2.1-alpha-1, this was incorrectly named warSourceExcludes -->
+                    <packagingExcludes>WEB-INF/lib/*.jar</packagingExcludes>
+                    <warSourceExcludes>WEB-INF/lib/*.jar</warSourceExcludes>
+                    <webResources>
+                        <resource>
+                            <filtering>true</filtering>
+                            <directory>${basedir}/src/main/webapp</directory>
+                            <includes>
+                                <include>WEB-INF/web.xml</include>
+                            </includes>
+                        </resource>
+                    </webResources>
                 </configuration>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -46,28 +57,6 @@
     </repositories>
 
     <profiles>
-        <!--
-         when activated a dspace.config configuration
-         file location passed on the commandline
-         (-Ddspace.config=...) can be passed through
-         to be used as a filter source by projects for
-         tasks such as updating the ${dspace.dir} in
-         web.xml etc.
-      -->
-        <profile>
-            <id>config</id>
-            <activation>
-                <property>
-                    <name>dspace.config</name>
-                </property>
-            </activation>
-            <build>
-                <filters>
-                    <filter>${dspace.config}</filter>
-                </filters>
-            </build>
-        </profile>
-
         <profile>
             <id>oracle-support</id>
             <activation>
@@ -83,22 +72,6 @@
                 </dependency>
             </dependencies>
         </profile>
-
-        <profile>
-            <id>postgres-support</id>
-            <activation>
-                <property>
-                    <name>!db.name</name>
-                </property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>postgresql</groupId>
-                    <artifactId>postgresql</artifactId>
-                </dependency>
-            </dependencies>
-        </profile>
-
     </profiles>
 
     <dependencies>
@@ -136,11 +109,6 @@
             <version>1.0.8</version>
         </dependency>
     </dependencies>
-
-    <properties>
-        <netbeans.hint.deploy.server>Tomcat60</netbeans.hint.deploy.server>
-    </properties>
-
 </project>
 
 

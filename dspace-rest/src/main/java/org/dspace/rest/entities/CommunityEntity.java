@@ -96,8 +96,6 @@ public class CommunityEntity extends CommunityEntityTrim {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ex) {
             throw new EntityException("Forbidden", "Forbidden", 403);
-        } catch (IOException ex) {
-            throw new EntityException("Internal server error", "SQL error, cannot create community", 500);
         }
         return result;
     }
@@ -130,8 +128,6 @@ public class CommunityEntity extends CommunityEntityTrim {
             throw new EntityException("Forbidden", "Forbidden", 403);
         } catch (NumberFormatException ex) {
             throw new EntityException("Bad request", "Could not parse input", 400);
-        } catch (IOException e) {
-            throw new EntityException("Internal server error", "SQL error, cannot update community", 500);
         }
     }
 
@@ -168,8 +164,6 @@ public class CommunityEntity extends CommunityEntityTrim {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ex) {
             throw new EntityException("Forbidden", "Forbidden", 403);
-        } catch (IOException ie) {
-            throw new EntityException("Internal server error", "SQL error, cannot create adminitrators", 500);
         } catch (NumberFormatException ex) {
             throw new EntityException("Bad request", "Could not parse input", 400);
         }
@@ -186,8 +180,6 @@ public class CommunityEntity extends CommunityEntityTrim {
             throw new EntityException("Internal server error", "SQL error", 500);
         } catch (AuthorizeException ae) {
             throw new EntityException("Forbidden", "Forbidden", 403);
-        } catch (IOException ie) {
-            throw new EntityException("Internal server error", "SQL error, cannot remove adminitrators", 500);
         } catch (NumberFormatException ex) {
             throw new EntityException("Bad request", "Could not parse input", 400);
         }

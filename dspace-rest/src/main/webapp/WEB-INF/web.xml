@@ -38,6 +38,15 @@
     <!-- <param-value>/dspace/config/dspace.cfg</param-value> -->
   </context-param>
 
+  <!-- new ConfigurationService initialization for dspace.dir -->
+  <context-param>
+      <description>
+          The location of the main DSpace configuration file
+      </description>
+      <param-name>dspace.dir</param-name>
+      <param-value>${dspace.dir}</param-value>
+  </context-param>
+
   <context-param>
     <param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
     <param-value>Messages</param-value>
