@@ -257,7 +257,8 @@ public class CollectionEntity extends CollectionEntityTrim {
                     case 6: {
                         Group group = collection.getWorkflowGroup(act - 3);
                         if (group != null) {
-                            removeWorkflowGroup(act - 3, context, collection);
+                            AuthorizeUtil.authorizeManageWorkflowsGroup(context, collection);
+                            collection.setWorkflowGroup(act - 3,null);
                             collection.update();
                             group.delete();
                         }
@@ -289,15 +290,6 @@ public class CollectionEntity extends CollectionEntityTrim {
             throw new EntityException("Bad request", "Could not parse input", 400);
         }
     }
-
-    private void removeWorkflowGroup(int step, Context context, Collection collection) throws SQLException, AuthorizeException
-    {
-    	// Check authorisation - Must be an Admin to delete Submitters Group
-        AuthorizeUtil.authorizeManageWorkflowsGroup(context, collection);
-
-        collection.setWorkflowGroup(step, null);
-    }
-
 
     public Object getCount(EntityReference ref, UserRequestParams uparams, Context context) {
         try {

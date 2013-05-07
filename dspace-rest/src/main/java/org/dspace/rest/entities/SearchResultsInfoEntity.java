@@ -11,12 +11,6 @@ package org.dspace.rest.entities;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Entity decribing search results
- *
- * @author Bojan Suzic, bojan.suzic@gmail.com
- * @see SearchProvider
- */
 public class SearchResultsInfoEntity {
 
     int resultsCount;

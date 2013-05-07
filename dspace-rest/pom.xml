@@ -87,25 +87,25 @@
         <dependency>
             <groupId>org.sakaiproject.entitybus</groupId>
             <artifactId>entitybus-api</artifactId>
-            <scope>compile</scope>
+            <!--<scope>compile</scope>-->
             <version>1.0.8</version>
         </dependency>
         <dependency>
             <groupId>org.sakaiproject.entitybus</groupId>
             <artifactId>entitybus-impl</artifactId>
-            <scope>compile</scope>
+            <!--<scope>compile</scope>-->
             <version>1.0.8</version>
         </dependency>
         <dependency>
             <groupId>org.sakaiproject.entitybus</groupId>
             <artifactId>entitybus-rest</artifactId>
-            <scope>compile</scope>
+            <!--<scope>compile</scope>-->
             <version>1.0.8</version>
         </dependency>
         <dependency>
             <groupId>org.sakaiproject.entitybus</groupId>
             <artifactId>entitybus-utils</artifactId>
-            <scope>compile</scope>
+            <!--<scope>compile</scope>-->
             <version>1.0.8</version>
         </dependency>
     </dependencies>
