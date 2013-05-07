@@ -37,10 +37,12 @@ public class ItemsProvider extends AbstractBaseProvider implements CoreEntityPro
         processedEntity = ItemEntity.class;
         func2actionMapGET.put("getBundles", "bundles");
         func2actionMapGET.put("getMetadataFields", "metadatafields");
+        func2actionMapPOST.put("createItem", "");
         func2actionMapPOST.put("createMetadata", "metadata");
         inputParamsPOST.put("createMetadata", new String[]{"id", "value"});
         func2actionMapPUT.put("editMetadata", "metadata");
         func2actionMapDELETE.put("removeMetadata", "metadata");
+        func2actionMapDELETE.put("removeItem", "");
         entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
     }
