@@ -19,6 +19,9 @@ import org.sakaiproject.entitybus.EntityView;
 import org.sakaiproject.entitybus.entityprovider.CoreEntityProvider;
 import org.sakaiproject.entitybus.entityprovider.EntityProviderManager;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityCustomAction;
+import org.sakaiproject.entitybus.entityprovider.capabilities.Createable;
+import org.sakaiproject.entitybus.entityprovider.capabilities.Deleteable;
+import org.sakaiproject.entitybus.entityprovider.capabilities.Updateable;
 import org.sakaiproject.entitybus.entityprovider.search.Search;
 import org.sakaiproject.entitybus.exception.EntityException;
 
@@ -30,7 +33,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-public class BitstreamProvider extends AbstractBaseProvider implements CoreEntityProvider {
+public class BitstreamProvider extends AbstractBaseProvider implements CoreEntityProvider, Createable, Updateable, Deleteable {
 
     private static Logger log = Logger.getLogger(BitstreamProvider.class);
 
@@ -38,6 +41,7 @@ public class BitstreamProvider extends AbstractBaseProvider implements CoreEntit
         super(entityProviderManager);
         entityProviderManager.registerEntityProvider(this);
         processedEntity = BitstreamEntity.class;
+        func2actionMapDELETE.put("removeBitstream", "");
         entityConstructor = processedEntity.getDeclaredConstructor();
         initMappings(processedEntity);
     }

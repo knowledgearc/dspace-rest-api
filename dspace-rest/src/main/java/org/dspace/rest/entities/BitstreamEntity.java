@@ -8,9 +8,17 @@
 
 package org.dspace.rest.entities;
 
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.core.Context;
+import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
+import org.sakaiproject.entitybus.exception.EntityException;
+
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Map;
 
 public class BitstreamEntity extends BitstreamEntityId {
 
@@ -52,6 +60,28 @@ public class BitstreamEntity extends BitstreamEntityId {
         this.storeNumber = bitstream.getStoreNumber();
         this.userFormatDescription = bitstream.getUserFormatDescription();
         this.mimeType = bitstream.getFormat().getMIMEType();
+    }
+
+    public void removeBitstream(EntityReference ref, Map<String, Object> inputVar, Context context) {
+        try {
+            int itemID=0;
+            Bitstream bitstream = Bitstream.find(context, Integer.parseInt(ref.getId()));
+            if ((bitstream != null)) {
+                Bundle[] bundles = bitstream.getBundles();
+                for (Bundle bundle : bundles) {
+                    bundle.removeBitstream(bitstream);
+                    itemID = bundle.getItems()[0].getID();
+                }
+            }
+        } catch (SQLException ex) {
+            throw new EntityException("Internal server error", "SQL error", 500);
+        } catch (AuthorizeException ae) {
+            throw new EntityException("Forbidden", "Forbidden", 403);
+        } catch (IOException ie) {
+            throw new EntityException("Internal server error", "SQL error, cannot remove bitstream", 500);
+        } catch (NumberFormatException ex) {
+            throw new EntityException("Bad request", "Could not parse input", 400);
+        }
     }
 
     public String getMimeType() {
