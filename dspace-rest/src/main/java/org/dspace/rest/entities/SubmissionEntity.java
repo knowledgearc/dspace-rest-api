@@ -24,12 +24,12 @@ public class SubmissionEntity {
     public SubmissionEntity() {
     }
 
-    public SubmissionEntity(WorkspaceItem res) {
+    public SubmissionEntity(WorkspaceItem res, Context context) {
         try {
 //            Item item = res.getItem();
 //            AuthorizeManager.authorizeAction(context, item, Constants.READ);
 
-            this.item = new ItemEntityTrim(res.getItem());
+            this.item = new ItemEntityTrim(res.getItem(), context);
             this.collection = new CollectionEntityTrimC(res.getCollection());
         } catch (SQLException ex) {
             throw new EntityException("Internal server error", "SQL error", 500);

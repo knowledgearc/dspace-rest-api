@@ -3,6 +3,7 @@ package org.dspace.rest.content;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
@@ -785,5 +786,28 @@ public class ContentHelper {
             }
         }
         return 0;
+    }
+
+    public static MetadataValue[] retrieveMetadata(Context c, int itemId) throws SQLException {
+        List<MetadataValue> mdValues = new ArrayList<MetadataValue>();
+        if (itemId > 0) {
+            TableRowIterator tri = DatabaseManager.queryTable(c, "MetadataValue",
+                    "SELECT * FROM MetadataValue WHERE item_id= ? ORDER BY metadata_field_id, place",
+                    itemId);
+            try {
+                // make a list of workflow items
+                while (tri.hasNext()) {
+                    TableRow row = tri.next();
+                    MetadataValue mv = new MetadataValue(row);
+                    mdValues.add(mv);
+                }
+            } finally {
+                if (tri != null) {
+                    tri.close();
+                }
+            }
+        }
+
+        return mdValues.toArray(new MetadataValue[mdValues.size()]);
     }
 }

@@ -37,7 +37,7 @@ public class WorkflowEntity extends WorkflowEntityId {
         super(uid, context);
         try {
             this.state = res.getState();
-            this.item = new ItemEntityTrim(res.getItem());
+            this.item = new ItemEntityTrim(res.getItem(), context);
             if (res.getOwner() != null) {
                 this.reviewer = new UserEntityTrim(res.getOwner());
             }
@@ -47,11 +47,11 @@ public class WorkflowEntity extends WorkflowEntityId {
         }
     }
 
-    public WorkflowEntity(WorkflowItem res) {
+    public WorkflowEntity(WorkflowItem res, Context context) {
         super(res);
         try {
             this.state = res.getState();
-            this.item = new ItemEntityTrim(res.getItem());
+            this.item = new ItemEntityTrim(res.getItem(), context);
             if (res.getOwner() != null) {
                 this.reviewer = new UserEntityTrim(res.getOwner());
             }

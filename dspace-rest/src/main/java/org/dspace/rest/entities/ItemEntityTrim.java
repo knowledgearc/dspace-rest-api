@@ -8,9 +8,12 @@
 
 package org.dspace.rest.entities;
 
-import org.dspace.content.DCValue;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataSchema;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
+import org.dspace.rest.content.ContentHelper;
 import org.sakaiproject.entitybus.entityprovider.annotations.EntityFieldRequired;
 
 import java.sql.SQLException;
@@ -41,13 +44,15 @@ public class ItemEntityTrim extends ItemEntityId {
         this.isWithdrawn = res.isWithdrawn();
         this.submitter = new UserEntityTrim(res.getSubmitter());
 
-        DCValue[] dcValues = res.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-        for (DCValue dcValue : dcValues) {
-            this.metadata.add(new MetadataEntity(dcValue));
+        MetadataValue[] mdValues = ContentHelper.retrieveMetadata(context, res.getID());
+        for (MetadataValue mdValue : mdValues) {
+            MetadataField mdField = MetadataField.find(context, mdValue.getFieldId());
+            MetadataSchema mdSchema = MetadataSchema.find(context, mdField.getSchemaID());
+            this.metadata.add(new MetadataEntity(mdValue, mdField, mdSchema));
         }
     }
 
-    public ItemEntityTrim(Item item) throws SQLException {
+    public ItemEntityTrim(Item item, Context context) throws SQLException {
         super(item);
         this.handle = item.getHandle();
         this.name = item.getName();
@@ -56,9 +61,11 @@ public class ItemEntityTrim extends ItemEntityId {
         this.isWithdrawn = item.isWithdrawn();
         this.submitter = new UserEntityTrim(item.getSubmitter());
 
-        DCValue[] dcValues = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-        for (DCValue dcValue : dcValues) {
-            this.metadata.add(new MetadataEntity(dcValue));
+        MetadataValue[] mdValues = ContentHelper.retrieveMetadata(context,item.getID());
+        for (MetadataValue mdValue : mdValues) {
+            MetadataField mdField = MetadataField.find(context, mdValue.getFieldId());
+            MetadataSchema mdSchema = MetadataSchema.find(context, mdField.getSchemaID());
+            this.metadata.add(new MetadataEntity(mdValue, mdField, mdSchema));
         }
     }
 

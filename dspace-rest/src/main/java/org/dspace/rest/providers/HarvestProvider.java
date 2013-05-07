@@ -71,7 +71,7 @@ public class HarvestProvider extends AbstractBaseProvider implements CoreEntityP
 
             entities.add(new HarvestResultsInfoEntity(res.size()));
             for (int x = 0; x < res.size(); x++) {
-                entities.add(new ItemEntity(res.get(x).item,uparams));
+                entities.add(new ItemEntity(res.get(x).item, context, uparams));
             }
 
             return entities;

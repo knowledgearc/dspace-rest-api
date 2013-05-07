@@ -7,6 +7,7 @@
  */
 package org.dspace.rest.entities;
 
+import org.dspace.app.util.AuthorizeUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.ResourcePolicy;
@@ -262,6 +263,7 @@ public class CollectionEntity extends CollectionEntityTrim {
                     case 6: {
                         Group group = collection.getWorkflowGroup(act - 3);
                         if (group != null) {
+                            AuthorizeUtil.authorizeManageWorkflowsGroup(context, collection);
                             collection.setWorkflowGroup(act - 3,null);
                             collection.update();
                             group.delete();
@@ -320,7 +322,7 @@ public class CollectionEntity extends CollectionEntityTrim {
 
             Item[] items = ContentHelper.findAllItem(context, Integer.parseInt(ref.getId()), uparams.getStart(), uparams.getLimit());
             for (Item item : items) {
-                entities.add(new ItemEntityTrim(item));
+                entities.add(new ItemEntityTrim(item, context));
             }
             return entities;
         } catch (SQLException ex) {

@@ -45,8 +45,8 @@ public class ItemEntity extends ItemEntityTrim {
         }
     }
 
-    public ItemEntity(Item item, UserRequestParams uparams) throws SQLException {
-        super(item);
+    public ItemEntity(Item item, Context context, UserRequestParams uparams) throws SQLException {
+        super(item, context);
 
         boolean collections = uparams.getCollections();
         boolean trim = uparams.getTrim();
