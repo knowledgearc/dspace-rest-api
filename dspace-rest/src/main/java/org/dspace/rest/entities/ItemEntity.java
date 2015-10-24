@@ -13,14 +13,14 @@ import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.*;
 import org.dspace.content.Collection;
 import org.dspace.content.authority.Choices;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
-import org.dspace.eperson.Group;
 import org.dspace.event.Event;
-import org.dspace.handle.HandleManager;
 import org.dspace.rest.util.UserRequestParams;
 import org.dspace.rest.util.Utils;
+import org.dspace.workflow.WorkflowManager;
+import org.dspace.xmlworkflow.XmlWorkflowManager;
 import org.sakaiproject.entitybus.EntityReference;
 import org.sakaiproject.entitybus.exception.EntityException;
 
@@ -102,6 +102,8 @@ public class ItemEntity extends ItemEntityTrim {
                     if (col != null) {
                         Item item = prepareItem(context, col, xmlMap);
 
+                        context.turnOffAuthorisationSystem();
+
                         List<Map> bundleList = getNodeList(xmlMap, "bundles", "bundle");
 
                         for (Map bundleMap : bundleList) {
@@ -131,8 +133,9 @@ public class ItemEntity extends ItemEntityTrim {
                                 }
                             }
                         }
+                        context.restoreAuthSystemState();
 
-                        item.update();
+                        item.updateMetadata();
 
                         //bundle package
                         context.addEvent(new Event(Event.INSTALL, Constants.ITEM, item.getID(),null));
@@ -259,7 +262,7 @@ public class ItemEntity extends ItemEntityTrim {
 
             Integer eid = Integer.parseInt((String) inputVar.get("eid"));
             MetadataValue metadataValue = MetadataValue.find(context, eid);
-            if (metadataValue != null && metadataValue.getItemId() == id) {
+            if (metadataValue != null && metadataValue.getResourceId() == id) {
                 metadataValue.delete(context);
             } else {
                 throw new EntityException("Internal server error", "No such metadata value or not belongs to same item", 500);
@@ -354,23 +357,21 @@ public class ItemEntity extends ItemEntityTrim {
     }
 
     private static Item prepareItem(Context context, Collection col, Map metadataMap) throws AuthorizeException, SQLException, IOException {
-        // Check the user has permission to ADD to the collection
-        AuthorizeManager.authorizeAction(context, col, Constants.ADD);
-        // Create an item
-        Item item = Item.create(context);
-        EPerson ePerson = context.getCurrentUser();
-        item.setSubmitter(ePerson);
-        item.setArchived(true);
-        item.setOwningCollection(col);
-        // read write add remove permission
-        AuthorizeManager.addPolicy(context, item, Constants.READ, Group.find(context,0));
+        WorkspaceItem workspaceItem = WorkspaceItem.create(context, col, false);
+        Item item = workspaceItem.getItem();
         assembleItemMetadata(item, metadataMap.get("metadata"));
-        item.update();
+        item.updateMetadata();
 
-        col.addItem(item);
-        col.update();
-        HandleManager.createHandle(context, item);
-        return item;
+        if(ConfigurationManager.getProperty("workflow", "workflow.framework").equals("xmlworkflow")){
+            try{
+                XmlWorkflowManager.start(context, workspaceItem);
+            }catch (Exception e){
+                throw new EntityException("Internal server error", "XmlWorkflow error", 500);
+            }
+        }else{
+            WorkflowManager.start(context, workspaceItem);
+        }
+        return workspaceItem.getItem();
     }
 
     private static List<Map> getNodeList(Map xmlMap, String parentNode, String childNode) {

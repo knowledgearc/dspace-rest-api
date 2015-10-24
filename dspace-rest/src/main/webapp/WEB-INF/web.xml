@@ -8,50 +8,11 @@
     http://www.dspace.org/license/
 
 -->
-<web-app id="WebApp_9" version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
-
-    <display-name>dspace-rest</display-name>
-    <description>DSpace REST Webapp</description>
-
-    <!-- kernel start listener (from impl), starts up the kernel for standalong webapps -->
-
-    <listener>
-        <listener-class>org.dspace.servicemanager.servlet.DSpaceKernelServletContextListener</listener-class>
-    </listener>
-
-    <!-- session/request filter (from util), handles setting up requests and sessions correctly -->
-<!--
-    <filter>
-        <filter-name>dspace.request</filter-name>
-        <filter-class>org.dspace.utils.servlet.DSpaceWebappServletFilter</filter-class>
-    </filter>
--->
-
-
-
-
-  <!-- Configuration Information -->
-
-  <context-param>
-    <param-name>dspace-config</param-name>
-    <param-value>${dspace.dir}/config/dspace.cfg</param-value>
-    <!-- <param-value>/dspace/config/dspace.cfg</param-value> -->
-  </context-param>
-
-  <!-- new ConfigurationService initialization for dspace.dir -->
-  <context-param>
-      <description>
-          The location of the main DSpace configuration file
-      </description>
-      <param-name>dspace.dir</param-name>
-      <param-value>${dspace.dir}</param-value>
-  </context-param>
-
-  <context-param>
-    <param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
-    <param-value>Messages</param-value>
-  </context-param>
-
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         id="WebApp_ID" version="2.5">
     <!-- rest servlet -->
     <servlet>
         <servlet-name>dspace.rest</servlet-name>
@@ -72,4 +33,37 @@
         <servlet-name>DS16DirectServlet</servlet-name>
         <url-pattern>/DS16DirectServlet</url-pattern>
     </servlet-mapping>
-    </web-app>
+
+    
+    <!-- DSpace Configuration Information -->
+    <context-param>
+        <param-name>dspace-config</param-name>
+        <param-value>${dspace.dir}/config/dspace.cfg</param-value>
+    </context-param>
+
+    <!-- new ConfigurationService initialization for dspace.dir -->
+    <context-param>
+        <description>
+            The location of the main DSpace configuration file
+        </description>
+        <param-name>dspace.dir</param-name>
+        <param-value>${dspace.dir}</param-value>
+    </context-param>
+
+    <context-param>
+    	<param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
+    	<param-value>Messages</param-value>
+    </context-param>
+
+
+    <!-- kernel start listener (from impl)
+        The following listener can be used instead of the filter below, it is simpler, cleaner
+        and eliminates the need for a DSpaceKernelServletFilter filter to be involved with the
+        request cycle.
+    -->
+    <listener>
+        <listener-class>org.dspace.servicemanager.servlet.DSpaceKernelServletContextListener</listener-class>
+    </listener>
+    
+
+</web-app>

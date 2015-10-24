@@ -29,7 +29,7 @@ import java.util.List;
 
 public class CollectionsProvider extends AbstractBaseProvider implements CoreEntityProvider, Createable, Updateable, Deleteable {
 
-    private static Logger log = Logger.getLogger(UserProvider.class);
+    private static Logger log = Logger.getLogger(CollectionsProvider.class);
 
     public CollectionsProvider(EntityProviderManager entityProviderManager) throws NoSuchMethodException {
         super(entityProviderManager);

@@ -30,7 +30,7 @@ import java.util.List;
 
 public class SearchProvider extends AbstractBaseProvider implements CoreEntityProvider {
 
-    private static Logger log = Logger.getLogger(UserProvider.class);
+    private static Logger log = Logger.getLogger(SearchProvider.class);
 
     public SearchProvider(EntityProviderManager entityProviderManager) {
         super(entityProviderManager);

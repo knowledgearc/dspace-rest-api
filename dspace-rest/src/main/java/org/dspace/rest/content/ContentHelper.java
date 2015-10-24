@@ -6,6 +6,7 @@ import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.storage.rdbms.DatabaseManager;
@@ -140,9 +141,26 @@ public class ContentHelper {
             String param = "%" + q.toLowerCase() + "%";
 
             String query = "SELECT COUNT(*) FROM (" +
-                    "SELECT DISTINCT eperson.email em, eperson.* FROM workflowitem, item, eperson " +
-                    "WHERE workflowitem.item_id = item.item_id AND item.submitter_id = eperson.eperson_id AND " +
-                    "(LOWER(firstname) LIKE LOWER(?) OR LOWER(lastname) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?))) t";
+                    " SELECT * FROM (SELECT DISTINCT eperson.email em, eperson.*," +
+                    " (SELECT v.text_value FROM metadatavalue v, metadatafieldregistry f, metadataschemaregistry s" +
+                    " WHERE v.resource_id = item.submitter_id" +
+                    " AND v.resource_type_id =" + Constants.EPERSON +
+                    " AND v.metadata_field_id = f.metadata_field_id" +
+                    " AND f.element = 'firstname'" +
+                    " AND f.qualifier is null" +
+                    " AND f.metadata_schema_id = s.metadata_schema_id" +
+                    " AND s.short_id = 'eperson') firstname," +
+                    " (SELECT v.text_value FROM metadatavalue v, metadatafieldregistry f, metadataschemaregistry s" +
+                    " WHERE v.resource_id = item.submitter_id" +
+                    " AND v.resource_type_id =" + Constants.EPERSON +
+                    " AND v.metadata_field_id = f.metadata_field_id" +
+                    " AND f.element = 'lastname'" +
+                    " AND f.qualifier is null" +
+                    " AND f.metadata_schema_id = s.metadata_schema_id" +
+                    " AND s.short_id = 'eperson') lastname " +
+                    " FROM workflowitem, item, eperson " +
+                    " WHERE workflowitem.item_id = item.item_id AND item.submitter_id = eperson.eperson_id) ep " +
+                    " WHERE (LOWER(firstname) LIKE LOWER(?) OR LOWER(lastname) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?))) t";
 
             statement = context.getDBConnection().prepareStatement(query);
             statement.setString(1, param);
@@ -176,9 +194,27 @@ public class ContentHelper {
     public static EPerson[] findAllSubmitters(Context context, String query, int offset, int limit, String sort) throws SQLException {
 
         String params = "%" + query.toLowerCase() + "%";
+
         StringBuffer queryBuf = new StringBuffer();
-        queryBuf.append("SELECT DISTINCT eperson.email em, eperson.* FROM workflowitem, item, eperson WHERE workflowitem.item_id = item.item_id AND item.submitter_id = eperson.eperson_id AND ");
-        queryBuf.append("(LOWER(firstname) LIKE LOWER(?) OR LOWER(lastname) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?)) " + (!"".equals(sort) ? "ORDER BY " + sort : ""));
+        queryBuf.append("SELECT * FROM (SELECT DISTINCT eperson.email em, eperson.*," +
+                " (SELECT v.text_value FROM metadatavalue v, metadatafieldregistry f, metadataschemaregistry s" +
+                " WHERE v.resource_id = item.submitter_id" +
+                " AND v.resource_type_id =" + Constants.EPERSON +
+                " AND v.metadata_field_id = f.metadata_field_id" +
+                " AND f.element = 'firstname'" +
+                " AND f.qualifier is null" +
+                " AND f.metadata_schema_id = s.metadata_schema_id" +
+                " AND s.short_id = 'eperson') firstname," +
+                " (SELECT v.text_value FROM metadatavalue v, metadatafieldregistry f, metadataschemaregistry s" +
+                " WHERE v.resource_id = item.submitter_id" +
+                " AND v.resource_type_id =" + Constants.EPERSON +
+                " AND v.metadata_field_id = f.metadata_field_id" +
+                " AND f.element = 'lastname'" +
+                " AND f.qualifier is null" +
+                " AND f.metadata_schema_id = s.metadata_schema_id" +
+                " AND s.short_id = 'eperson') lastname " +
+                " FROM workflowitem, item, eperson WHERE workflowitem.item_id = item.item_id AND item.submitter_id = eperson.eperson_id) ep ");
+        queryBuf.append(" WHERE (LOWER(firstname) LIKE LOWER(?) OR LOWER(lastname) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?)) " + (!"".equals(sort) ? "ORDER BY " + sort : ""));
 
         // Add offset and limit restrictions - Oracle requires special code
         if ("oracle".equals(ConfigurationManager.getProperty("db.name"))) {
@@ -286,7 +322,16 @@ public class ContentHelper {
     public static Collection[] findAllCollection(Context context, int offset, int limit) throws SQLException {
 
         StringBuffer queryBuf = new StringBuffer();
-        queryBuf.append("SELECT * FROM collection ORDER BY name");
+        queryBuf.append("SELECT *," +
+                " (SELECT v.text_value FROM metadatavalue v, metadatafieldregistry f, metadataschemaregistry s" +
+                " WHERE v.resource_id = collection_id" +
+                " AND v.resource_type_id =" + Constants.COLLECTION +
+                " AND v.metadata_field_id = f.metadata_field_id" +
+                " AND f.element = 'title'" +
+                " AND f.qualifier is null" +
+                " AND f.metadata_schema_id = s.metadata_schema_id" +
+                " AND s.short_id = 'dc') cname" +
+                " FROM collection ORDER BY cname");
 
         // Add offset and limit restrictions - Oracle requires special code
         if ("oracle".equals(ConfigurationManager.getProperty("db.name"))) {
@@ -615,7 +660,7 @@ public class ContentHelper {
                 l.add(kv);
             }
 
-            insql = "(SELECT DISTINCT mv.item_id FROM metadataschemaregistry msr, metadatafieldregistry mfr, metadatavalue mv \n" +
+            insql = "(SELECT DISTINCT mv.resource_id item_id FROM metadataschemaregistry msr, metadatafieldregistry mfr, metadatavalue mv \n" +
                     "WHERE msr.metadata_schema_id = mfr.metadata_schema_id AND mfr.metadata_field_id = mv.metadata_field_id \n" +
                     "AND ( \n";
             for (int i = 0; i < l.size(); i++) {
@@ -634,10 +679,10 @@ public class ContentHelper {
         }
 
         String sql = "SELECT workflowitem.* FROM workflowitem, item, eperson, "
-                        + " (SELECT mv.item_id, "+("oracle".equals(ConfigurationManager.getProperty("db.name"))?"TO_CHAR":"") +"(mv.text_value) title "
+                        + " (SELECT mv.resource_id item_id, "+("oracle".equals(ConfigurationManager.getProperty("db.name"))?"TO_CHAR":"") +"(mv.text_value) title "
                         + " FROM metadataschemaregistry msr, metadatafieldregistry mfr, metadatavalue mv"
                         + " WHERE msr.metadata_schema_id = mfr.metadata_schema_id AND mfr.metadata_field_id = mv.metadata_field_id"
-                        + " AND msr.short_id = 'dc' AND  mfr.element = 'title') mvts, "
+                        + " AND msr.short_id = 'dc' AND  mfr.element = 'title' AND mfr.qualifier is NULL AND mv.resource_type_id = "+ Constants.ITEM +") mvts, "
                         + insql + " WHERE workflowitem.item_id = its.item_id AND its.item_id=item.item_id AND item.submitter_id = eperson.eperson_id AND mvts.item_id = item.item_id"
                         + (reviewInd ? (reviewer>0 ? " AND workflowitem.owner=" + reviewer : " AND workflowitem.owner>0") : "")
                         + (poolInd ? " AND workflowitem.owner is NULL" : "")
@@ -792,7 +837,7 @@ public class ContentHelper {
         List<MetadataValue> mdValues = new ArrayList<MetadataValue>();
         if (itemId > 0) {
             TableRowIterator tri = DatabaseManager.queryTable(c, "MetadataValue",
-                    "SELECT * FROM MetadataValue WHERE item_id= ? ORDER BY metadata_field_id, place",
+                    "SELECT * FROM MetadataValue WHERE resource_id= ? AND resource_type_id = "+ Constants.ITEM +" ORDER BY metadata_field_id, place",
                     itemId);
             try {
                 // make a list of workflow items

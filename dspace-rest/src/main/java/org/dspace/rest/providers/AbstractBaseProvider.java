@@ -567,16 +567,21 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
                 Method method = CE.getClass().getMethod(function, funcParamsGET.get(action));
                 result = method.invoke(CE, ref, uparams, context);
             } catch (NoSuchMethodException ex) {
+                log.error(ex.getMessage(), ex);
                 throw new EntityException("Not found", "Method not supported ", 404);
             } catch (SQLException ex) {
+                log.error(ex.getMessage(), ex);
                 throw new EntityException("Internal server error", "SQL error", 500);
             } catch (InvocationTargetException ex) {
                 if (ex.getCause() != null) {
-                    throw (RuntimeException) ex.getCause();
+                    log.error(ex.getCause(), ex.getCause());
+                    throw new EntityException(ex.getCause().toString(), "Invocation Target Exception", 500);
                 } else {
+                    log.error(ex.getMessage(), ex);
                     throw new EntityException("Internal server error", "Unknown error", 500);
                 }
             } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
                 throw new EntityException("Internal server error", "Unknown error", 500);
             } finally {
                 removeConn(context);
@@ -638,16 +643,21 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
                 Method method = CE.getClass().getMethod(function, funcParamsDELETE.get(action));
                 method.invoke(CE, ref, inputVar, context);
             } catch (NoSuchMethodException ex) {
+                log.error(ex.getMessage(), ex);
                 throw new EntityException("Not found", "Meethod not supported " + segments[3], 404);
             } catch (SQLException ex) {
+                log.error(ex.getMessage(), ex);
                 throw new EntityException("Internal server error", "SQL error", 500);
             } catch (InvocationTargetException ex) {
                 if (ex.getCause() != null) {
-                    throw (RuntimeException) ex.getCause();
+                    log.error(ex.getCause(), ex.getCause());
+                    throw new EntityException(ex.getCause().toString(), "Invocation Target Exception", 500);
                 } else {
+                    log.error(ex.getMessage(), ex);
                     throw new EntityException("Internal server error", "Unknown error", 500);
                 }
             } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
                 throw new EntityException("Internal server error", "Unknown error", 500);
             } finally {
                 removeConn(context);
@@ -684,16 +694,21 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
                 Method method = CE.getClass().getMethod(function, funcParamsPUT.get(action));
                 method.invoke(CE, ref, inputVar, context);
             } catch (NoSuchMethodException ex) {
+                log.error(ex.getMessage(), ex);
                 throw new EntityException("Not found", "Meethod not supported " + segments[3], 404);
             } catch (SQLException ex) {
+                log.error(ex.getMessage(), ex);
                 throw new EntityException("Internal server error", "SQL error", 500);
             } catch (InvocationTargetException ex) {
                 if (ex.getCause() != null) {
-                    throw (RuntimeException) ex.getCause();
+                    log.error(ex.getCause(), ex.getCause());
+                    throw new EntityException(ex.getCause().toString(), "Invocation Target Exception", 500);
                 } else {
+                    log.error(ex.getMessage(), ex);
                     throw new EntityException("Internal server error", "Unknown error", 500);
                 }
             } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
                 throw new EntityException("Internal server error", "Unknown error", 500);
             } finally {
                 removeConn(context);
@@ -749,16 +764,21 @@ public abstract class AbstractBaseProvider implements EntityProvider, Resolvable
                     result = (String) method.invoke(CE, ref, entity, context);
                 }
             } catch (NoSuchMethodException ex) {
+                log.error(ex.getMessage(), ex);
                 throw new EntityException("Not found", "Method not supported ", 404);
             } catch (SQLException ex) {
+                log.error(ex.getMessage(), ex);
                 throw new EntityException("Internal server error", "SQL error", 500);
             } catch (InvocationTargetException ex) {
                 if (ex.getCause() != null) {
-                    throw (RuntimeException) ex.getCause();
+                    log.error(ex.getCause(), ex.getCause());
+                    throw new EntityException(ex.getCause().toString(), "Invocation Target Exception", 500);
                 } else {
+                    log.error(ex.getMessage(), ex);
                     throw new EntityException("Internal server error", "Unknown error", 500);
                 }
             } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
                 throw new EntityException("Internal server error", "Unknown error", 500);
             } finally {
                 removeConn(context);

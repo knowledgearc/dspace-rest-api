@@ -42,7 +42,9 @@ public class ItemEntityTrim extends ItemEntityId {
         this.lastModified = res.getLastModified();
         this.isArchived = res.isArchived();
         this.isWithdrawn = res.isWithdrawn();
-        this.submitter = new UserEntityTrim(res.getSubmitter());
+        if (res.getSubmitter() != null) {
+            this.submitter = new UserEntityTrim(res.getSubmitter());
+        }
 
         MetadataValue[] mdValues = ContentHelper.retrieveMetadata(context, res.getID());
         for (MetadataValue mdValue : mdValues) {
@@ -59,7 +61,9 @@ public class ItemEntityTrim extends ItemEntityId {
         this.lastModified = item.getLastModified();
         this.isArchived = item.isArchived();
         this.isWithdrawn = item.isWithdrawn();
-        this.submitter = new UserEntityTrim(item.getSubmitter());
+        if (item.getSubmitter() != null) {
+            this.submitter = new UserEntityTrim(item.getSubmitter());
+        }
 
         MetadataValue[] mdValues = ContentHelper.retrieveMetadata(context,item.getID());
         for (MetadataValue mdValue : mdValues) {

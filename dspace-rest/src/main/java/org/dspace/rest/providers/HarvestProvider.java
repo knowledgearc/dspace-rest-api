@@ -25,7 +25,7 @@ import org.dspace.rest.util.UserRequestParams;
 
 public class HarvestProvider extends AbstractBaseProvider implements CoreEntityProvider {
 
-    private static Logger log = Logger.getLogger(UserProvider.class);
+    private static Logger log = Logger.getLogger(HarvestProvider.class);
 
     public HarvestProvider(EntityProviderManager entityProviderManager) {
         super(entityProviderManager);
